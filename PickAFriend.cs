@@ -1,0 +1,31 @@
+using System;
+using Rust.UI;
+using UnityEngine.UI;
+
+public class PickAFriend : UIDialog
+{
+	public InputField input;
+
+	public RustText headerText;
+
+	public bool AutoSelectInputField;
+
+	public Action<ulong, string> onSelected;
+
+	public Translate.Phrase sleepingBagHeaderPhrase = new Translate.Phrase("assign_to_friend", "Assign To a Friend");
+
+	public Translate.Phrase turretHeaderPhrase = new Translate.Phrase("authorize_a_friend", "Authorize a Friend");
+
+	public SteamFriendsList friendsList;
+
+	public Func<ulong, bool> shouldShowPlayer
+	{
+		set
+		{
+			if (friendsList != null)
+			{
+				friendsList.shouldShowPlayer = value;
+			}
+		}
+	}
+}

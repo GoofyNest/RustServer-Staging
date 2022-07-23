@@ -1,0 +1,788 @@
+#define UNITY_ASSERTIONS
+using System;
+using System.Collections.Generic;
+using ConVar;
+using Facepunch;
+using Network;
+using Rust;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Serialization;
+
+public class BaseMountable : BaseCombatEntity
+{
+	public enum MountStatType
+	{
+		None,
+		Boating,
+		Flying,
+		Driving
+	}
+
+	public enum MountGestureType
+	{
+		None,
+		UpperBody
+	}
+
+	public static Translate.Phrase dismountPhrase = new Translate.Phrase("dismount", "Dismount");
+
+	[Header("View")]
+	[FormerlySerializedAs("eyeOverride")]
+	public Transform eyePositionOverride;
+
+	[FormerlySerializedAs("eyeOverride")]
+	public Transform eyeCenterOverride;
+
+	public Vector2 pitchClamp = new Vector2(-80f, 50f);
+
+	public Vector2 yawClamp = new Vector2(-80f, 80f);
+
+	public bool canWieldItems = true;
+
+	public bool relativeViewAngles = true;
+
+	[Header("Mounting")]
+	public Transform mountAnchor;
+
+	public PlayerModel.MountPoses mountPose;
+
+	public float maxMountDistance = 1.5f;
+
+	public Transform[] dismountPositions;
+
+	public bool checkPlayerLosOnMount;
+
+	public bool disableMeshCullingForPlayers;
+
+	public bool allowHeadLook;
+
+	[FormerlySerializedAs("modifyPlayerCollider")]
+	public bool modifiesPlayerCollider;
+
+	public BasePlayer.CapsuleColliderInfo customPlayerCollider;
+
+	public SoundDefinition mountSoundDef;
+
+	public SoundDefinition swapSoundDef;
+
+	public SoundDefinition dismountSoundDef;
+
+	public MountStatType mountTimeStatType;
+
+	public MountGestureType allowedGestures;
+
+	public bool canDrinkWhileMounted = true;
+
+	public bool allowSleeperMounting;
+
+	[Help("Set this to true if the mountable is enclosed so it doesn't move inside cars and such")]
+	public bool animateClothInLocalSpace = true;
+
+	[Header("Camera")]
+	public BasePlayer.CameraMode MountedCameraMode;
+
+	[FormerlySerializedAs("needsVehicleTick")]
+	public bool isMobile;
+
+	public float SideLeanAmount = 0.2f;
+
+	protected BasePlayer _mounted;
+
+	public static ListHashSet<BaseMountable> FixedUpdateMountables = new ListHashSet<BaseMountable>();
+
+	public const float playerHeight = 1.8f;
+
+	public const float playerRadius = 0.5f;
+
+	protected override float PositionTickRate => 0.05f;
+
+	public virtual bool IsSummerDlcVehicle => false;
+
+	public virtual bool BlocksDoors => true;
+
+	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
+	{
+		using (TimeWarning.New("BaseMountable.OnRpcMessage"))
+		{
+			if (rpc == 1735799362 && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_WantsDismount "));
+				}
+				using (TimeWarning.New("RPC_WantsDismount"))
+				{
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg2 = rPCMessage;
+							RPC_WantsDismount(msg2);
+						}
+					}
+					catch (Exception exception)
+					{
+						Debug.LogException(exception);
+						player.Kick("RPC Error in RPC_WantsDismount");
+					}
+				}
+				return true;
+			}
+			if (rpc == 4014300952u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_WantsMount "));
+				}
+				using (TimeWarning.New("RPC_WantsMount"))
+				{
+					using (TimeWarning.New("Conditions"))
+					{
+						if (!RPC_Server.IsVisible.Test(4014300952u, "RPC_WantsMount", this, player, 3f))
+						{
+							return true;
+						}
+					}
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg3 = rPCMessage;
+							RPC_WantsMount(msg3);
+						}
+					}
+					catch (Exception exception2)
+					{
+						Debug.LogException(exception2);
+						player.Kick("RPC Error in RPC_WantsMount");
+					}
+				}
+				return true;
+			}
+		}
+		return base.OnRpcMessage(player, rpc, msg);
+	}
+
+	public virtual bool CanHoldItems()
+	{
+		return canWieldItems;
+	}
+
+	public virtual BasePlayer.CameraMode GetMountedCameraMode()
+	{
+		return MountedCameraMode;
+	}
+
+	public virtual bool DirectlyMountable()
+	{
+		return true;
+	}
+
+	public virtual Transform GetEyeOverride()
+	{
+		if (eyePositionOverride != null)
+		{
+			return eyePositionOverride;
+		}
+		return base.transform;
+	}
+
+	public virtual Quaternion GetMountedBodyAngles()
+	{
+		return GetEyeOverride().rotation;
+	}
+
+	public virtual bool ModifiesThirdPersonCamera()
+	{
+		return false;
+	}
+
+	public virtual Vector2 GetPitchClamp()
+	{
+		return pitchClamp;
+	}
+
+	public virtual Vector2 GetYawClamp()
+	{
+		return yawClamp;
+	}
+
+	public virtual bool IsMounted()
+	{
+		return IsBusy();
+	}
+
+	public virtual Vector3 EyePositionForPlayer(BasePlayer player, Quaternion lookRot)
+	{
+		if (player.GetMounted() != this)
+		{
+			return Vector3.zero;
+		}
+		return eyePositionOverride.transform.position;
+	}
+
+	public virtual Vector3 EyeCenterForPlayer(BasePlayer player, Quaternion lookRot)
+	{
+		if (player.GetMounted() != this)
+		{
+			return Vector3.zero;
+		}
+		return eyeCenterOverride.transform.position;
+	}
+
+	public virtual float WaterFactorForPlayer(BasePlayer player)
+	{
+		return WaterLevel.Factor(player.WorldSpaceBounds().ToBounds(), this);
+	}
+
+	public override float MaxVelocity()
+	{
+		BaseEntity baseEntity = GetParentEntity();
+		if ((bool)baseEntity)
+		{
+			return baseEntity.MaxVelocity();
+		}
+		return base.MaxVelocity();
+	}
+
+	public virtual bool PlayerIsMounted(BasePlayer player)
+	{
+		if (player.IsValid())
+		{
+			return player.GetMounted() == this;
+		}
+		return false;
+	}
+
+	public virtual BaseVehicle VehicleParent()
+	{
+		return GetParentEntity() as BaseVehicle;
+	}
+
+	public override void PostServerLoad()
+	{
+		base.PostServerLoad();
+		SetFlag(Flags.Busy, _mounted != null);
+	}
+
+	public BasePlayer GetMounted()
+	{
+		return _mounted;
+	}
+
+	public virtual void MounteeTookDamage(BasePlayer mountee, HitInfo info)
+	{
+	}
+
+	public virtual void LightToggle(BasePlayer player)
+	{
+	}
+
+	public virtual bool CanSwapToThis(BasePlayer player)
+	{
+		return true;
+	}
+
+	public override bool CanPickup(BasePlayer player)
+	{
+		if (base.CanPickup(player))
+		{
+			return !IsMounted();
+		}
+		return false;
+	}
+
+	public override void OnKilled(HitInfo info)
+	{
+		DismountAllPlayers();
+		base.OnKilled(info);
+	}
+
+	[RPC_Server]
+	[RPC_Server.IsVisible(3f)]
+	public void RPC_WantsMount(RPCMessage msg)
+	{
+		BasePlayer player = msg.player;
+		if (!player || !player.CanInteract())
+		{
+			return;
+		}
+		if (!DirectlyMountable())
+		{
+			BaseVehicle baseVehicle = VehicleParent();
+			if (baseVehicle != null)
+			{
+				baseVehicle.RPC_WantsMount(msg);
+				return;
+			}
+		}
+		AttemptMount(player);
+	}
+
+	public virtual void AttemptMount(BasePlayer player, bool doMountChecks = true)
+	{
+		if (_mounted != null || IsDead() || !player.CanMountMountablesNow())
+		{
+			return;
+		}
+		if (doMountChecks)
+		{
+			if (checkPlayerLosOnMount && UnityEngine.Physics.Linecast(player.eyes.position, mountAnchor.position + base.transform.up * 0.5f, 1218652417))
+			{
+				Debug.Log("No line of sight to mount pos");
+				return;
+			}
+			if (!HasValidDismountPosition(player))
+			{
+				Debug.Log("no valid dismount");
+				return;
+			}
+		}
+		MountPlayer(player);
+	}
+
+	public virtual bool AttemptDismount(BasePlayer player)
+	{
+		if (player != _mounted)
+		{
+			return false;
+		}
+		DismountPlayer(player);
+		return true;
+	}
+
+	[RPC_Server]
+	public void RPC_WantsDismount(RPCMessage msg)
+	{
+		BasePlayer player = msg.player;
+		if (HasValidDismountPosition(player))
+		{
+			AttemptDismount(player);
+		}
+	}
+
+	public void MountPlayer(BasePlayer player)
+	{
+		if (!(_mounted != null) && !(mountAnchor == null))
+		{
+			player.EnsureDismounted();
+			_mounted = player;
+			Transform transform = mountAnchor.transform;
+			player.MountObject(this);
+			player.MovePosition(transform.position);
+			player.transform.rotation = transform.rotation;
+			player.ServerRotation = transform.rotation;
+			player.OverrideViewAngles(transform.rotation.eulerAngles);
+			_mounted.eyes.NetworkUpdate(transform.rotation);
+			player.ClientRPCPlayer(null, player, "ForcePositionTo", player.transform.position);
+			SetFlag(Flags.Busy, b: true);
+			OnPlayerMounted();
+		}
+	}
+
+	public virtual void OnPlayerMounted()
+	{
+		UpdateFullFlag();
+	}
+
+	public virtual void OnPlayerDismounted(BasePlayer player)
+	{
+		UpdateFullFlag();
+	}
+
+	private void UpdateFullFlag()
+	{
+		if (this is BaseVehicle baseVehicle)
+		{
+			baseVehicle.UpdateFullFlag();
+			return;
+		}
+		BaseVehicle baseVehicle2 = VehicleParent();
+		if (baseVehicle2 != null)
+		{
+			baseVehicle2.UpdateFullFlag();
+		}
+	}
+
+	public virtual void DismountAllPlayers()
+	{
+		if ((bool)_mounted)
+		{
+			DismountPlayer(_mounted);
+		}
+	}
+
+	public void DismountPlayer(BasePlayer player, bool lite = false)
+	{
+		if (_mounted == null || _mounted != player)
+		{
+			return;
+		}
+		BaseVehicle baseVehicle = VehicleParent();
+		Vector3 res;
+		if (lite)
+		{
+			if (baseVehicle != null)
+			{
+				baseVehicle.PrePlayerDismount(player, this);
+			}
+			_mounted.DismountObject();
+			_mounted = null;
+			SetFlag(Flags.Busy, b: false);
+			if (baseVehicle != null)
+			{
+				baseVehicle.PlayerDismounted(player, this);
+			}
+		}
+		else if (!GetDismountPosition(player, out res) || Distance(res) > 10f)
+		{
+			if (baseVehicle != null)
+			{
+				baseVehicle.PrePlayerDismount(player, this);
+			}
+			res = player.transform.position;
+			_mounted.DismountObject();
+			_mounted.MovePosition(res);
+			_mounted.ClientRPCPlayer(null, _mounted, "ForcePositionTo", res);
+			BasePlayer mounted = _mounted;
+			_mounted = null;
+			Debug.LogWarning("Killing player due to invalid dismount point :" + player.displayName + " / " + player.userID + " on obj : " + base.gameObject.name);
+			mounted.Hurt(1000f, DamageType.Suicide, mounted, useProtection: false);
+			SetFlag(Flags.Busy, b: false);
+			if (baseVehicle != null)
+			{
+				baseVehicle.PlayerDismounted(player, this);
+			}
+		}
+		else
+		{
+			if (baseVehicle != null)
+			{
+				baseVehicle.PrePlayerDismount(player, this);
+			}
+			_mounted.DismountObject();
+			_mounted.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+			_mounted.MovePosition(res);
+			_mounted.SendNetworkUpdateImmediate();
+			_mounted.SendModelState(force: true);
+			_mounted = null;
+			SetFlag(Flags.Busy, b: false);
+			if (baseVehicle != null)
+			{
+				baseVehicle.PlayerDismounted(player, this);
+			}
+			player.ForceUpdateTriggers();
+			if ((bool)player.GetParentEntity())
+			{
+				BaseEntity baseEntity = player.GetParentEntity();
+				player.ClientRPCPlayer(null, player, "ForcePositionToParentOffset", baseEntity.transform.InverseTransformPoint(res), baseEntity.net.ID);
+			}
+			else
+			{
+				player.ClientRPCPlayer(null, player, "ForcePositionTo", res);
+			}
+			OnPlayerDismounted(player);
+		}
+	}
+
+	public virtual bool ValidDismountPosition(Vector3 disPos, Vector3 visualCheckOrigin)
+	{
+		bool debugDismounts = Debugging.DebugDismounts;
+		if (debugDismounts)
+		{
+			Debug.Log($"ValidDismountPosition debug: Checking dismount point {disPos} from {visualCheckOrigin}.");
+		}
+		Vector3 start = disPos + new Vector3(0f, 0.5f, 0f);
+		Vector3 end = disPos + new Vector3(0f, 1.3f, 0f);
+		if (!UnityEngine.Physics.CheckCapsule(start, end, 0.5f, 1537286401))
+		{
+			Vector3 vector = disPos + base.transform.up * 0.5f;
+			if (IsVisible(vector))
+			{
+				if (debugDismounts)
+				{
+					Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} is visible.");
+				}
+				if (!UnityEngine.Physics.Linecast(visualCheckOrigin, vector, out var hitInfo, 1486946561) || HitOurself(hitInfo))
+				{
+					if (debugDismounts)
+					{
+						Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} linecast is OK.");
+					}
+					Ray ray = new Ray(visualCheckOrigin, Vector3Ex.Direction(vector, visualCheckOrigin));
+					float maxDistance = Vector3.Distance(visualCheckOrigin, vector);
+					if (!UnityEngine.Physics.SphereCast(ray, 0.5f, out hitInfo, maxDistance, 1486946561) || HitOurself(hitInfo))
+					{
+						if (debugDismounts)
+						{
+							if (debugDismounts)
+							{
+								Debug.Log($"<color=green>ValidDismountPosition debug: Dismount point {disPos} is valid</color>.");
+							}
+							Debug.DrawLine(visualCheckOrigin, disPos, Color.green, 10f);
+						}
+						return true;
+					}
+				}
+			}
+		}
+		if (debugDismounts)
+		{
+			Debug.DrawLine(visualCheckOrigin, disPos, Color.red, 10f);
+			if (debugDismounts)
+			{
+				Debug.Log($"<color=red>ValidDismountPosition debug: Dismount point {disPos} is invalid</color>.");
+			}
+		}
+		return false;
+		bool HitOurself(RaycastHit hit)
+		{
+			BaseEntity entity = hit.GetEntity();
+			if (!(entity == this))
+			{
+				return EqualNetID(entity);
+			}
+			return true;
+		}
+	}
+
+	public virtual bool HasValidDismountPosition(BasePlayer player)
+	{
+		BaseVehicle baseVehicle = VehicleParent();
+		if (baseVehicle != null)
+		{
+			return baseVehicle.HasValidDismountPosition(player);
+		}
+		Vector3 visualCheckOrigin = player.TriggerPoint();
+		Transform[] array = dismountPositions;
+		foreach (Transform transform in array)
+		{
+			if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public virtual bool GetDismountPosition(BasePlayer player, out Vector3 res)
+	{
+		BaseVehicle baseVehicle = VehicleParent();
+		if (baseVehicle != null)
+		{
+			return baseVehicle.GetDismountPosition(player, out res);
+		}
+		int num = 0;
+		Vector3 visualCheckOrigin = player.TriggerPoint();
+		Transform[] array = dismountPositions;
+		foreach (Transform transform in array)
+		{
+			if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+			{
+				res = transform.transform.position;
+				return true;
+			}
+			num++;
+		}
+		Debug.LogWarning("Failed to find dismount position for player :" + player.displayName + " / " + player.userID + " on obj : " + base.gameObject.name);
+		res = player.transform.position;
+		return false;
+	}
+
+	public override void ServerInit()
+	{
+		base.ServerInit();
+		if (isMobile)
+		{
+			FixedUpdateMountables.Add(this);
+		}
+	}
+
+	internal override void DoServerDestroy()
+	{
+		FixedUpdateMountables.Remove(this);
+		base.DoServerDestroy();
+	}
+
+	public static void FixedUpdateCycle()
+	{
+		for (int num = FixedUpdateMountables.Count - 1; num >= 0; num--)
+		{
+			BaseMountable baseMountable = FixedUpdateMountables[num];
+			if (baseMountable == null)
+			{
+				FixedUpdateMountables.RemoveAt(num);
+			}
+			else if (baseMountable.isSpawned)
+			{
+				baseMountable.VehicleFixedUpdate();
+			}
+		}
+		for (int num2 = FixedUpdateMountables.Count - 1; num2 >= 0; num2--)
+		{
+			BaseMountable baseMountable2 = FixedUpdateMountables[num2];
+			if (baseMountable2 == null)
+			{
+				FixedUpdateMountables.RemoveAt(num2);
+			}
+			else if (baseMountable2.isSpawned)
+			{
+				baseMountable2.PostVehicleFixedUpdate();
+			}
+		}
+	}
+
+	public virtual void VehicleFixedUpdate()
+	{
+		if ((bool)_mounted)
+		{
+			_mounted.transform.rotation = mountAnchor.transform.rotation;
+			_mounted.ServerRotation = mountAnchor.transform.rotation;
+			_mounted.MovePosition(mountAnchor.transform.position);
+		}
+	}
+
+	public virtual void PostVehicleFixedUpdate()
+	{
+	}
+
+	public virtual void PlayerServerInput(InputState inputState, BasePlayer player)
+	{
+	}
+
+	public virtual float GetComfort()
+	{
+		return 0f;
+	}
+
+	public virtual void ScaleDamageForPlayer(BasePlayer player, HitInfo info)
+	{
+	}
+
+	public static bool TryFireProjectile(StorageContainer ammoStorage, AmmoTypes ammoType, Vector3 firingPos, Vector3 firingDir, BasePlayer driver, float launchOffset, float minSpeed, out ServerProjectile projectile)
+	{
+		projectile = null;
+		if (ammoStorage == null)
+		{
+			return false;
+		}
+		bool result = false;
+		List<Item> obj = Facepunch.Pool.GetList<Item>();
+		ammoStorage.inventory.FindAmmo(obj, ammoType);
+		for (int num = obj.Count - 1; num >= 0; num--)
+		{
+			if (obj[num].amount <= 0)
+			{
+				obj.RemoveAt(num);
+			}
+		}
+		if (obj.Count > 0)
+		{
+			if (UnityEngine.Physics.Raycast(firingPos, firingDir, out var hitInfo, launchOffset, 1236478737))
+			{
+				launchOffset = hitInfo.distance - 0.1f;
+			}
+			Item item = obj[obj.Count - 1];
+			ItemModProjectile component = item.info.GetComponent<ItemModProjectile>();
+			BaseEntity baseEntity = GameManager.server.CreateEntity(component.projectileObject.resourcePath, firingPos + firingDir * launchOffset);
+			projectile = baseEntity.GetComponent<ServerProjectile>();
+			Vector3 vector = projectile.initialVelocity + firingDir * projectile.speed;
+			if (minSpeed > 0f)
+			{
+				float num2 = Vector3.Dot(vector, firingDir) - minSpeed;
+				if (num2 < 0f)
+				{
+					vector += firingDir * (0f - num2);
+				}
+			}
+			projectile.InitializeVelocity(vector);
+			if (driver.IsValid())
+			{
+				baseEntity.creatorEntity = driver;
+				baseEntity.OwnerID = driver.userID;
+			}
+			baseEntity.Spawn();
+			item.UseItem();
+			result = true;
+		}
+		Facepunch.Pool.FreeList(ref obj);
+		return result;
+	}
+
+	public virtual bool IsInstrument()
+	{
+		return false;
+	}
+
+	public bool NearMountPoint(BasePlayer player)
+	{
+		if (player == null)
+		{
+			return false;
+		}
+		if (mountAnchor == null)
+		{
+			return false;
+		}
+		if (Vector3.Distance(player.transform.position, mountAnchor.position) <= maxMountDistance)
+		{
+			if (!UnityEngine.Physics.SphereCast(player.eyes.HeadRay(), 0.25f, out var hitInfo, 2f, 1218652417))
+			{
+				return false;
+			}
+			BaseEntity entity = hitInfo.GetEntity();
+			if (entity != null)
+			{
+				if (entity == this || EqualNetID(entity))
+				{
+					return true;
+				}
+				if (entity is BasePlayer basePlayer)
+				{
+					BaseMountable mounted = basePlayer.GetMounted();
+					if (mounted == this)
+					{
+						return true;
+					}
+					if (mounted != null && mounted.VehicleParent() == this)
+					{
+						return true;
+					}
+				}
+				BaseEntity baseEntity = entity.GetParentEntity();
+				if (hitInfo.IsOnLayer(Rust.Layer.Vehicle_Detailed) && (baseEntity == this || EqualNetID(baseEntity)))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static Vector3 ConvertVector(Vector3 vec)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			if (vec[i] > 180f)
+			{
+				vec[i] -= 360f;
+			}
+			else if (vec[i] < -180f)
+			{
+				vec[i] += 360f;
+			}
+		}
+		return vec;
+	}
+}
