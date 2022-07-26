@@ -63,6 +63,8 @@ public class PatternFirework : MortarFirework, IUGCBrowserEntity
 		}
 	}
 
+	public BaseNetworkable UgcEntity => this;
+
 	public override void DestroyShared()
 	{
 		base.DestroyShared();

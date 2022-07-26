@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[851]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[854]
 	{
 		new ConsoleSystem.Command
 		{
@@ -865,6 +865,30 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "clearugcentitiesinrange",
+			Parent = "global",
+			FullName = "global.clearugcentitiesinrange",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.clearugcentitiesinrange(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "clearugcentity",
+			Parent = "global",
+			FullName = "global.clearugcentity",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.clearugcentity(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "clientperf",
 			Parent = "global",
 			FullName = "global.clientperf",
@@ -885,6 +909,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Admin.entid(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "getugcinfo",
+			Parent = "global",
+			FullName = "global.getugcinfo",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.getugcinfo(arg);
 			}
 		},
 		new ConsoleSystem.Command

@@ -59,6 +59,8 @@ public class Signage : IOEntity, ILOD, ISignage, IUGCBrowserEntity
 
 	public List<ulong> EditingHistory => editHistory;
 
+	public BaseNetworkable UgcEntity => this;
+
 	public uint[] GetContentCRCs => GetTextureCRCs();
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)

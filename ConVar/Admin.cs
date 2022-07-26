@@ -107,6 +107,16 @@ public class Admin : ConsoleSystem
 		public string shortPrefabName;
 
 		public ulong[] playerIds;
+
+		public ServerUGCInfo(IUGCBrowserEntity fromEntity)
+		{
+			entityId = fromEntity.UgcEntity.net.ID;
+			crcs = fromEntity.GetContentCRCs;
+			contentType = fromEntity.ContentType;
+			entityPrefabID = fromEntity.UgcEntity.prefabID;
+			shortPrefabName = fromEntity.UgcEntity.ShortPrefabName;
+			playerIds = fromEntity.EditingHistory.ToArray();
+		}
 	}
 
 	[ReplicatedVar(Help = "Controls whether the in-game admin UI is displayed to admins")]
@@ -1255,6 +1265,55 @@ public class Admin : ConsoleSystem
 				SendInfo sendInfo2 = sendInfo;
 				arg.Player().ClientRPCEx(sendInfo2, null, "AdminReceivedPatternFirework", uInt, patternFirework.Design.ToProtoBytes());
 			}
+		}
+	}
+
+	[ServerVar]
+	public static void clearugcentity(Arg arg)
+	{
+		uint uInt = arg.GetUInt(0);
+		BaseNetworkable baseNetworkable = BaseNetworkable.serverEntities.Find(uInt);
+		if (baseNetworkable != null && baseNetworkable.TryGetComponent<IUGCBrowserEntity>(out var component))
+		{
+			component.ClearContent();
+			arg.ReplyWith($"Cleared content on {baseNetworkable.ShortPrefabName}/{uInt}");
+		}
+		else
+		{
+			arg.ReplyWith($"Could not find UGC entity with id {uInt}");
+		}
+	}
+
+	[ServerVar]
+	public static void clearugcentitiesinrange(Arg arg)
+	{
+		Vector3 vector = arg.GetVector3(0);
+		float @float = arg.GetFloat(1);
+		int num = 0;
+		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
+		{
+			if (serverEntity.TryGetComponent<IUGCBrowserEntity>(out var component) && Vector3.Distance(serverEntity.transform.position, vector) <= @float)
+			{
+				component.ClearContent();
+				num++;
+			}
+		}
+		arg.ReplyWith($"Cleared {num} UGC entities within {@float}m of {vector}");
+	}
+
+	[ServerVar]
+	public static void getugcinfo(Arg arg)
+	{
+		uint uInt = arg.GetUInt(0);
+		BaseNetworkable baseNetworkable = BaseNetworkable.serverEntities.Find(uInt);
+		if (baseNetworkable != null && baseNetworkable.TryGetComponent<IUGCBrowserEntity>(out var component))
+		{
+			ServerUGCInfo serverUGCInfo = new ServerUGCInfo(component);
+			arg.ReplyWith(JsonConvert.SerializeObject(serverUGCInfo));
+		}
+		else
+		{
+			arg.ReplyWith($"Invalid entity id: {uInt}");
 		}
 	}
 }
