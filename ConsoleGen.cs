@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[854]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[857]
 	{
 		new ConsoleSystem.Command
 		{
@@ -897,6 +897,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Admin.clientperf(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "clientperf_frametime",
+			Parent = "global",
+			FullName = "global.clientperf_frametime",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.clientperf_frametime(arg);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7455,6 +7467,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "listtoolcupboards",
+			Parent = "server",
+			FullName = "server.listtoolcupboards",
+			ServerAdmin = true,
+			Description = "Prints all the Tool Cupboards on the server",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Server.listtoolcupboards(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "listvendingmachines",
 			Parent = "server",
 			FullName = "server.listvendingmachines",
@@ -9649,6 +9674,18 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				ConVar.World.cache = str.ToBool();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "monuments",
+			Parent = "world",
+			FullName = "world.monuments",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				ConVar.World.monuments(arg);
 			}
 		},
 		new ConsoleSystem.Command

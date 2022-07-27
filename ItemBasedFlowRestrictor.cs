@@ -7,7 +7,7 @@ using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class ItemBasedFlowRestrictor : IOEntity
+public class ItemBasedFlowRestrictor : IOEntity, IContainerSounds
 {
 	public ItemDefinition passthroughItem;
 
@@ -24,6 +24,10 @@ public class ItemBasedFlowRestrictor : IOEntity
 	public const Flags Sparks = Flags.Reserved2;
 
 	public float passthroughItemConditionLossPerSec = 1f;
+
+	public SoundDefinition openSound;
+
+	public SoundDefinition closeSound;
 
 	private ItemContainer inventory;
 

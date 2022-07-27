@@ -81,6 +81,10 @@ public class Admin : ConsoleSystem
 		public bool Restarting;
 
 		public string SaveCreatedTime;
+
+		public int Version;
+
+		public string Protocol;
 	}
 
 	[Preserve]
@@ -126,8 +130,13 @@ public class Admin : ConsoleSystem
 	public static void status(Arg arg)
 	{
 		string @string = arg.GetString(0);
+		if (@string == "--json")
+		{
+			@string = arg.GetString(1);
+		}
+		bool flag = arg.HasArg("--json");
 		string text = string.Empty;
-		if (@string.Length == 0)
+		if (!flag && @string.Length == 0)
 		{
 			text = text + "hostname: " + Server.hostname + "\n";
 			text = text + "version : " + 2348 + " secure (secure mode enabled, connected to Steam3)\n";
@@ -178,7 +187,14 @@ public class Admin : ConsoleSystem
 				textTable.AddRow(activePlayer.UserIDString, ex.Message.QuoteSafe());
 			}
 		}
-		arg.ReplyWith(text + textTable.ToString());
+		if (flag)
+		{
+			arg.ReplyWith(textTable.ToJson());
+		}
+		else
+		{
+			arg.ReplyWith(text + textTable.ToString());
+		}
 	}
 
 	[ServerVar(Help = "Print out stats of currently connected clients")]
@@ -242,7 +258,7 @@ public class Admin : ConsoleSystem
 			}
 			action(uInt, arg2);
 		}
-		arg.ReplyWith(table.ToString());
+		arg.ReplyWith(arg.HasArg("--json") ? table.ToJson() : table.ToString());
 	}
 
 	[ServerVar]
@@ -577,7 +593,7 @@ public class Admin : ConsoleSystem
 			string text5 = activePlayer.GetQueuedUpdateCount(BasePlayer.NetworkQueue.UpdateDistance).ToString();
 			textTable.AddRow(userIDString, text2, text3, string.Empty, text4, string.Empty, text5);
 		}
-		arg.ReplyWith(textTable.ToString());
+		arg.ReplyWith(arg.HasArg("--json") ? textTable.ToJson() : textTable.ToString());
 	}
 
 	[ServerVar(Help = "Sends a message in chat")]
@@ -760,9 +776,26 @@ public class Admin : ConsoleSystem
 	[ServerVar]
 	public static void clientperf(Arg arg)
 	{
+		string @string = arg.GetString(0, "legacy");
+		int @int = arg.GetInt(1, UnityEngine.Random.Range(int.MinValue, int.MaxValue));
 		foreach (BasePlayer activePlayer in BasePlayer.activePlayerList)
 		{
-			activePlayer.ClientRPCPlayer(null, activePlayer, "GetPerformanceReport");
+			activePlayer.ClientRPCPlayer(null, activePlayer, "GetPerformanceReport", @string, @int);
+		}
+	}
+
+	[ServerVar]
+	public static void clientperf_frametime(Arg arg)
+	{
+		ClientFrametimeRequest value = new ClientFrametimeRequest
+		{
+			request_id = arg.GetInt(0, UnityEngine.Random.Range(int.MinValue, int.MaxValue)),
+			start_frame = arg.GetInt(1),
+			max_frames = arg.GetInt(2, 1000)
+		};
+		foreach (BasePlayer activePlayer in BasePlayer.activePlayerList)
+		{
+			activePlayer.ClientRPCPlayer(null, activePlayer, "GetPerformanceReport_Frametime", JsonConvert.SerializeObject(value));
 		}
 	}
 
@@ -855,7 +888,11 @@ public class Admin : ConsoleSystem
 			bool flag = Network.Net.sv.connections.FirstOrDefault((Connection c) => c.connected && c.userid == memberId) != null;
 			textTable.AddRow(memberId.ToString(), GetPlayerName(memberId), flag ? "x" : "", (memberId == playerTeam.teamLeader) ? "x" : "");
 		}
-		return textTable.ToString();
+		if (!arg.HasArg("--json"))
+		{
+			return textTable.ToString();
+		}
+		return textTable.ToJson();
 	}
 
 	[ServerVar]
@@ -1093,6 +1130,8 @@ public class Admin : ConsoleSystem
 		result.NetworkOut = (int)((Network.Net.sv != null) ? Network.Net.sv.GetStat(null, BaseNetwork.StatTypeLong.BytesSent_LastSecond) : 0);
 		result.Restarting = SingletonComponent<ServerMgr>.Instance.Restarting;
 		result.SaveCreatedTime = SaveRestore.SaveCreatedTime.ToString();
+		result.Version = 2348;
+		result.Protocol = Protocol.printable;
 		return result;
 	}
 

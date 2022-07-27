@@ -7,7 +7,7 @@ using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class DroppedItemContainer : BaseCombatEntity, LootPanel.IHasLootPanel
+public class DroppedItemContainer : BaseCombatEntity, LootPanel.IHasLootPanel, IContainerSounds
 {
 	public string lootPanelName = "generic";
 
@@ -20,6 +20,10 @@ public class DroppedItemContainer : BaseCombatEntity, LootPanel.IHasLootPanel
 	public string _playerName;
 
 	public bool onlyOwnerLoot;
+
+	public SoundDefinition openSound;
+
+	public SoundDefinition closeSound;
 
 	private ItemContainer inventory;
 

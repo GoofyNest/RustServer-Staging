@@ -83,10 +83,6 @@ public class ModularCarGarage : ContainerIOEntity
 	[SerializeField]
 	private SoundDefinition liftLoopSoundDef;
 
-	public SoundDefinition liftOpenSoundDef;
-
-	public SoundDefinition liftCloseSoundDef;
-
 	public ChassisBuildOption[] chassisBuildOptions;
 
 	public ItemAmount lockResourceCost;

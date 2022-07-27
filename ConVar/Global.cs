@@ -626,7 +626,7 @@ public class Global : ConsoleSystem
 				textTable.AddRow("sv", item.ID.ToString());
 			}
 		}
-		arg.ReplyWith(textTable.ToString());
+		arg.ReplyWith(arg.HasArg("--json") ? textTable.ToJson() : textTable.ToString());
 	}
 
 	[ServerVar]
