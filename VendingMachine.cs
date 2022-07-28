@@ -481,22 +481,33 @@ public class VendingMachine : StorageContainer
 	{
 		foreach (ProtoBuf.VendingMachine.SellOrder sellOrder in sellOrders.sellOrders)
 		{
-			if (itemDef == null || itemDef.itemid == sellOrder.itemToSellID)
+			if (!(itemDef == null) && itemDef.itemid != sellOrder.itemToSellID)
 			{
-				List<Item> obj = Facepunch.Pool.GetList<Item>();
-				GetItemsToSell(sellOrder, obj);
-				sellOrder.inStock = ((obj.Count >= 0) ? (obj.Sum((Item x) => x.amount) / sellOrder.itemToSellAmount) : 0);
-				float itemCondition = 0f;
-				float itemConditionMax = 0f;
-				if (obj.Count > 0 && obj[0].hasCondition)
+				continue;
+			}
+			List<Item> obj = Facepunch.Pool.GetList<Item>();
+			GetItemsToSell(sellOrder, obj);
+			sellOrder.inStock = ((obj.Count >= 0) ? (obj.Sum((Item x) => x.amount) / sellOrder.itemToSellAmount) : 0);
+			float itemCondition = 0f;
+			float itemConditionMax = 0f;
+			int instanceData = 0;
+			if (obj.Count > 0)
+			{
+				if (obj[0].hasCondition)
 				{
 					itemCondition = obj[0].condition;
 					itemConditionMax = obj[0].maxCondition;
 				}
-				sellOrder.itemCondition = itemCondition;
-				sellOrder.itemConditionMax = itemConditionMax;
-				Facepunch.Pool.FreeList(ref obj);
+				if (obj[0].info != null && obj[0].info.amountType == ItemDefinition.AmountType.Genetics && obj[0].instanceData != null)
+				{
+					instanceData = obj[0].instanceData.dataInt;
+					sellOrder.inStock = obj[0].amount;
+				}
 			}
+			sellOrder.itemCondition = itemCondition;
+			sellOrder.itemConditionMax = itemConditionMax;
+			sellOrder.instanceData = instanceData;
+			Facepunch.Pool.FreeList(ref obj);
 		}
 	}
 
