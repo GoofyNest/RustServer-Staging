@@ -12,9 +12,15 @@ public class FlameExplosive : TimedExplosive
 
 	public float spreadAngle = 90f;
 
+	public bool forceUpForExplosion;
+
+	public AnimationCurve velocityCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 1f));
+
+	public AnimationCurve spreadCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 1f));
+
 	public override void Explode()
 	{
-		FlameExplode(-base.transform.forward);
+		FlameExplode(forceUpForExplosion ? Vector3.up : (-base.transform.forward));
 	}
 
 	public void FlameExplode(Vector3 surfaceNormal)
@@ -23,16 +29,36 @@ public class FlameExplosive : TimedExplosive
 		{
 			return;
 		}
+		Collider component = GetComponent<Collider>();
+		if ((bool)component)
+		{
+			component.enabled = false;
+		}
 		for (int i = 0; (float)i < numToCreate; i++)
 		{
-			BaseEntity baseEntity = GameManager.server.CreateEntity(createOnExplode.resourcePath, base.transform.position);
+			Vector3 position = base.transform.position;
+			if (forceUpForExplosion)
+			{
+				position += surfaceNormal * 0.1f;
+			}
+			BaseEntity baseEntity = GameManager.server.CreateEntity(createOnExplode.resourcePath, position);
 			if ((bool)baseEntity)
 			{
-				Vector3 modifiedAimConeDirection = AimConeUtil.GetModifiedAimConeDirection(spreadAngle, surfaceNormal);
-				baseEntity.transform.SetPositionAndRotation(base.transform.position, Quaternion.LookRotation(modifiedAimConeDirection));
+				float num = (float)i / numToCreate;
+				Vector3 modifiedAimConeDirection = AimConeUtil.GetModifiedAimConeDirection(spreadAngle * spreadCurve.Evaluate(num), surfaceNormal);
+				baseEntity.transform.SetPositionAndRotation(position + modifiedAimConeDirection * 0.2f, Quaternion.LookRotation(modifiedAimConeDirection));
 				baseEntity.creatorEntity = ((creatorEntity == null) ? baseEntity : creatorEntity);
 				baseEntity.Spawn();
-				baseEntity.SetVelocity(modifiedAimConeDirection * Random.Range(minVelocity, maxVelocity));
+				Vector3 vector = modifiedAimConeDirection.normalized * Random.Range(minVelocity, maxVelocity) * velocityCurve.Evaluate(num * Random.Range(1f, 1.1f));
+				FireBall component2 = baseEntity.GetComponent<FireBall>();
+				if (component2 != null)
+				{
+					component2.SetDelayedVelocity(vector);
+				}
+				else
+				{
+					baseEntity.SetVelocity(vector);
+				}
 			}
 		}
 		base.Explode();
