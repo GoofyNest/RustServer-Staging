@@ -434,7 +434,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		unloadingPos.y = 0f;
 		Vector3 shuntDirection = unloadingPos - position;
 		float magnitude = shuntDirection.magnitude;
-		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, ShuntEnded, out attemptStatus);
+		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, result, ShuntEnded, out attemptStatus);
 	}
 
 	private void ShuntEnded()

@@ -52,8 +52,6 @@ public class CompleteTrain : IDisposable
 
 	private TimeSince timeSinceShuntStart;
 
-	private float distSinceShuntStart;
-
 	private const float MAX_SHUNT_TIME = 20f;
 
 	private const float SHUNT_SPEED = 4f;
@@ -62,9 +60,15 @@ public class CompleteTrain : IDisposable
 
 	private Action shuntEndCallback;
 
+	private float shuntDistance;
+
 	private Vector3 shuntDirection;
 
-	private float shuntDistance;
+	private Vector2 shuntStartPos2D = Vector2.zero;
+
+	private Vector2 shuntTargetPos2D = Vector2.zero;
+
+	private TrainCar shuntTarget;
 
 	private StaticCollisionState staticCollidingAtFront;
 
@@ -287,7 +291,7 @@ public class CompleteTrain : IDisposable
 		}
 	}
 
-	public bool TryShuntCarTo(Vector3 shuntDirection, float shuntDistance, Action shuntEndCallback, out CoalingTower.ActionAttemptStatus status)
+	public bool TryShuntCarTo(Vector3 shuntDirection, float shuntDistance, TrainCar shuntTarget, Action shuntEndCallback, out CoalingTower.ActionAttemptStatus status)
 	{
 		if (disposed)
 		{
@@ -306,8 +310,10 @@ public class CompleteTrain : IDisposable
 		}
 		this.shuntDirection = shuntDirection;
 		this.shuntDistance = shuntDistance;
+		this.shuntTarget = shuntTarget;
 		timeSinceShuntStart = 0f;
-		distSinceShuntStart = 0f;
+		shuntStartPos2D.x = shuntTarget.transform.position.x;
+		shuntStartPos2D.y = shuntTarget.transform.position.z;
 		isShunting = true;
 		this.shuntEndCallback = shuntEndCallback;
 		status = CoalingTower.ActionAttemptStatus.NoError;
@@ -322,6 +328,7 @@ public class CompleteTrain : IDisposable
 			shuntEndCallback();
 			shuntEndCallback = null;
 		}
+		shuntTarget = null;
 	}
 
 	public bool ContainsOnly(TrainCar trainCar)
@@ -428,22 +435,27 @@ public class CompleteTrain : IDisposable
 			{
 				flag = !flag;
 			}
-			float num = 4f;
-			float num2 = shuntDistance - distSinceShuntStart;
-			if (num2 < 2f)
-			{
-				float t = Mathf.InverseLerp(0f, 2f, num2);
-				num *= Mathf.Lerp(0.1f, 1f, t);
-			}
-			trackSpeed = Mathf.MoveTowards(trackSpeed, flag ? num : (0f - num), dt * 10f);
-			if ((float)timeSinceShuntStart > 20f || distSinceShuntStart >= shuntDistance)
+			if (shuntTarget == null || shuntTarget.IsDead() || shuntTarget.IsDestroyed)
 			{
 				EndShunting();
-				trackSpeed = 0f;
 			}
 			else
 			{
-				distSinceShuntStart += Mathf.Abs(trackSpeed * dt);
+				float num = 4f;
+				shuntTargetPos2D.x = shuntTarget.transform.position.x;
+				shuntTargetPos2D.y = shuntTarget.transform.position.z;
+				float num2 = shuntDistance - Vector3.Distance(shuntStartPos2D, shuntTargetPos2D);
+				if (num2 < 2f)
+				{
+					float t = Mathf.InverseLerp(0f, 2f, num2);
+					num *= Mathf.Lerp(0.1f, 1f, t);
+				}
+				trackSpeed = Mathf.MoveTowards(trackSpeed, flag ? num : (0f - num), dt * 10f);
+				if ((float)timeSinceShuntStart > 20f || num2 <= 0f)
+				{
+					EndShunting();
+					trackSpeed = 0f;
+				}
 			}
 		}
 		float num3 = trainCars[0].rigidBody.drag;
