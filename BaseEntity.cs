@@ -1958,7 +1958,7 @@ public class BaseEntity : BaseNetworkable, IOnParentSpawning, IPrefabPreProcess
 	{
 		if (!base.transform.hasChanged)
 		{
-			if (ticksSinceStopped >= 3)
+			if (ticksSinceStopped >= 6)
 			{
 				return;
 			}

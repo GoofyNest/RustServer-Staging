@@ -55,6 +55,19 @@ public class VehicleEngineController<TOwner> where TOwner : BaseVehicle, IEngine
 		this.engineStartingFlag = engineStartingFlag;
 	}
 
+	public EngineState EngineStateFrom(BaseEntity.Flags flags)
+	{
+		if (flags.HasFlag(engineStartingFlag))
+		{
+			return EngineState.Starting;
+		}
+		if (flags.HasFlag(BaseEntity.Flags.On))
+		{
+			return EngineState.On;
+		}
+		return EngineState.Off;
+	}
+
 	public void TryStartEngine(BasePlayer player)
 	{
 		if (isServer && !owner.IsDead() && !IsStartingOrOn && player.net != null)
@@ -87,19 +100,6 @@ public class VehicleEngineController<TOwner> where TOwner : BaseVehicle, IEngine
 			owner.SetFlag(BaseEntity.Flags.On, b: false);
 			owner.SetFlag(engineStartingFlag, b: false);
 		}
-	}
-
-	public EngineState EngineStateFrom(BaseEntity.Flags flags)
-	{
-		if (flags.HasFlag(engineStartingFlag))
-		{
-			return EngineState.Starting;
-		}
-		if (flags.HasFlag(BaseEntity.Flags.On))
-		{
-			return EngineState.On;
-		}
-		return EngineState.Off;
 	}
 
 	public void CheckEngineState()

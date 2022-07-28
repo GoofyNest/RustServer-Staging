@@ -116,7 +116,8 @@ public class TriggerParent : TriggerBase, IServerComponent
 
 	protected void Parent(BaseEntity ent)
 	{
-		if (!(ent.GetParentEntity() == base.gameObject.ToBaseEntity()))
+		BaseEntity baseEntity = base.gameObject.ToBaseEntity();
+		if (!(ent.GetParentEntity() == baseEntity) && !(baseEntity.GetParentEntity() == ent))
 		{
 			ent.SetParent(base.gameObject.ToBaseEntity(), worldPositionStays: true, sendImmediate: true);
 		}

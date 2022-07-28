@@ -3,6 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Rust/Environment Volume Properties")]
 public class EnvironmentVolumeProperties : ScriptableObject
 {
+	[Header("Reflection Probe")]
 	public int ReflectionQuality;
 
 	public LayerMask ReflectionCullingFlags;
@@ -10,8 +11,13 @@ public class EnvironmentVolumeProperties : ScriptableObject
 	[Horizontal(1, 0)]
 	public EnvironmentMultiplier[] ReflectionMultipliers;
 
+	public float DefaultReflectionMultiplier = 1f;
+
+	[Header("Ambient Light")]
 	[Horizontal(1, 0)]
 	public EnvironmentMultiplier[] AmbientMultipliers;
+
+	public float DefaultAmbientMultiplier = 1f;
 
 	public float FindReflectionMultiplier(EnvironmentType type)
 	{
@@ -23,7 +29,7 @@ public class EnvironmentVolumeProperties : ScriptableObject
 				return environmentMultiplier.Multiplier;
 			}
 		}
-		return 1f;
+		return DefaultReflectionMultiplier;
 	}
 
 	public float FindAmbientMultiplier(EnvironmentType type)
@@ -36,6 +42,6 @@ public class EnvironmentVolumeProperties : ScriptableObject
 				return environmentMultiplier.Multiplier;
 			}
 		}
-		return 1f;
+		return DefaultAmbientMultiplier;
 	}
 }

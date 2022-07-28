@@ -87,7 +87,7 @@ public class TrainCoupling
 	{
 		if (!IsUncoupled)
 		{
-			if (reflect)
+			if (reflect && CoupledTo != null)
 			{
 				CoupledTo.Uncouple(reflect: false);
 			}

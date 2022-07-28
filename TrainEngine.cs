@@ -12,6 +12,12 @@ using UnityEngine.Serialization;
 
 public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 {
+	private enum LeverStyle
+	{
+		WorkCart,
+		Locomotive
+	}
+
 	public enum EngineSpeeds
 	{
 		Rev_Hi,
@@ -23,8 +29,6 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 		Fwd_Hi
 	}
 
-	private float buttonHoldTime;
-
 	public const float HAZARD_CHECK_EVERY = 1f;
 
 	public const float HAZARD_DIST_MAX = 325f;
@@ -33,6 +37,8 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 
 	public const float HAZARD_SPEED_MIN = 4.5f;
 
+	private float buttonHoldTime;
+
 	private static readonly EngineSpeeds MaxThrottle = EngineSpeeds.Fwd_Hi;
 
 	private static readonly EngineSpeeds MinThrottle = EngineSpeeds.Rev_Hi;
@@ -40,6 +46,8 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 	private EngineDamageOverTime engineDamage;
 
 	private Vector3 engineLocalOffset;
+
+	private int lastSentLinedUpToUnload = -1;
 
 	[Header("Train Engine")]
 	[SerializeField]
@@ -55,10 +63,16 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 	private Transform rightHandGrip;
 
 	[SerializeField]
+	private LeverStyle leverStyle;
+
+	[SerializeField]
 	private Canvas monitorCanvas;
 
 	[SerializeField]
 	private RustText monitorText;
+
+	[SerializeField]
+	private LocomotiveExtraVisuals gauges;
 
 	[SerializeField]
 	private float engineForce = 50000f;
@@ -82,7 +96,32 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 	private ProtectionProperties driverProtection;
 
 	[SerializeField]
-	private VehicleLight[] lights;
+	private bool lootablesAreOnPlatform;
+
+	[SerializeField]
+	private VehicleLight[] onLights;
+
+	[SerializeField]
+	private VehicleLight[] headlights;
+
+	[SerializeField]
+	private VehicleLight[] notMovingLights;
+
+	[SerializeField]
+	private VehicleLight[] movingForwardLights;
+
+	[SerializeField]
+	private VehicleLight[] movingForwardHeadlights;
+
+	[FormerlySerializedAs("movingBackwardsLights")]
+	[SerializeField]
+	private VehicleLight[] movingBackwardLights;
+
+	[SerializeField]
+	private VehicleLight[] movingBackwardHeadlights;
+
+	[SerializeField]
+	private ParticleSystemContainer fxEngineOn;
 
 	[SerializeField]
 	private ParticleSystemContainer fxLightDamage;
@@ -123,13 +162,13 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 
 	public const Flags Flag_HazardAhead = Flags.Reserved6;
 
+	private const Flags Flag_Horn = Flags.Reserved8;
+
 	public const Flags Flag_AltColor = Flags.Reserved9;
 
 	public const Flags Flag_EngineSlowed = Flags.Reserved10;
 
 	private VehicleEngineController<TrainEngine> engineController;
-
-	public override bool IsEngine => true;
 
 	protected override bool networkUpdateOnCompleteTrainChange => true;
 
@@ -139,8 +178,10 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 
 	public bool EngineIsSlowed => HasFlag(Flags.Reserved10);
 
-	public EngineSpeeds CurThrottleSetting { get; private set; } = EngineSpeeds.Zero;
+	public EngineSpeeds CurThrottleSetting { get; protected set; } = EngineSpeeds.Zero;
 
+
+	public override TrainCarType CarType => TrainCarType.Engine;
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
@@ -206,6 +247,10 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 			{
 				ClientRPC(null, "SetFuelAmount", GetFuelAmount());
 			}
+			if (completeTrain != null && completeTrain.LinedUpToUnload != lastSentLinedUpToUnload)
+			{
+				SendNetworkUpdate();
+			}
 		}
 		else if (LightsAreOn && !HasDriver())
 		{
@@ -221,6 +266,8 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 		info.msg.trainEngine.fuelStorageID = GetFuelSystem().fuelStorageInstance.uid;
 		info.msg.trainEngine.fuelAmount = GetFuelAmount();
 		info.msg.trainEngine.numConnectedCars = completeTrain.NumTrainCars;
+		info.msg.trainEngine.linedUpToUnload = completeTrain.LinedUpToUnload;
+		lastSentLinedUpToUnload = completeTrain.LinedUpToUnload;
 	}
 
 	public override EntityFuelSystem GetFuelSystem()
@@ -248,10 +295,15 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 			{
 				engineController.TryStartEngine(player);
 			}
+			SetFlag(Flags.Reserved8, b: false);
 		}
-		else if (!ProcessThrottleInput(BUTTON.FORWARD, IncreaseThrottle))
+		else
 		{
-			ProcessThrottleInput(BUTTON.BACKWARD, DecreaseThrottle);
+			if (!ProcessThrottleInput(BUTTON.FORWARD, IncreaseThrottle))
+			{
+				ProcessThrottleInput(BUTTON.BACKWARD, DecreaseThrottle);
+			}
+			SetFlag(Flags.Reserved8, inputState.IsDown(BUTTON.FIRE_PRIMARY));
 		}
 		if (inputState.IsDown(BUTTON.LEFT))
 		{
@@ -289,6 +341,12 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 		}
 	}
 
+	public override void PlayerDismounted(BasePlayer player, BaseMountable seat)
+	{
+		base.PlayerDismounted(player, seat);
+		SetFlag(Flags.Reserved8, b: false);
+	}
+
 	public override void ScaleDamageForPlayer(BasePlayer player, HitInfo info)
 	{
 		base.ScaleDamageForPlayer(player, info);
@@ -320,13 +378,13 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 		}
 	}
 
-	public override float GetForces()
+	protected override float GetThrottleForce()
 	{
-		float num = base.GetForces();
 		if (IsDead() || base.IsDestroyed)
 		{
-			return num;
+			return 0f;
 		}
+		float num = 0f;
 		float num2 = (engineController.IsOn ? GetThrottleFraction() : 0f);
 		float value = maxSpeed * num2;
 		float curTopSpeed = GetCurTopSpeed();
@@ -341,6 +399,15 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 			num -= GetCurEngineForce();
 		}
 		return num;
+	}
+
+	public override bool HasThrottleInput()
+	{
+		if (engineController.IsOn)
+		{
+			return CurThrottleSetting != EngineSpeeds.Zero;
+		}
+		return false;
 	}
 
 	public override void Hurt(HitInfo info)
@@ -479,11 +546,15 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 		{
 			return false;
 		}
-		if (platformParentTrigger != null && !PlayerIsInParentTrigger(player))
+		if (lootablesAreOnPlatform)
 		{
-			return false;
+			return PlayerIsOnPlatform(player);
 		}
-		return true;
+		if (GetLocalVelocity().magnitude < 2f)
+		{
+			return true;
+		}
+		return PlayerIsOnPlatform(player);
 	}
 
 	private float GetEnginePowerMultiplier(float minPercent)
@@ -549,14 +620,10 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 
 	private bool CanMount(BasePlayer player)
 	{
-		if (platformParentTrigger != null)
-		{
-			return PlayerIsInParentTrigger(player);
-		}
-		return true;
+		return PlayerIsOnPlatform(player);
 	}
 
-	private bool PlayerIsInParentTrigger(BasePlayer player)
+	private bool PlayerIsOnPlatform(BasePlayer player)
 	{
 		return player.GetParentEntity() == this;
 	}

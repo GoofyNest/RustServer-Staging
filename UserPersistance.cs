@@ -55,7 +55,7 @@ public class UserPersistance : IDisposable
 			tokens.Execute("ALTER TABLE data ADD COLUMN locked BOOLEAN DEFAULT 0");
 		}
 		playerState = new Facepunch.Sqlite.Database();
-		playerState.Open(strFolder + "/player.states." + 226 + ".db");
+		playerState.Open(strFolder + "/player.states." + 227 + ".db");
 		if (!playerState.TableExists("data"))
 		{
 			playerState.Execute("CREATE TABLE data ( userid INT PRIMARY KEY, state BLOB )");

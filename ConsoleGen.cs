@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[857]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[856]
 	{
 		new ConsoleSystem.Command
 		{
@@ -11278,20 +11278,6 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				TrainCar.population = str.ToFloat();
-			}
-		},
-		new ConsoleSystem.Command
-		{
-			Name = "variant_ratio",
-			Parent = "traincar",
-			FullName = "traincar.variant_ratio",
-			ServerAdmin = true,
-			Description = "Ratio of Work Carts with additional cover to standard Work Carts. 1.0 = All covered, 0.0 = all standard.",
-			Variable = true,
-			GetOveride = () => TrainCar.variant_ratio.ToString(),
-			SetOveride = delegate(string str)
-			{
-				TrainCar.variant_ratio = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command

@@ -12,7 +12,7 @@ public class GenerateRailBranching : ProceduralComponent
 
 	public const float InnerFade = 1f;
 
-	public const float OuterFade = 16f;
+	public const float OuterFade = 32f;
 
 	public const float RandomScale = 1f;
 
@@ -33,7 +33,7 @@ public class GenerateRailBranching : ProceduralComponent
 			InnerPadding = 1f,
 			OuterPadding = 1f,
 			InnerFade = 1f,
-			OuterFade = 16f,
+			OuterFade = 32f,
 			RandomScale = 1f,
 			MeshOffset = 0f,
 			TerrainOffset = -0.125f,
@@ -55,7 +55,6 @@ public class GenerateRailBranching : ProceduralComponent
 		int max = Mathf.RoundToInt(53.333332f);
 		int min2 = Mathf.RoundToInt(40f);
 		int max2 = Mathf.RoundToInt(120f);
-		int transitionSteps = 8;
 		List<PathList> list = new List<PathList>();
 		int[,] array = TerrainPath.CreateRailCostmap(ref seed);
 		PathFinder pathFinder = new PathFinder(array);
@@ -68,8 +67,8 @@ public class GenerateRailBranching : ProceduralComponent
 			PathInterpolator path = rail2.Path;
 			Vector3[] points = path.Points;
 			Vector3[] tangents = path.Tangents;
-			int num = path.MinIndex + 1 + transitionSteps;
-			int num2 = path.MaxIndex - 1 - transitionSteps;
+			int num = path.MinIndex + 1 + 8;
+			int num2 = path.MaxIndex - 1 - 8;
 			for (int j = num; j <= num2; j++)
 			{
 				list2.Clear();
@@ -120,9 +119,9 @@ public class GenerateRailBranching : ProceduralComponent
 				}
 				node = node2;
 				node3.next = null;
-				for (int k = 0; k < transitionSteps; k++)
+				for (int k = 0; k < 8; k++)
 				{
-					int num7 = num5 + (k + 1 - transitionSteps);
+					int num7 = num5 + (k + 1 - 8);
 					int num8 = num6 + k;
 					list2.Add(points[num7]);
 					list3.Add(points[num8]);
@@ -138,14 +137,14 @@ public class GenerateRailBranching : ProceduralComponent
 					list4.Add(new Vector3(x, y, z));
 				}
 				list4.AddRange(list3);
-				int num9 = transitionSteps;
-				int num10 = list4.Count - 1 - transitionSteps;
-				Vector3 vector = Vector3.Normalize(list4[num9 + transitionSteps] - list4[num9]);
-				Vector3 vector2 = Vector3.Normalize(list4[num10] - list4[num10 - transitionSteps]);
-				Vector3 from2 = Vector3.Normalize(points[num5 + transitionSteps] - points[num5]);
-				Vector3 from3 = Vector3.Normalize(points[num6] - points[num6 - transitionSteps]);
-				float num11 = Vector3.SignedAngle(from2, vector, Vector3.up);
-				float num12 = 0f - Vector3.SignedAngle(from3, vector2, Vector3.up);
+				int num9 = 8;
+				int num10 = list4.Count - 1 - 8;
+				Vector3 to2 = Vector3.Normalize(list4[num9 + 8] - list4[num9]);
+				Vector3 to3 = Vector3.Normalize(list4[num10] - list4[num10 - 8]);
+				Vector3 vector = Vector3.Normalize(points[num5 + 8] - points[num5]);
+				Vector3 vector2 = Vector3.Normalize(points[num6] - points[num6 - 8]);
+				float num11 = Vector3.SignedAngle(vector, to2, Vector3.up);
+				float num12 = 0f - Vector3.SignedAngle(vector2, to3, Vector3.up);
 				if (Mathf.Sign(num11) != Mathf.Sign(num12) || Mathf.Abs(num11) > 60f || Mathf.Abs(num12) > 60f)
 				{
 					continue;
@@ -160,11 +159,11 @@ public class GenerateRailBranching : ProceduralComponent
 				{
 					vector4 = -vector4;
 				}
-				for (int l = 0; l < transitionSteps * 2; l++)
+				for (int l = 0; l < 16; l++)
 				{
 					int index = l;
 					int index2 = list4.Count - l - 1;
-					float t = Mathf.InverseLerp(0f, transitionSteps, l);
+					float t = Mathf.InverseLerp(0f, 8f, l);
 					float num13 = Mathf.SmoothStep(0f, 2f, t) * 4f;
 					list4[index] += vector3 * num13;
 					list4[index2] += vector4 * num13;
@@ -208,8 +207,8 @@ public class GenerateRailBranching : ProceduralComponent
 		{
 			Func<int, float> filter = delegate(int i)
 			{
-				float a = Mathf.InverseLerp(0f, transitionSteps, i);
-				float b = Mathf.InverseLerp(rail.Path.DefaultMaxIndex, rail.Path.DefaultMaxIndex - transitionSteps, i);
+				float a = Mathf.InverseLerp(0f, 8f, i);
+				float b = Mathf.InverseLerp(rail.Path.DefaultMaxIndex, rail.Path.DefaultMaxIndex - 8, i);
 				return Mathf.SmoothStep(0f, 1f, Mathf.Min(a, b));
 			};
 			rail.Path.Smoothen(32, new Vector3(1f, 0f, 1f), filter);

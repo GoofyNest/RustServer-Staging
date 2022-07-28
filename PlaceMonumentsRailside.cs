@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class PlaceMonumentsRoadside : ProceduralComponent
+public class PlaceMonumentsRailside : ProceduralComponent
 {
 	private struct SpawnInfo
 	{
@@ -43,20 +43,15 @@ public class PlaceMonumentsRoadside : ProceduralComponent
 		Max
 	}
 
-	public enum RoadMode
-	{
-		SideRoadOrRingRoad,
-		SideRoad,
-		RingRoad,
-		SideRoadOrDesireTrail,
-		DesireTrail
-	}
-
 	public SpawnFilter Filter;
 
 	public string ResourceFolder = string.Empty;
 
 	public int TargetCount;
+
+	public int PositionOffset = 100;
+
+	public int TangentInterval = 100;
 
 	[FormerlySerializedAs("MinDistance")]
 	public int MinDistanceSameType = 500;
@@ -71,8 +66,6 @@ public class PlaceMonumentsRoadside : ProceduralComponent
 
 	[Tooltip("Distance to monuments of a different type")]
 	public DistanceMode DistanceDifferentType;
-
-	public RoadMode RoadType;
 
 	private const int GroupCandidates = 8;
 
@@ -147,62 +140,55 @@ public class PlaceMonumentsRoadside : ProceduralComponent
 				}
 				int num = 0;
 				Vector3 zero = Vector3.zero;
+				Vector3 vector = Vector3.zero;
+				Vector3 vector2 = Vector3.zero;
 				TerrainPathConnect[] componentsInChildren = prefab3.Object.GetComponentsInChildren<TerrainPathConnect>(includeInactive: true);
 				foreach (TerrainPathConnect terrainPathConnect in componentsInChildren)
 				{
-					if (terrainPathConnect.Type == InfrastructureType.Road)
+					if (terrainPathConnect.Type == InfrastructureType.Rail)
 					{
+						switch (num)
+						{
+						case 0:
+							vector = terrainPathConnect.transform.position;
+							break;
+						case 1:
+							vector2 = terrainPathConnect.transform.position;
+							break;
+						}
 						zero += terrainPathConnect.transform.position;
 						num++;
 					}
 				}
-				Vector3 vector = -zero.XZ3D().normalized;
-				Vector3 forward = rot90 * vector;
+				Vector3 normalized = (vector2 - vector).normalized;
+				Vector3 vector3 = rot90 * normalized;
 				if (num > 1)
 				{
 					zero /= (float)num;
 				}
-				foreach (PathList road in TerrainMeta.Path.Roads)
+				if (PositionOffset > 0)
 				{
-					bool flag = false;
-					switch (RoadType)
-					{
-					case RoadMode.SideRoadOrRingRoad:
-						flag = road.Hierarchy == 0 || road.Hierarchy == 1;
-						break;
-					case RoadMode.SideRoad:
-						flag = road.Hierarchy == 1;
-						break;
-					case RoadMode.RingRoad:
-						flag = road.Hierarchy == 0;
-						break;
-					case RoadMode.SideRoadOrDesireTrail:
-						flag = road.Hierarchy == 1 || road.Hierarchy == 2;
-						break;
-					case RoadMode.DesireTrail:
-						flag = road.Hierarchy == 2;
-						break;
-					}
-					if (!flag)
-					{
-						continue;
-					}
-					PathInterpolator path = road.Path;
-					float num2 = 5f;
+					zero += vector3 * PositionOffset;
+				}
+				foreach (PathList rail in TerrainMeta.Path.Rails)
+				{
+					PathInterpolator path = rail.Path;
+					float num2 = TangentInterval / 2;
 					float num3 = 5f;
-					float num4 = path.StartOffset + num3;
-					float num5 = path.Length - path.EndOffset - num3;
-					for (float num6 = num4; num6 <= num5; num6 += num2)
+					float num4 = 5f;
+					float num5 = path.StartOffset + num4;
+					float num6 = path.Length - path.EndOffset - num4;
+					for (float num7 = num5; num7 <= num6; num7 += num3)
 					{
-						Vector3 vector2 = (road.Spline ? path.GetPointCubicHermite(num6) : path.GetPoint(num6));
-						Vector3 tangent = path.GetTangent(num6);
+						Vector3 vector4 = (rail.Spline ? path.GetPointCubicHermite(num7) : path.GetPoint(num7));
+						Vector3 normalized2 = (path.GetPoint(num7 + num2) - path.GetPoint(num7 - num2)).normalized;
 						for (int m = -1; m <= 1; m += 2)
 						{
-							Quaternion quaternion = Quaternion.LookRotation(m * tangent.XZ3D());
-							Vector3 position = vector2;
+							Quaternion quaternion = Quaternion.LookRotation(m * normalized2.XZ3D());
+							Vector3 position = vector4;
 							Quaternion quaternion2 = quaternion;
 							Vector3 localScale = prefab3.Object.transform.localScale;
-							quaternion2 *= Quaternion.LookRotation(forward);
+							quaternion2 *= Quaternion.LookRotation(normalized);
 							position -= quaternion2 * zero;
 							SpawnInfo item = default(SpawnInfo);
 							item.prefab = prefab3;
@@ -215,13 +201,13 @@ public class PlaceMonumentsRoadside : ProceduralComponent
 				}
 				spawnInfoGroup3.processed = true;
 			}
-			int num7 = 0;
-			List<SpawnInfo> a = new List<SpawnInfo>();
 			int num8 = 0;
+			List<SpawnInfo> a = new List<SpawnInfo>();
+			int num9 = 0;
 			List<SpawnInfo> b = new List<SpawnInfo>();
 			for (int n = 0; n < 8; n++)
 			{
-				num7 = 0;
+				num8 = 0;
 				a.Clear();
 				array5.Shuffle(ref seed);
 				array6 = array5;
@@ -234,81 +220,81 @@ public class PlaceMonumentsRoadside : ProceduralComponent
 						continue;
 					}
 					DungeonGridInfo dungeonEntrance = component2.DungeonEntrance;
-					int num9 = (int)((!prefab4.Parameters) ? PrefabPriority.Low : (prefab4.Parameters.Priority + 1));
-					int num10 = 100000 * num9 * num9 * num9 * num9;
-					int num11 = 0;
+					int num10 = (int)((!prefab4.Parameters) ? PrefabPriority.Low : (prefab4.Parameters.Priority + 1));
+					int num11 = 100000 * num10 * num10 * num10 * num10;
 					int num12 = 0;
+					int num13 = 0;
 					SpawnInfo item2 = default(SpawnInfo);
 					spawnInfoGroup4.candidates.Shuffle(ref seed);
-					for (int num13 = 0; num13 < spawnInfoGroup4.candidates.Count; num13++)
+					for (int num14 = 0; num14 < spawnInfoGroup4.candidates.Count; num14++)
 					{
-						SpawnInfo spawnInfo = spawnInfoGroup4.candidates[num13];
+						SpawnInfo spawnInfo = spawnInfoGroup4.candidates[num14];
 						DistanceInfo distanceInfo = GetDistanceInfo(a, prefab4, spawnInfo.position, spawnInfo.rotation, spawnInfo.scale);
 						if (distanceInfo.minDistanceSameType < (float)MinDistanceSameType || distanceInfo.minDistanceDifferentType < (float)MinDistanceDifferentType)
 						{
 							continue;
 						}
-						int num14 = num10;
+						int num15 = num11;
 						if (distanceInfo.minDistanceSameType != float.MaxValue)
 						{
 							if (DistanceSameType == DistanceMode.Min)
 							{
-								num14 -= Mathf.RoundToInt(distanceInfo.minDistanceSameType * distanceInfo.minDistanceSameType * 2f);
+								num15 -= Mathf.RoundToInt(distanceInfo.minDistanceSameType * distanceInfo.minDistanceSameType * 2f);
 							}
 							else if (DistanceSameType == DistanceMode.Max)
 							{
-								num14 += Mathf.RoundToInt(distanceInfo.minDistanceSameType * distanceInfo.minDistanceSameType * 2f);
+								num15 += Mathf.RoundToInt(distanceInfo.minDistanceSameType * distanceInfo.minDistanceSameType * 2f);
 							}
 						}
 						if (distanceInfo.minDistanceDifferentType != float.MaxValue)
 						{
 							if (DistanceDifferentType == DistanceMode.Min)
 							{
-								num14 -= Mathf.RoundToInt(distanceInfo.minDistanceDifferentType * distanceInfo.minDistanceDifferentType);
+								num15 -= Mathf.RoundToInt(distanceInfo.minDistanceDifferentType * distanceInfo.minDistanceDifferentType);
 							}
 							else if (DistanceDifferentType == DistanceMode.Max)
 							{
-								num14 += Mathf.RoundToInt(distanceInfo.minDistanceDifferentType * distanceInfo.minDistanceDifferentType);
+								num15 += Mathf.RoundToInt(distanceInfo.minDistanceDifferentType * distanceInfo.minDistanceDifferentType);
 							}
 						}
-						if (num14 <= num12 || !prefab4.ApplyTerrainAnchors(ref spawnInfo.position, spawnInfo.rotation, spawnInfo.scale, Filter) || !component2.CheckPlacement(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale))
+						if (num15 <= num13 || !prefab4.ApplyTerrainAnchors(ref spawnInfo.position, spawnInfo.rotation, spawnInfo.scale, Filter) || !component2.CheckPlacement(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale))
 						{
 							continue;
 						}
 						if ((bool)dungeonEntrance)
 						{
-							Vector3 vector3 = spawnInfo.position + spawnInfo.rotation * Vector3.Scale(spawnInfo.scale, dungeonEntrance.transform.position);
-							Vector3 vector4 = dungeonEntrance.SnapPosition(vector3);
-							spawnInfo.position += vector4 - vector3;
-							if (!dungeonEntrance.IsValidSpawnPosition(vector4))
+							Vector3 vector5 = spawnInfo.position + spawnInfo.rotation * Vector3.Scale(spawnInfo.scale, dungeonEntrance.transform.position);
+							Vector3 vector6 = dungeonEntrance.SnapPosition(vector5);
+							spawnInfo.position += vector6 - vector5;
+							if (!dungeonEntrance.IsValidSpawnPosition(vector6))
 							{
 								continue;
 							}
 						}
 						if (prefab4.ApplyTerrainChecks(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale, Filter) && prefab4.ApplyTerrainFilters(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale) && prefab4.ApplyWaterChecks(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale) && !prefab4.CheckEnvironmentVolumes(spawnInfo.position, spawnInfo.rotation, spawnInfo.scale, EnvironmentType.Underground | EnvironmentType.TrainTunnels))
 						{
-							num12 = num14;
+							num13 = num15;
 							item2 = spawnInfo;
-							num11++;
-							if (num11 >= 8 || DistanceDifferentType == DistanceMode.Any)
+							num12++;
+							if (num12 >= 8 || DistanceDifferentType == DistanceMode.Any)
 							{
 								break;
 							}
 						}
 					}
-					if (num12 > 0)
+					if (num13 > 0)
 					{
 						a.Add(item2);
-						num7 += num12;
+						num8 += num13;
 					}
 					if (TargetCount > 0 && a.Count >= TargetCount)
 					{
 						break;
 					}
 				}
-				if (num7 > num8)
+				if (num8 > num9)
 				{
-					num8 = num7;
+					num9 = num8;
 					GenericsUtil.Swap(ref a, ref b);
 				}
 			}

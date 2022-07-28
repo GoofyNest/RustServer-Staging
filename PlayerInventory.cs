@@ -132,8 +132,11 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 		containerWear.SetFlag(ItemContainer.Flag.IsPlayer, b: true);
 		containerWear.SetFlag(ItemContainer.Flag.Clothing, b: true);
 		crafting = GetComponent<ItemCrafter>();
-		crafting.AddContainer(containerMain);
-		crafting.AddContainer(containerBelt);
+		if (crafting != null)
+		{
+			crafting.AddContainer(containerMain);
+			crafting.AddContainer(containerBelt);
+		}
 		loot = GetComponent<PlayerLoot>();
 		if (!loot)
 		{

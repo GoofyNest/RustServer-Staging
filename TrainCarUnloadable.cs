@@ -1,0 +1,389 @@
+#define UNITY_ASSERTIONS
+using System;
+using System.Collections.Generic;
+using ConVar;
+using Facepunch;
+using Network;
+using ProtoBuf;
+using Rust;
+using UnityEngine;
+using UnityEngine.Assertions;
+
+public class TrainCarUnloadable : TrainCar
+{
+	public enum WagonType
+	{
+		Ore,
+		Lootboxes,
+		Fuel
+	}
+
+	[Header("Train Car Unloadable")]
+	[SerializeField]
+	private GameObjectRef storagePrefab;
+
+	[SerializeField]
+	private BoxCollider[] unloadingAreas;
+
+	[SerializeField]
+	private Transform orePlaneVisuals;
+
+	[SerializeField]
+	private Transform orePlaneColliderDetailed;
+
+	[SerializeField]
+	private Transform orePlaneColliderWorld;
+
+	[SerializeField]
+	[Range(0f, 1f)]
+	public float vacuumStretchPercent = 0.5f;
+
+	[SerializeField]
+	private ParticleSystemContainer unloadingFXContainer;
+
+	[SerializeField]
+	private ParticleSystem unloadingFX;
+
+	public WagonType wagonType;
+
+	private int lootTypeIndex = -1;
+
+	protected const Flags Flag_HasLoot = Flags.Reserved9;
+
+	private List<EntityRef<LootContainer>> lootContainers = new List<EntityRef<LootContainer>>();
+
+	private Vector3 _oreScale = Vector3.one;
+
+	private float animPercent;
+
+	private float prevAnimTime;
+
+	private EntityRef<StorageContainer> storageInstance;
+
+	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
+	{
+		using (TimeWarning.New("TrainCarUnloadable.OnRpcMessage"))
+		{
+			if (rpc == 4254195175u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_Open "));
+				}
+				using (TimeWarning.New("RPC_Open"))
+				{
+					using (TimeWarning.New("Conditions"))
+					{
+						if (!RPC_Server.MaxDistance.Test(4254195175u, "RPC_Open", this, player, 3f))
+						{
+							return true;
+						}
+					}
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg2 = rPCMessage;
+							RPC_Open(msg2);
+						}
+					}
+					catch (Exception exception)
+					{
+						Debug.LogException(exception);
+						player.Kick("RPC Error in RPC_Open");
+					}
+				}
+				return true;
+			}
+		}
+		return base.OnRpcMessage(player, rpc, msg);
+	}
+
+	protected override void OnChildAdded(BaseEntity child)
+	{
+		base.OnChildAdded(child);
+		if (IsDead() || base.IsDestroyed)
+		{
+			return;
+		}
+		if (child.TryGetComponent<LootContainer>(out var component))
+		{
+			if (base.isServer)
+			{
+				component.inventory.SetLocked(!IsEmpty());
+			}
+			lootContainers.Add(new EntityRef<LootContainer>(component.net.ID));
+		}
+		if (base.isServer && child.prefabID == storagePrefab.GetEntity().prefabID)
+		{
+			StorageContainer storageContainer = (StorageContainer)child;
+			storageInstance.Set(storageContainer);
+			if (!Rust.Application.isLoadingSave)
+			{
+				FillWithLoot(storageContainer);
+			}
+		}
+	}
+
+	public override void Load(LoadInfo info)
+	{
+		base.Load(info);
+		if (info.msg.baseTrain != null)
+		{
+			lootTypeIndex = info.msg.baseTrain.lootTypeIndex;
+		}
+	}
+
+	public bool IsEmpty()
+	{
+		return GetOrePercent() == 0f;
+	}
+
+	public bool TryGetLootType(out TrainWagonLootData.LootOption lootOption)
+	{
+		return TrainWagonLootData.instance.TryGetLootFromIndex(lootTypeIndex, out lootOption);
+	}
+
+	public override bool CanBeLooted(BasePlayer player)
+	{
+		if (!base.CanBeLooted(player))
+		{
+			return false;
+		}
+		return !IsEmpty();
+	}
+
+	public int GetFilledLootAmount()
+	{
+		if (TryGetLootType(out var lootOption))
+		{
+			return lootOption.maxLootAmount;
+		}
+		Debug.LogWarning(GetType().Name + ": Called GetFilledLootAmount without a lootTypeIndex set.");
+		return 0;
+	}
+
+	public void SetVisualOreLevel(float percent)
+	{
+		if (!(orePlaneColliderDetailed == null))
+		{
+			_oreScale.y = Mathf.Clamp01(percent);
+			orePlaneColliderDetailed.localScale = _oreScale;
+			if (base.isClient)
+			{
+				orePlaneVisuals.localScale = _oreScale;
+			}
+			if (base.isServer)
+			{
+				orePlaneColliderWorld.localScale = _oreScale;
+			}
+		}
+	}
+
+	private void AnimateUnload(float startPercent)
+	{
+		prevAnimTime = UnityEngine.Time.time;
+		animPercent = startPercent;
+		if (base.isClient && unloadingFXContainer != null)
+		{
+			unloadingFXContainer.Play();
+		}
+		InvokeRepeating(UnloadAnimTick, 0f, 0f);
+	}
+
+	private void UnloadAnimTick()
+	{
+		animPercent -= (UnityEngine.Time.time - prevAnimTime) / 10f;
+		SetVisualOreLevel(animPercent);
+		prevAnimTime = UnityEngine.Time.time;
+		if (animPercent <= 0f)
+		{
+			EndUnloadAnim();
+		}
+	}
+
+	private void EndUnloadAnim()
+	{
+		if (base.isClient && unloadingFXContainer != null)
+		{
+			unloadingFXContainer.Stop();
+		}
+		CancelInvoke(UnloadAnimTick);
+	}
+
+	public float GetOrePercent()
+	{
+		if (base.isServer)
+		{
+			return TrainWagonLootData.GetOrePercent(lootTypeIndex, GetStorageContainer());
+		}
+		return 0f;
+	}
+
+	public override void Save(SaveInfo info)
+	{
+		base.Save(info);
+		info.msg.baseTrain = Facepunch.Pool.Get<BaseTrain>();
+		info.msg.baseTrain.lootTypeIndex = lootTypeIndex;
+		info.msg.baseTrain.lootPercent = GetOrePercent();
+	}
+
+	internal override void DoServerDestroy()
+	{
+		if (vehicle.vehiclesdroploot)
+		{
+			foreach (EntityRef<LootContainer> lootContainer2 in lootContainers)
+			{
+				LootContainer lootContainer = lootContainer2.Get(base.isServer);
+				if (lootContainer != null && lootContainer.inventory != null && !lootContainer.inventory.IsLocked())
+				{
+					lootContainer.DropItems();
+				}
+			}
+		}
+		base.DoServerDestroy();
+	}
+
+	public bool IsLinedUpToUnload(BoxCollider unloaderBounds)
+	{
+		BoxCollider[] array = unloadingAreas;
+		foreach (BoxCollider boxCollider in array)
+		{
+			if (unloaderBounds.bounds.Intersects(boxCollider.bounds))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void FillWithLoot(StorageContainer sc)
+	{
+		TrainWagonLootData.LootOption lootOption = TrainWagonLootData.instance.GetLootOption(wagonType, out lootTypeIndex);
+		int amount = UnityEngine.Random.Range(lootOption.minLootAmount, lootOption.maxLootAmount);
+		ItemDefinition itemToCreate = ItemManager.FindItemDefinition(lootOption.lootItem.itemid);
+		sc.inventory.AddItem(itemToCreate, amount, 0uL, respectMaxStack: true);
+		sc.inventory.SetLocked(isLocked: true);
+		SetFlag(Flags.Reserved9, b: true, recursive: false, networkupdate: false);
+		SetVisualOreLevel(GetOrePercent());
+		SendNetworkUpdate();
+	}
+
+	public void BeginUnloadAnimation()
+	{
+		float orePercent = GetOrePercent();
+		AnimateUnload(orePercent);
+		ClientRPC(null, "RPC_AnimateUnload", orePercent);
+	}
+
+	public void EndEmptyProcess()
+	{
+		float orePercent = GetOrePercent();
+		bool flag = orePercent > 0f;
+		SetFlag(Flags.Reserved9, flag, recursive: false, networkupdate: false);
+		if (!flag)
+		{
+			lootTypeIndex = -1;
+			foreach (EntityRef<LootContainer> lootContainer2 in lootContainers)
+			{
+				LootContainer lootContainer = lootContainer2.Get(base.isServer);
+				if (lootContainer != null && lootContainer.inventory != null)
+				{
+					lootContainer.inventory.SetLocked(isLocked: false);
+				}
+			}
+		}
+		SetVisualOreLevel(orePercent);
+		ClientRPC(null, "RPC_StopAnimateUnload", orePercent);
+		if (orePercent == 0f && wagonType != WagonType.Lootboxes)
+		{
+			Die();
+		}
+	}
+
+	public StorageContainer GetStorageContainer()
+	{
+		StorageContainer storageContainer = storageInstance.Get(base.isServer);
+		if (storageContainer.IsValid())
+		{
+			return storageContainer;
+		}
+		return null;
+	}
+
+	protected override bool ApplyDecayPreventionRules()
+	{
+		StorageContainer storageContainer = storageInstance.Get(base.isServer);
+		if (storageContainer.IsValid() && storageContainer.inventory != null)
+		{
+			return !storageContainer.inventory.IsEmpty();
+		}
+		return true;
+	}
+
+	public override bool AdminFixUp(int tier)
+	{
+		if (IsDead())
+		{
+			CancelInvoke(base.ActualDeath);
+			lifestate = LifeState.Alive;
+		}
+		if (!base.AdminFixUp(tier))
+		{
+			return false;
+		}
+		StorageContainer storageContainer = GetStorageContainer();
+		if (storageContainer.IsValid())
+		{
+			storageContainer.inventory.Clear();
+			ItemManager.DoRemoves();
+			if (tier > 1)
+			{
+				FillWithLoot(storageContainer);
+			}
+		}
+		return true;
+	}
+
+	public float MinDistToUnloadingArea(Vector3 point)
+	{
+		float num = float.MaxValue;
+		point.y = 0f;
+		BoxCollider[] array = unloadingAreas;
+		foreach (BoxCollider boxCollider in array)
+		{
+			Vector3 b = boxCollider.transform.position + boxCollider.transform.rotation * boxCollider.center;
+			b.y = 0f;
+			float num2 = Vector3.Distance(point, b);
+			if (num2 < num)
+			{
+				num = num2;
+			}
+		}
+		return num;
+	}
+
+	[RPC_Server]
+	[RPC_Server.MaxDistance(3f)]
+	public void RPC_Open(RPCMessage msg)
+	{
+		BasePlayer player = msg.player;
+		if (!(player == null) && CanBeLooted(player))
+		{
+			StorageContainer storageContainer = GetStorageContainer();
+			if (storageContainer.IsValid())
+			{
+				storageContainer.PlayerOpenLoot(player);
+			}
+			else
+			{
+				Debug.LogError(GetType().Name + ": No container component found.");
+			}
+		}
+	}
+}

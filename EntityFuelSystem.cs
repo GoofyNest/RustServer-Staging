@@ -50,7 +50,7 @@ public class EntityFuelSystem
 	private StorageContainer GetFuelContainer()
 	{
 		StorageContainer storageContainer = fuelStorageInstance.Get(isServer);
-		if (storageContainer != null && storageContainer.IsValid())
+		if (storageContainer.IsValid())
 		{
 			return storageContainer;
 		}

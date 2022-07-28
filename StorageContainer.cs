@@ -9,6 +9,7 @@ using UnityEngine.Assertions;
 
 public class StorageContainer : DecayEntity, IItemContainerEntity, LootPanel.IHasLootPanel, IContainerSounds, PlayerInventory.ICanMoveFrom
 {
+	[Header("Storage Container")]
 	public static readonly Translate.Phrase LockedMessage = new Translate.Phrase("storage.locked", "Can't loot right now");
 
 	public static readonly Translate.Phrase InUseMessage = new Translate.Phrase("storage.in_use", "Already in use");

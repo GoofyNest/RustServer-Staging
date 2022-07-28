@@ -355,48 +355,16 @@ public class TrainTrackSpline : WorldSpline
 		return false;
 	}
 
-	public bool HasClearTrackSpaceNear(ITrainTrackUser asker)
-	{
-		if (!HasClearTrackSpace(asker))
-		{
-			return false;
-		}
-		if (HasNextTrack)
-		{
-			foreach (ConnectedTrackInfo nextTrack in nextTracks)
-			{
-				if (!nextTrack.track.HasClearTrackSpace(asker))
-				{
-					return false;
-				}
-			}
-		}
-		if (HasPrevTrack)
-		{
-			foreach (ConnectedTrackInfo prevTrack in prevTracks)
-			{
-				if (!prevTrack.track.HasClearTrackSpace(asker))
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	private bool HasClearTrackSpace(ITrainTrackUser asker)
-	{
-		foreach (ITrainTrackUser trackUser in trackUsers)
-		{
-			if (trackUser != asker && Vector3.SqrMagnitude(trackUser.Position - asker.Position) < 144f)
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public bool HasConnectedTrack(TrainTrackSpline tts)
+	{
+		if (!HasConnectedNextTrack(tts))
+		{
+			return HasConnectedPrevTrack(tts);
+		}
+		return true;
+	}
+
+	public bool HasConnectedNextTrack(TrainTrackSpline tts)
 	{
 		foreach (ConnectedTrackInfo nextTrack in nextTracks)
 		{
@@ -405,6 +373,11 @@ public class TrainTrackSpline : WorldSpline
 				return true;
 			}
 		}
+		return false;
+	}
+
+	public bool HasConnectedPrevTrack(TrainTrackSpline tts)
+	{
 		foreach (ConnectedTrackInfo prevTrack in prevTracks)
 		{
 			if (prevTrack.track == tts)
@@ -515,7 +488,7 @@ public class TrainTrackSpline : WorldSpline
 		}
 	}
 
-	public static bool TryFindTrackNearby(Vector3 pos, float maxDist, out TrainTrackSpline splineResult, out float distResult)
+	public static bool TryFindTrackNear(Vector3 pos, float maxDist, out TrainTrackSpline splineResult, out float distResult)
 	{
 		splineResult = null;
 		distResult = 0f;

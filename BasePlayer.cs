@@ -2844,7 +2844,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		Missions missions = Facepunch.Pool.Get<Missions>();
 		missions.missions = Facepunch.Pool.GetList<MissionInstance>();
 		missions.activeMission = GetActiveMission();
-		missions.protocol = 226;
+		missions.protocol = 227;
 		missions.seed = World.Seed;
 		missions.saveCreatedTime = Epoch.FromDateTime(SaveRestore.SaveCreatedTime);
 		foreach (BaseMission.MissionInstance mission in this.missions)
@@ -2944,7 +2944,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			uint seed = loadedMissions.seed;
 			int saveCreatedTime = loadedMissions.saveCreatedTime;
 			int num2 = Epoch.FromDateTime(SaveRestore.SaveCreatedTime);
-			if (226 != protocol || World.Seed != seed || num2 != saveCreatedTime)
+			if (227 != protocol || World.Seed != seed || num2 != saveCreatedTime)
 			{
 				Debug.Log("Missions were from old protocol or different seed, or not from a loaded save clearing");
 				loadedMissions.activeMission = -1;
@@ -5370,7 +5370,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		bool flag = IsWounded();
 		StopWounded();
-		inventory.crafting.CancelAll(returnItems: true);
+		if (inventory.crafting != null)
+		{
+			inventory.crafting.CancelAll(returnItems: true);
+		}
 		if (EACServer.playerTracker != null && net.connection != null)
 		{
 			BasePlayer basePlayer = ((info != null && info.Initiator != null) ? info.Initiator.ToPlayer() : null);
