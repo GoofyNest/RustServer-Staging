@@ -110,15 +110,9 @@ public class TrainEngine : TrainCar, IEngineControllerUser, IEntity
 	[SerializeField]
 	private VehicleLight[] movingForwardLights;
 
-	[SerializeField]
-	private VehicleLight[] movingForwardHeadlights;
-
 	[FormerlySerializedAs("movingBackwardsLights")]
 	[SerializeField]
 	private VehicleLight[] movingBackwardLights;
-
-	[SerializeField]
-	private VehicleLight[] movingBackwardHeadlights;
 
 	[SerializeField]
 	private ParticleSystemContainer fxEngineOn;
