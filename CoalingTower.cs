@@ -89,6 +89,9 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	private SoundDefinition failedActionSound;
 
 	[SerializeField]
+	private SoundDefinition failedShuntAlarmSound;
+
+	[SerializeField]
 	private SoundDefinition armMovementLower;
 
 	[SerializeField]
@@ -336,16 +339,21 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 
 	private void EmptyTenPercent()
 	{
-		if (!HasUnloadableLinedUp || !IsPowered())
+		if (!IsPowered())
 		{
-			EndEmptyProcess();
+			EndEmptyProcess(ActionAttemptStatus.GenericError);
+			return;
+		}
+		if (!HasUnloadableLinedUp)
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
 			return;
 		}
 		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
 		StorageContainer storageContainer = activeUnloadable.GetStorageContainer();
 		if (storageContainer.inventory == null || !TrainWagonLootData.instance.TryGetLootFromIndex(LootTypeIndex, out var lootOption))
 		{
-			EndEmptyProcess();
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
 			return;
 		}
 		bool flag = activeUnloadable.wagonType != TrainCarUnloadable.WagonType.Fuel;
@@ -357,7 +365,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		if (itemContainer == null)
 		{
-			EndEmptyProcess();
+			EndEmptyProcess(ActionAttemptStatus.GenericError);
 			return;
 		}
 		ItemContainer inventory = storageContainer.inventory;
@@ -387,9 +395,13 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		Facepunch.Pool.FreeList(ref obj);
 		float orePercent = activeUnloadable.GetOrePercent();
-		if (!flag2 || orePercent == 0f)
+		if (orePercent == 0f)
 		{
-			EndEmptyProcess();
+			EndEmptyProcess(ActionAttemptStatus.NoError);
+		}
+		else if (!flag2)
+		{
+			EndEmptyProcess(ActionAttemptStatus.OutputIsFull);
 		}
 		else if (flag)
 		{
@@ -397,7 +409,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 	}
 
-	private void EndEmptyProcess()
+	private void EndEmptyProcess(ActionAttemptStatus status)
 	{
 		CancelInvoke(EmptyTenPercent);
 		CancelInvoke(WagonBeginUnloadAnim);
@@ -408,6 +420,10 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		SetFlag(Flags.Busy, b: false, recursive: false, networkupdate: false);
 		SendNetworkUpdate();
+		if (status != 0)
+		{
+			ClientRPC(null, "ActionFailed", (byte)status, arg2: false);
+		}
 	}
 
 	private bool TryShuntTrain(bool next, out ActionAttemptStatus attemptStatus)
@@ -437,10 +453,14 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, result, ShuntEnded, out attemptStatus);
 	}
 
-	private void ShuntEnded()
+	private void ShuntEnded(ActionAttemptStatus status)
 	{
 		SetFlag(Flags.Reserved3, b: false);
 		SetFlag(Flags.Reserved4, b: false);
+		if (status != 0)
+		{
+			ClientRPC(null, "IssueDuringShunt");
+		}
 	}
 
 	[RPC_Server]
@@ -449,7 +469,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	{
 		if (!TryUnloadActiveWagon(out var attemptStatus) && msg.player != null)
 		{
-			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus);
+			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus, arg2: true);
 		}
 	}
 
@@ -463,7 +483,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		else if (msg.player != null)
 		{
-			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus);
+			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus, arg2: true);
 		}
 	}
 
@@ -477,7 +497,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		else if (msg.player != null)
 		{
-			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus);
+			ClientRPCPlayer(null, msg.player, "ActionFailed", (byte)attemptStatus, arg2: true);
 		}
 	}
 

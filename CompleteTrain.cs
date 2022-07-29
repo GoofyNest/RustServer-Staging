@@ -58,7 +58,7 @@ public class CompleteTrain : IDisposable
 
 	private const float SHUNT_SPEED_CHANGE_RATE = 10f;
 
-	private Action shuntEndCallback;
+	private Action<CoalingTower.ActionAttemptStatus> shuntEndCallback;
 
 	private float shuntDistance;
 
@@ -148,7 +148,7 @@ public class CompleteTrain : IDisposable
 	{
 		if (!disposed)
 		{
-			EndShunting();
+			EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
 			disposed = true;
 			Facepunch.Pool.FreeList(ref trainCars);
 		}
@@ -291,7 +291,7 @@ public class CompleteTrain : IDisposable
 		}
 	}
 
-	public bool TryShuntCarTo(Vector3 shuntDirection, float shuntDistance, TrainCar shuntTarget, Action shuntEndCallback, out CoalingTower.ActionAttemptStatus status)
+	public bool TryShuntCarTo(Vector3 shuntDirection, float shuntDistance, TrainCar shuntTarget, Action<CoalingTower.ActionAttemptStatus> shuntEndCallback, out CoalingTower.ActionAttemptStatus status)
 	{
 		if (disposed)
 		{
@@ -320,12 +320,12 @@ public class CompleteTrain : IDisposable
 		return true;
 	}
 
-	private void EndShunting()
+	private void EndShunting(CoalingTower.ActionAttemptStatus status)
 	{
 		isShunting = false;
 		if (shuntEndCallback != null)
 		{
-			shuntEndCallback();
+			shuntEndCallback(status);
 			shuntEndCallback = null;
 		}
 		shuntTarget = null;
@@ -407,7 +407,7 @@ public class CompleteTrain : IDisposable
 		}
 		if (isShunting && flag)
 		{
-			EndShunting();
+			EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
 		}
 		if (trainCars.Count == 1)
 		{
@@ -437,7 +437,7 @@ public class CompleteTrain : IDisposable
 			}
 			if (shuntTarget == null || shuntTarget.IsDead() || shuntTarget.IsDestroyed)
 			{
-				EndShunting();
+				EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
 			}
 			else
 			{
@@ -453,7 +453,7 @@ public class CompleteTrain : IDisposable
 				trackSpeed = Mathf.MoveTowards(trackSpeed, flag ? num : (0f - num), dt * 10f);
 				if ((float)timeSinceShuntStart > 20f || num2 <= 0f)
 				{
-					EndShunting();
+					EndShunting(CoalingTower.ActionAttemptStatus.NoError);
 					trackSpeed = 0f;
 				}
 			}
@@ -498,7 +498,7 @@ public class CompleteTrain : IDisposable
 		trackSpeed = ApplyCollisionsToTrackSpeed(trackSpeed, TotalMass, dt);
 		if (isShunting && trackSpeed != num7)
 		{
-			EndShunting();
+			EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
 		}
 		if (disposed)
 		{
