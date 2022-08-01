@@ -44,9 +44,6 @@ public class TrainCarUnloadable : TrainCar
 	[SerializeField]
 	private ParticleSystem unloadingFX;
 
-	[SerializeField]
-	private TrainCarFuelHatches fuelHatches;
-
 	public WagonType wagonType;
 
 	private int lootTypeIndex = -1;
