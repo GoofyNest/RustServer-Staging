@@ -96,16 +96,20 @@ public class TrainCarFuelHatches : MonoBehaviour
 
 	public void StopClientTick()
 	{
-		if (hatchState == HatchState.Closing)
+		ClientTick();
+		if (hatchState == HatchState.Closing || hatchState == HatchState.Opening)
 		{
-			hatchState = HatchState.Closed;
+			InvokeHandler.InvokeRepeating(this, BackupTick, 0f, 0f);
 		}
-		else if (hatchState == HatchState.Opening)
+	}
+
+	private void BackupTick()
+	{
+		ClientTick();
+		if (hatchState == HatchState.Closed || hatchState == HatchState.Open)
 		{
-			hatchState = HatchState.Open;
+			InvokeHandler.CancelInvoke(this, BackupTick);
 		}
-		_hatchLerp = 1f;
-		SetAngleOnAll(_hatchLerp, hatchState == HatchState.Closed);
 	}
 
 	private void SetAngleOnAll(float lerpT, bool closing)
