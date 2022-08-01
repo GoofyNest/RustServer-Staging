@@ -50,7 +50,7 @@ public class TrainCarFuelHatches : MonoBehaviour
 
 	private HatchState hatchState;
 
-	protected void Update()
+	public void ClientTick()
 	{
 		CoalingTower.IsUnderAnUnloader(owner, out var isLinedUp, out var _);
 		switch (hatchState)
@@ -94,6 +94,20 @@ public class TrainCarFuelHatches : MonoBehaviour
 		}
 	}
 
+	public void StopClientTick()
+	{
+		if (hatchState == HatchState.Closing)
+		{
+			hatchState = HatchState.Closed;
+		}
+		else if (hatchState == HatchState.Opening)
+		{
+			hatchState = HatchState.Open;
+		}
+		_hatchLerp = 1f;
+		SetAngleOnAll(_hatchLerp, hatchState == HatchState.Closed);
+	}
+
 	private void SetAngleOnAll(float lerpT, bool closing)
 	{
 		float angle;
@@ -101,15 +115,15 @@ public class TrainCarFuelHatches : MonoBehaviour
 		float angle3;
 		if (closing)
 		{
-			angle = LeanTween.easeOutBounce(-145f, 0f, Mathf.Clamp01(_hatchLerp * 1.15f));
-			angle2 = LeanTween.easeOutBounce(-145f, 0f, _hatchLerp);
-			angle3 = LeanTween.easeOutBounce(-145f, 0f, Mathf.Clamp01(_hatchLerp * 1.25f));
+			angle = LeanTween.easeOutBounce(-145f, 0f, Mathf.Clamp01(lerpT * 1.15f));
+			angle2 = LeanTween.easeOutBounce(-145f, 0f, lerpT);
+			angle3 = LeanTween.easeOutBounce(-145f, 0f, Mathf.Clamp01(lerpT * 1.25f));
 		}
 		else
 		{
-			angle = LeanTween.easeOutBounce(0f, -145f, Mathf.Clamp01(_hatchLerp * 1.15f));
-			angle2 = LeanTween.easeOutBounce(0f, -145f, _hatchLerp);
-			angle3 = LeanTween.easeOutBounce(0f, -145f, Mathf.Clamp01(_hatchLerp * 1.25f));
+			angle = LeanTween.easeOutBounce(0f, -145f, Mathf.Clamp01(lerpT * 1.15f));
+			angle2 = LeanTween.easeOutBounce(0f, -145f, lerpT);
+			angle3 = LeanTween.easeOutBounce(0f, -145f, Mathf.Clamp01(lerpT * 1.25f));
 		}
 		SetAngle(hatch1Col, angle);
 		SetAngle(hatch2Col, angle2);
