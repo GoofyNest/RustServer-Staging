@@ -8,6 +8,10 @@ public class Flashbang : TimedExplosive
 
 	public float flashToAdd = 3f;
 
+	public float flashMinRange = 5f;
+
+	public float flashMaxRange = 10f;
+
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
 		using (TimeWarning.New("Flashbang.OnRpcMessage"))
