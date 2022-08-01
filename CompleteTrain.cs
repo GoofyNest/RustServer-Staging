@@ -204,6 +204,7 @@ public class CompleteTrain : IDisposable
 		ranUpdateTick = true;
 		if (IsAllAsleep() && !HasAnyEnginesOn() && !HasAnyCollisions() && !isShunting)
 		{
+			trackSpeed = 0f;
 			return;
 		}
 		ParamsTick();
@@ -217,6 +218,7 @@ public class CompleteTrain : IDisposable
 			}
 			if (!HasAnyEnginesOn() && !HasAnyCollisions() && UnityEngine.Time.time > lastMovingTime + 10f)
 			{
+				trackSpeed = 0f;
 				SleepAll();
 			}
 		}
@@ -305,6 +307,7 @@ public class CompleteTrain : IDisposable
 		}
 		if (Mathf.Abs(trackSpeed) > 0.1f)
 		{
+			Debug.Log("trackSpeed: " + trackSpeed);
 			status = CoalingTower.ActionAttemptStatus.TrainIsMoving;
 			return false;
 		}
