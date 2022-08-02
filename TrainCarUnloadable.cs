@@ -210,7 +210,7 @@ public class TrainCarUnloadable : TrainCar
 
 	private void UnloadAnimTick()
 	{
-		animPercent -= (UnityEngine.Time.time - prevAnimTime) / 10f;
+		animPercent -= (UnityEngine.Time.time - prevAnimTime) / 20f;
 		SetVisualOreLevel(animPercent);
 		prevAnimTime = UnityEngine.Time.time;
 		if (animPercent <= 0f)

@@ -180,7 +180,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 
 	private EntityRef<PercentFullStorageContainer> fuelStorageInstance;
 
-	public const float TIME_TO_EMPTY = 10f;
+	public const float TIME_TO_EMPTY = 20f;
 
 	private static List<CoalingTower> unloadersInWorld = new List<CoalingTower>();
 
@@ -342,7 +342,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		TrainWagonLootData.instance.TryGetIndexFromLoot(lootOption, out var index);
 		LootTypeIndex.Value = index;
 		activeUnloadable.BeginUnloadAnimation();
-		float repeat = 1f;
+		float repeat = 2f;
 		InvokeRepeating(EmptyTenPercent, 0f, repeat);
 	}
 
