@@ -18,6 +18,8 @@ public class ThrownWeapon : AttackEntity
 
 	public Vector3 overrideAngle = Vector3.zero;
 
+	public bool canStick = true;
+
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
 		using (TimeWarning.New("ThrownWeapon.OnRpcMessage"))
@@ -281,7 +283,7 @@ public class ThrownWeapon : AttackEntity
 		{
 			return;
 		}
-		if (UnityEngine.Physics.SphereCast(new Ray(vector, normalized), 0.05f, out var hitInfo, 1.5f, 1236478737))
+		if (canStick && UnityEngine.Physics.SphereCast(new Ray(vector, normalized), 0.05f, out var hitInfo, 1.5f, 1236478737))
 		{
 			Vector3 point = hitInfo.point;
 			Vector3 normal = hitInfo.normal;
