@@ -88,6 +88,7 @@ public class TrainTrackSpline : WorldSpline
 		isStation = sourceSpline.isStation;
 		aboveGroundSpawn = sourceSpline.aboveGroundSpawn;
 		useNewTangentCalc = sourceSpline.useNewTangentCalc;
+		hierarchy = sourceSpline.hierarchy;
 	}
 
 	public float GetSplineDistAfterMove(float prevSplineDist, Vector3 askerForward, float distMoved, TrackSelection trackSelection, out TrainTrackSpline onSpline, out bool atEndOfLine, TrainTrackSpline preferredAltA, TrainTrackSpline preferredAltB)
