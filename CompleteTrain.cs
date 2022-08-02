@@ -307,8 +307,12 @@ public class CompleteTrain : IDisposable
 		}
 		if (Mathf.Abs(trackSpeed) > 0.1f)
 		{
-			Debug.Log("trackSpeed: " + trackSpeed);
 			status = CoalingTower.ActionAttemptStatus.TrainIsMoving;
+			return false;
+		}
+		if (HasThrottleInput())
+		{
+			status = CoalingTower.ActionAttemptStatus.TrainHasThrottle;
 			return false;
 		}
 		this.shuntDirection = shuntDirection;
@@ -410,7 +414,7 @@ public class CompleteTrain : IDisposable
 		}
 		if (isShunting && flag)
 		{
-			EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
+			EndShunting(CoalingTower.ActionAttemptStatus.TrainHasThrottle);
 		}
 		if (trainCars.Count == 1)
 		{
@@ -440,7 +444,7 @@ public class CompleteTrain : IDisposable
 			}
 			if (shuntTarget == null || shuntTarget.IsDead() || shuntTarget.IsDestroyed)
 			{
-				EndShunting(CoalingTower.ActionAttemptStatus.GenericError);
+				EndShunting(CoalingTower.ActionAttemptStatus.NoTrainCar);
 			}
 			else
 			{
@@ -648,9 +652,14 @@ public class CompleteTrain : IDisposable
 		}
 		for (int i = 0; i < trainCars.Count; i++)
 		{
-			if (CoalingTower.IsUnderAnUnloader(trainCars[i], out var isLinedUp, out unloaderPos) && isLinedUp)
+			TrainCar trainCar = trainCars[i];
+			if (CoalingTower.IsUnderAnUnloader(trainCar, out var isLinedUp, out unloaderPos))
 			{
-				return i;
+				trainCar.SetFlag(BaseEntity.Flags.Reserved4, isLinedUp);
+				if (isLinedUp)
+				{
+					return i;
+				}
 			}
 		}
 		unloaderPos = Vector3.zero;
@@ -683,6 +692,18 @@ public class CompleteTrain : IDisposable
 			return coupledTo.owner != trainCars[trainCarIndex - 1];
 		}
 		return true;
+	}
+
+	private bool HasThrottleInput()
+	{
+		for (int i = 0; i < trainCars.Count; i++)
+		{
+			if (trainCars[i].HasThrottleInput())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private TrainTrackSpline.TrackSelection GetTrackSelection()

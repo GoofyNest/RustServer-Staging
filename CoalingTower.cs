@@ -7,6 +7,7 @@ using Network;
 using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 
 public class CoalingTower : IOEntity, INotifyEntityTrigger
 {
@@ -19,7 +20,8 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		NoPrevTrainCar,
 		TrainIsMoving,
 		OutputIsFull,
-		AlreadyShunting
+		AlreadyShunting,
+		TrainHasThrottle
 	}
 
 	[Header("Coaling Tower")]
@@ -50,14 +52,18 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	[SerializeField]
 	private float vacuumStartDelay = 2f;
 
+	[FormerlySerializedAs("unloadingFXContainer")]
 	[SerializeField]
-	private ParticleSystemContainer unloadingFXContainer;
+	private ParticleSystemContainer unloadingFXContainerOre;
 
 	[SerializeField]
 	private ParticleSystem[] unloadingFXMain;
 
 	[SerializeField]
 	private ParticleSystem[] unloadingFXDust;
+
+	[SerializeField]
+	private ParticleSystemContainer unloadingFXContainerFuel;
 
 	[Header("Coaling Tower Text")]
 	[SerializeField]
@@ -74,6 +80,9 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 
 	[SerializeField]
 	private TokenisedPhrase outputIsFull;
+
+	[SerializeField]
+	private TokenisedPhrase trainHasThrottle;
 
 	[Header("Coaling Tower Audio")]
 	[SerializeField]

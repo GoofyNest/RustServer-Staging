@@ -26,6 +26,9 @@ public class TrainCarUnloadable : TrainCar
 	private BoxCollider[] unloadingAreas;
 
 	[SerializeField]
+	private TrainCarFuelHatches fuelHatches;
+
+	[SerializeField]
 	private Transform orePlaneVisuals;
 
 	[SerializeField]
@@ -102,6 +105,15 @@ public class TrainCarUnloadable : TrainCar
 			}
 		}
 		return base.OnRpcMessage(player, rpc, msg);
+	}
+
+	public override void OnFlagsChanged(Flags old, Flags next)
+	{
+		base.OnFlagsChanged(old, next);
+		if (old.HasFlag(Flags.Reserved4) != next.HasFlag(Flags.Reserved4) && fuelHatches != null)
+		{
+			fuelHatches.LinedUpStateChanged(base.LinedUpToUnload);
+		}
 	}
 
 	protected override void OnChildAdded(BaseEntity child)

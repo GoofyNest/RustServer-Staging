@@ -153,6 +153,8 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	[NonSerialized]
 	public TrainTrackSpline.TrackSelection localTrackSelection;
 
+	public const Flags Flag_LinedUpToUnload = Flags.Reserved4;
+
 	public Vector3 Position => base.transform.position;
 
 	public float FrontWheelSplineDist { get; private set; }
@@ -215,6 +217,8 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	public TriggerTrainCollisions RearCollisionTrigger => rearCollisionTrigger;
 
 	public virtual TrainCarType CarType => TrainCarType.Wagon;
+
+	public bool LinedUpToUnload => HasFlag(Flags.Reserved4);
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{

@@ -2,14 +2,6 @@ using UnityEngine;
 
 public class TrainCarFuelHatches : MonoBehaviour
 {
-	private enum HatchState
-	{
-		Closed,
-		Open,
-		Opening,
-		Closing
-	}
-
 	[SerializeField]
 	private TrainCar owner;
 
@@ -48,49 +40,63 @@ public class TrainCarFuelHatches : MonoBehaviour
 
 	private float _hatchLerp;
 
-	private HatchState hatchState;
+	private bool opening;
 
-	protected void Update()
+	private bool openingQueued;
+
+	private bool isMoving;
+
+	public void LinedUpStateChanged(bool linedUp)
 	{
-		CoalingTower.IsUnderAnUnloader(owner, out var isLinedUp, out var _);
-		switch (hatchState)
+		openingQueued = linedUp;
+		if (!isMoving)
 		{
-		case HatchState.Closed:
-			if (isLinedUp)
-			{
-				hatchState = HatchState.Opening;
-				_hatchLerp = 0f;
-			}
-			break;
-		case HatchState.Open:
-			if (!isLinedUp)
-			{
-				hatchState = HatchState.Closing;
-				_hatchLerp = 0f;
-			}
-			break;
-		case HatchState.Opening:
+			opening = linedUp;
+			_ = opening;
+			isMoving = true;
+			InvokeHandler.InvokeRepeating(this, MoveTick, 0f, 0f);
+		}
+	}
+
+	private void MoveTick()
+	{
+		if (opening)
+		{
 			_hatchLerp += Time.deltaTime * animSpeed;
 			if (_hatchLerp >= 1f)
 			{
-				hatchState = HatchState.Open;
+				EndMove();
 			}
 			else
 			{
 				SetAngleOnAll(_hatchLerp, closing: false);
 			}
-			break;
-		case HatchState.Closing:
+		}
+		else
+		{
 			_hatchLerp += Time.deltaTime * animSpeed;
 			if (_hatchLerp >= 1f)
 			{
-				hatchState = HatchState.Closed;
+				EndMove();
 			}
 			else
 			{
 				SetAngleOnAll(_hatchLerp, closing: true);
 			}
-			break;
+		}
+	}
+
+	private void EndMove()
+	{
+		_hatchLerp = 0f;
+		if (openingQueued == opening)
+		{
+			InvokeHandler.CancelInvoke(this, MoveTick);
+			isMoving = false;
+		}
+		else
+		{
+			opening = openingQueued;
 		}
 	}
 
