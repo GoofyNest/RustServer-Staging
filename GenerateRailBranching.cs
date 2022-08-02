@@ -142,7 +142,7 @@ public class GenerateRailBranching : ProceduralComponent
 				Vector3 to2 = Vector3.Normalize(list4[num9 + 16] - list4[num9]);
 				Vector3 to3 = Vector3.Normalize(list4[num10] - list4[num10 - 16]);
 				Vector3 vector = Vector3.Normalize(points[num5 + 16] - points[num5]);
-				Vector3 vector2 = Vector3.Normalize(points[num6] - points[num6 - 16]);
+				Vector3 vector2 = Vector3.Normalize(points[num6] - points[(num6 - 16 + points.Length) % points.Length]);
 				float num11 = Vector3.SignedAngle(vector, to2, Vector3.up);
 				float num12 = 0f - Vector3.SignedAngle(vector2, to3, Vector3.up);
 				if (Mathf.Sign(num11) != Mathf.Sign(num12) || Mathf.Abs(num11) > 60f || Mathf.Abs(num12) > 60f)
