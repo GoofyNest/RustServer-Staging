@@ -46,7 +46,7 @@ public class FlameExplosive : TimedExplosive
 			{
 				float num = (float)i / numToCreate;
 				Vector3 modifiedAimConeDirection = AimConeUtil.GetModifiedAimConeDirection(spreadAngle * spreadCurve.Evaluate(num), surfaceNormal);
-				baseEntity.transform.SetPositionAndRotation(position + modifiedAimConeDirection * 0.2f, Quaternion.LookRotation(modifiedAimConeDirection));
+				baseEntity.transform.SetPositionAndRotation(position, Quaternion.LookRotation(modifiedAimConeDirection));
 				baseEntity.creatorEntity = ((creatorEntity == null) ? baseEntity : creatorEntity);
 				baseEntity.Spawn();
 				Vector3 vector = modifiedAimConeDirection.normalized * Random.Range(minVelocity, maxVelocity) * velocityCurve.Evaluate(num * Random.Range(1f, 1.1f));
