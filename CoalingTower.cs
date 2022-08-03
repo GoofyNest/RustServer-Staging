@@ -180,7 +180,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 
 	private EntityRef<PercentFullStorageContainer> fuelStorageInstance;
 
-	public const float TIME_TO_EMPTY = 20f;
+	public const float TIME_TO_EMPTY = 40f;
 
 	private static List<CoalingTower> unloadersInWorld = new List<CoalingTower>();
 
@@ -248,15 +248,24 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	{
 		if (ent.IsValid() && !ent.isClient)
 		{
-			SetActiveTrainCar(ent as TrainCar);
+			TrainCar trainCar = ent as TrainCar;
+			if (trainCar != null)
+			{
+				SetActiveTrainCar(trainCar);
+			}
 		}
 	}
 
 	public void OnEntityLeave(BaseEntity ent)
 	{
-		if (ent.IsValid() && !ent.isClient && activeTrainCarRef.Get(serverside: true) == ent)
+		if (ent.IsValid() && !ent.isClient)
 		{
-			ClearActiveTrainCar();
+			BaseEntity baseEntity = ent.parentEntity.Get(base.isServer);
+			TrainCar trainCar = activeTrainCarRef.Get(serverside: true);
+			if (trainCar == ent && trainCar != baseEntity)
+			{
+				ClearActiveTrainCar();
+			}
 		}
 	}
 
@@ -342,7 +351,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		TrainWagonLootData.instance.TryGetIndexFromLoot(lootOption, out var index);
 		LootTypeIndex.Value = index;
 		activeUnloadable.BeginUnloadAnimation();
-		float repeat = 2f;
+		float repeat = 4f;
 		InvokeRepeating(EmptyTenPercent, 0f, repeat);
 	}
 

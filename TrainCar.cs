@@ -741,9 +741,14 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		GamePhysics.OverlapOBB(WorldSpaceBounds(), obj, 32768);
 		foreach (Collider item in obj)
 		{
-			if (item.ToBaseEntity() != this)
+			BaseEntity baseEntity = item.ToBaseEntity();
+			if (baseEntity != this)
 			{
-				return false;
+				BaseEntity baseEntity2 = baseEntity.parentEntity.Get(base.isServer);
+				if (!baseEntity2.IsValid() || baseEntity2 != this)
+				{
+					return false;
+				}
 			}
 		}
 		Facepunch.Pool.FreeList(ref obj);
