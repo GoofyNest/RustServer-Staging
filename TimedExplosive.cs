@@ -204,6 +204,7 @@ public class TimedExplosive : BaseEntity, ServerProjectile.IProjectileImpact
 		}
 		if (explodeOnContact && !IsBusy())
 		{
+			SetMotionEnabled(wantsMotion: false);
 			SetFlag(Flags.Busy, b: true, recursive: false, networkupdate: false);
 			Invoke(Explode, 0.015f);
 		}

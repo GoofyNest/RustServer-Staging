@@ -37,10 +37,6 @@ public class FlameExplosive : TimedExplosive
 		for (int i = 0; (float)i < numToCreate; i++)
 		{
 			Vector3 position = base.transform.position;
-			if (forceUpForExplosion)
-			{
-				position += surfaceNormal * 0.1f;
-			}
 			BaseEntity baseEntity = GameManager.server.CreateEntity(createOnExplode.resourcePath, position);
 			if ((bool)baseEntity)
 			{
