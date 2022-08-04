@@ -59,6 +59,8 @@ public class TrainCarUnloadable : TrainCar
 
 	private float prevAnimTime;
 
+	protected const float DECAY_DURATION_AFTER_UNLOAD = 300f;
+
 	private EntityRef<StorageContainer> storageInstance;
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
@@ -321,10 +323,7 @@ public class TrainCarUnloadable : TrainCar
 		}
 		SetVisualOreLevel(orePercent);
 		ClientRPC(null, "RPC_StopAnimateUnload", orePercent);
-		if (orePercent == 0f && wagonType != WagonType.Lootboxes)
-		{
-			Die();
-		}
+		decayingFor = 0f;
 	}
 
 	public StorageContainer GetStorageContainer()
@@ -337,23 +336,26 @@ public class TrainCarUnloadable : TrainCar
 		return null;
 	}
 
-	protected override bool ApplyDecayPreventionRules()
+	protected override float GetDecayDuration(bool hasPassengers)
 	{
-		StorageContainer storageContainer = storageInstance.Get(base.isServer);
-		if (storageContainer.IsValid() && storageContainer.inventory != null)
+		if ((wagonType == WagonType.Ore || wagonType == WagonType.Fuel) && !hasPassengers && IsEmpty())
 		{
-			return !storageContainer.inventory.IsEmpty();
+			return 300f;
 		}
-		return true;
+		return base.GetDecayDuration(hasPassengers);
+	}
+
+	protected override bool CanDieFromDecayNow()
+	{
+		if (IsEmpty())
+		{
+			return true;
+		}
+		return base.CanDieFromDecayNow();
 	}
 
 	public override bool AdminFixUp(int tier)
 	{
-		if (IsDead())
-		{
-			CancelInvoke(base.ActualDeath);
-			lifestate = LifeState.Alive;
-		}
 		if (!base.AdminFixUp(tier))
 		{
 			return false;

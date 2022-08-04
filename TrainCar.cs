@@ -42,13 +42,13 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 
 	private float initialSpawnTime;
 
-	public float decayDuration = 1200f;
+	protected const float DECAY_DURATION = 1200f;
+
+	protected float decayingFor;
 
 	private float decayTickSpacing = 60f;
 
 	private float lastDecayTick;
-
-	private float decayingFor;
 
 	[Header("Train Car")]
 	[SerializeField]
@@ -328,11 +328,6 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		{
 			UpdateCompleteTrain();
 		}
-	}
-
-	protected virtual bool ApplyDecayPreventionRules()
-	{
-		return true;
 	}
 
 	private void UpdateCompleteTrain()
@@ -683,39 +678,42 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		{
 			return;
 		}
-		int num;
-		if (!HasDriver())
+		bool flag = HasDriver() || completeTrain.AnyPlayersOnTrain();
+		if (flag)
 		{
-			num = (completeTrain.AnyPlayersOnTrain() ? 1 : 0);
-			if (num == 0)
-			{
-				goto IL_002d;
-			}
+			decayingFor = 0f;
 		}
-		else
-		{
-			num = 1;
-		}
-		decayingFor = 0f;
-		goto IL_002d;
-		IL_002d:
-		bool flag = IsAtAStation && Vector3.Distance(spawnOrigin, base.transform.position) < 50f;
-		bool flag2 = num == 0;
-		if (ApplyDecayPreventionRules())
-		{
-			flag2 &= !AnyPlayersNearby(30f) && !flag && !IsOnAboveGroundSpawnRail;
-		}
+		float decayDuration = GetDecayDuration(flag);
 		float time = UnityEngine.Time.time;
-		float num2 = time - lastDecayTick;
+		float num = time - lastDecayTick;
 		lastDecayTick = time;
-		if (flag2)
+		if (decayDuration != float.PositiveInfinity)
 		{
-			decayingFor += num2;
-			if (decayingFor >= decayDuration && (CarType == TrainCarType.Engine || !completeTrain.IncludesAnEngine()))
+			decayingFor += num;
+			if (decayingFor >= decayDuration && CanDieFromDecayNow())
 			{
 				ActualDeath();
 			}
 		}
+	}
+
+	protected virtual float GetDecayDuration(bool hasPassengers)
+	{
+		bool flag = IsAtAStation && Vector3.Distance(spawnOrigin, base.transform.position) < 50f;
+		if (hasPassengers || AnyPlayersNearby(30f) || flag || IsOnAboveGroundSpawnRail)
+		{
+			return float.PositiveInfinity;
+		}
+		return 1200f;
+	}
+
+	protected virtual bool CanDieFromDecayNow()
+	{
+		if (CarType != TrainCarType.Engine)
+		{
+			return !completeTrain.IncludesAnEngine();
+		}
+		return true;
 	}
 
 	private bool AnyPlayersNearby(float maxDist)
