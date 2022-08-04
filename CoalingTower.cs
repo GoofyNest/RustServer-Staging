@@ -457,16 +457,29 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 			attemptStatus = ActionAttemptStatus.NoTrainCar;
 			return false;
 		}
-		if (!activeTrainCar.TryGetTrainCar(next, base.transform.forward, out var result))
+		Vector3 unloadingPos = UnloadingPos;
+		unloadingPos.y = 0f;
+		TrainCar result;
+		if (activeTrainCar is TrainCarUnloadable && !HasUnloadableLinedUp)
+		{
+			Vector3 position = activeTrainCar.transform.position;
+			Vector3 rhs = unloadingPos - position;
+			if (Vector3.Dot(base.transform.forward, rhs) >= 0f == next)
+			{
+				result = activeTrainCar;
+				goto IL_00ba;
+			}
+		}
+		if (!activeTrainCar.TryGetTrainCar(next, base.transform.forward, out result))
 		{
 			attemptStatus = (next ? ActionAttemptStatus.NoNextTrainCar : ActionAttemptStatus.NoPrevTrainCar);
 			return false;
 		}
-		Vector3 position = result.transform.position;
-		position.y = 0f;
-		Vector3 unloadingPos = UnloadingPos;
-		unloadingPos.y = 0f;
-		Vector3 shuntDirection = unloadingPos - position;
+		goto IL_00ba;
+		IL_00ba:
+		Vector3 position2 = result.transform.position;
+		position2.y = 0f;
+		Vector3 shuntDirection = unloadingPos - position2;
 		float magnitude = shuntDirection.magnitude;
 		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, result, ShuntEnded, out attemptStatus);
 	}
