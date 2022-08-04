@@ -51,8 +51,6 @@ public class TrainCarUnloadable : TrainCar
 
 	private int lootTypeIndex = -1;
 
-	protected const Flags Flag_HasLoot = Flags.Reserved9;
-
 	private List<EntityRef<LootContainer>> lootContainers = new List<EntityRef<LootContainer>>();
 
 	private Vector3 _oreScale = Vector3.one;
@@ -148,6 +146,10 @@ public class TrainCarUnloadable : TrainCar
 		if (info.msg.baseTrain != null)
 		{
 			lootTypeIndex = info.msg.baseTrain.lootTypeIndex;
+			if (base.isServer)
+			{
+				SetVisualOreLevel(info.msg.baseTrain.lootPercent);
+			}
 		}
 	}
 
@@ -276,12 +278,21 @@ public class TrainCarUnloadable : TrainCar
 
 	public void FillWithLoot(StorageContainer sc)
 	{
+		sc.inventory.Clear();
+		ItemManager.DoRemoves();
 		TrainWagonLootData.LootOption lootOption = TrainWagonLootData.instance.GetLootOption(wagonType, out lootTypeIndex);
 		int amount = UnityEngine.Random.Range(lootOption.minLootAmount, lootOption.maxLootAmount);
 		ItemDefinition itemToCreate = ItemManager.FindItemDefinition(lootOption.lootItem.itemid);
 		sc.inventory.AddItem(itemToCreate, amount, 0uL, respectMaxStack: true);
 		sc.inventory.SetLocked(isLocked: true);
-		SetFlag(Flags.Reserved9, b: true, recursive: false, networkupdate: false);
+		SetVisualOreLevel(GetOrePercent());
+		SendNetworkUpdate();
+	}
+
+	public void EmptyOutLoot(StorageContainer sc)
+	{
+		sc.inventory.Clear();
+		ItemManager.DoRemoves();
 		SetVisualOreLevel(GetOrePercent());
 		SendNetworkUpdate();
 	}
@@ -296,9 +307,7 @@ public class TrainCarUnloadable : TrainCar
 	public void EndEmptyProcess()
 	{
 		float orePercent = GetOrePercent();
-		bool flag = orePercent > 0f;
-		SetFlag(Flags.Reserved9, flag, recursive: false, networkupdate: false);
-		if (!flag)
+		if (!(orePercent > 0f))
 		{
 			lootTypeIndex = -1;
 			foreach (EntityRef<LootContainer> lootContainer2 in lootContainers)
@@ -352,11 +361,13 @@ public class TrainCarUnloadable : TrainCar
 		StorageContainer storageContainer = GetStorageContainer();
 		if (storageContainer.IsValid())
 		{
-			storageContainer.inventory.Clear();
-			ItemManager.DoRemoves();
 			if (tier > 1)
 			{
 				FillWithLoot(storageContainer);
+			}
+			else
+			{
+				EmptyOutLoot(storageContainer);
 			}
 		}
 		return true;
