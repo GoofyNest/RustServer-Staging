@@ -4798,6 +4798,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		if (IsAlive())
 		{
 			metabolism.ServerUpdate(this, deltaTime);
+			if (isMounted)
+			{
+				PauseVehicleNoClipDetection();
+			}
 			if (modifiers != null && !IsReceivingSnapshot)
 			{
 				modifiers.ServerUpdate(this);
