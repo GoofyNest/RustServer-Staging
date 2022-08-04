@@ -160,6 +160,7 @@ public class CompleteTrain : IDisposable
 		{
 			trainCars.Remove(trainCar);
 			timeSinceLastChange = 0f;
+			LinedUpToUnload = -1;
 		}
 	}
 
