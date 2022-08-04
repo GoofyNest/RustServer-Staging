@@ -740,14 +740,20 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		foreach (Collider item in obj)
 		{
 			BaseEntity baseEntity = item.ToBaseEntity();
-			if (baseEntity != this)
+			if (!(baseEntity != this))
+			{
+				continue;
+			}
+			if (baseEntity != null)
 			{
 				BaseEntity baseEntity2 = baseEntity.parentEntity.Get(base.isServer);
-				if (!baseEntity2.IsValid() || baseEntity2 != this)
+				if (baseEntity2.IsValid())
 				{
-					return false;
+					_ = baseEntity2 != this;
 				}
+				return false;
 			}
+			return false;
 		}
 		Facepunch.Pool.FreeList(ref obj);
 		return true;
