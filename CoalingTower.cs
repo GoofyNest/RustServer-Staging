@@ -24,6 +24,8 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		TrainHasThrottle
 	}
 
+	private TrainCarUnloadable tcUnloadingNow;
+
 	[Header("Coaling Tower")]
 	[SerializeField]
 	private BoxCollider unloadingBounds;
@@ -350,7 +352,8 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		TrainWagonLootData.instance.TryGetIndexFromLoot(lootOption, out var index);
 		LootTypeIndex.Value = index;
-		activeUnloadable.BeginUnloadAnimation();
+		tcUnloadingNow = activeUnloadable;
+		tcUnloadingNow.BeginUnloadAnimation();
 		float repeat = 4f;
 		InvokeRepeating(EmptyTenPercent, 0f, repeat);
 	}
@@ -368,13 +371,18 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 			return;
 		}
 		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		StorageContainer storageContainer = activeUnloadable.GetStorageContainer();
+		if (tcUnloadingNow == null || activeUnloadable != tcUnloadingNow)
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
+			return;
+		}
+		StorageContainer storageContainer = tcUnloadingNow.GetStorageContainer();
 		if (storageContainer.inventory == null || !TrainWagonLootData.instance.TryGetLootFromIndex(LootTypeIndex, out var lootOption))
 		{
 			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
 			return;
 		}
-		bool flag = activeUnloadable.wagonType != TrainCarUnloadable.WagonType.Fuel;
+		bool flag = tcUnloadingNow.wagonType != TrainCarUnloadable.WagonType.Fuel;
 		ItemContainer itemContainer = null;
 		PercentFullStorageContainer percentFullStorageContainer = (flag ? GetOreStorage() : GetFuelStorage());
 		if (percentFullStorageContainer != null)
@@ -396,7 +404,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		{
 			foreach (Item item in obj)
 			{
-				if (activeUnloadable.wagonType == TrainCarUnloadable.WagonType.Lootboxes)
+				if (tcUnloadingNow.wagonType == TrainCarUnloadable.WagonType.Lootboxes)
 				{
 					item.Remove();
 					continue;
@@ -412,7 +420,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 			}
 		}
 		Facepunch.Pool.FreeList(ref obj);
-		float orePercent = activeUnloadable.GetOrePercent();
+		float orePercent = tcUnloadingNow.GetOrePercent();
 		if (orePercent == 0f)
 		{
 			EndEmptyProcess(ActionAttemptStatus.NoError);
@@ -423,7 +431,7 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		else if (flag)
 		{
-			activeUnloadable.SetVisualOreLevel(orePercent);
+			tcUnloadingNow.SetVisualOreLevel(orePercent);
 		}
 	}
 
@@ -431,10 +439,10 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	{
 		CancelInvoke(EmptyTenPercent);
 		CancelInvoke(WagonBeginUnloadAnim);
-		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		if (activeUnloadable != null)
+		if (tcUnloadingNow != null)
 		{
-			activeUnloadable.EndEmptyProcess();
+			tcUnloadingNow.EndEmptyProcess();
+			tcUnloadingNow = null;
 		}
 		SetFlag(Flags.Busy, b: false, recursive: false, networkupdate: false);
 		SendNetworkUpdate();

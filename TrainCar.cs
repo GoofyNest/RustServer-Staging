@@ -18,12 +18,6 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		Engine
 	}
 
-	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
-	public static float population = 2.4f;
-
-	[ServerVar(Help = "Ratio of wagons to train engines that spawn")]
-	public static int wagons_per_engine = 2;
-
 	protected bool trainDebug;
 
 	public CompleteTrain completeTrain;
@@ -41,8 +35,6 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	private float distFrontToBackWheel;
 
 	private float initialSpawnTime;
-
-	protected const float DECAY_DURATION = 1200f;
 
 	protected float decayingFor;
 
@@ -141,6 +133,15 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	[SerializeField]
 	[ReadOnly]
 	private Vector3 rearBogieLocalOffset;
+
+	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
+	public static float population = 2.4f;
+
+	[ServerVar(Help = "Ratio of wagons to train engines that spawn")]
+	public static int wagons_per_engine = 2;
+
+	[ServerVar(Help = "How long before a train car despawns")]
+	public static float decayminutes = 30f;
 
 	[ReadOnly]
 	public float DistFrontWheelToFrontCoupling;
@@ -468,6 +469,15 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		return completeTrain.GetTrackSpeedFor(this);
 	}
 
+	public bool IsCoupledBackwards()
+	{
+		if (completeTrain == null)
+		{
+			return false;
+		}
+		return completeTrain.IsCoupledBackwards(this);
+	}
+
 	public float GetPrevTrackSpeed()
 	{
 		if (completeTrain == null)
@@ -683,28 +693,28 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		{
 			decayingFor = 0f;
 		}
-		float decayDuration = GetDecayDuration(flag);
+		float num = GetDecayMinutes(flag) * 60f;
 		float time = UnityEngine.Time.time;
-		float num = time - lastDecayTick;
+		float num2 = time - lastDecayTick;
 		lastDecayTick = time;
-		if (decayDuration != float.PositiveInfinity)
+		if (num != float.PositiveInfinity)
 		{
-			decayingFor += num;
-			if (decayingFor >= decayDuration && CanDieFromDecayNow())
+			decayingFor += num2;
+			if (decayingFor >= num && CanDieFromDecayNow())
 			{
 				ActualDeath();
 			}
 		}
 	}
 
-	protected virtual float GetDecayDuration(bool hasPassengers)
+	protected virtual float GetDecayMinutes(bool hasPassengers)
 	{
 		bool flag = IsAtAStation && Vector3.Distance(spawnOrigin, base.transform.position) < 50f;
 		if (hasPassengers || AnyPlayersNearby(30f) || flag || IsOnAboveGroundSpawnRail)
 		{
 			return float.PositiveInfinity;
 		}
-		return 1200f;
+		return decayminutes;
 	}
 
 	protected virtual bool CanDieFromDecayNow()

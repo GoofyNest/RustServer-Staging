@@ -59,7 +59,8 @@ public class TrainCarUnloadable : TrainCar
 
 	private float prevAnimTime;
 
-	protected const float DECAY_DURATION_AFTER_UNLOAD = 300f;
+	[ServerVar(Help = "How long before an unloadable train car despawns afer being unloaded")]
+	public static float decayminutesafterunload = 10f;
 
 	private EntityRef<StorageContainer> storageInstance;
 
@@ -336,13 +337,13 @@ public class TrainCarUnloadable : TrainCar
 		return null;
 	}
 
-	protected override float GetDecayDuration(bool hasPassengers)
+	protected override float GetDecayMinutes(bool hasPassengers)
 	{
 		if ((wagonType == WagonType.Ore || wagonType == WagonType.Fuel) && !hasPassengers && IsEmpty())
 		{
-			return 300f;
+			return decayminutesafterunload;
 		}
-		return base.GetDecayDuration(hasPassengers);
+		return base.GetDecayMinutes(hasPassengers);
 	}
 
 	protected override bool CanDieFromDecayNow()

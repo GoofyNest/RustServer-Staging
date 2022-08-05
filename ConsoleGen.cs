@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[856]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[858]
 	{
 		new ConsoleSystem.Command
 		{
@@ -11267,6 +11267,20 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "decayminutes",
+			Parent = "traincar",
+			FullName = "traincar.decayminutes",
+			ServerAdmin = true,
+			Description = "How long before a train car despawns",
+			Variable = true,
+			GetOveride = () => TrainCar.decayminutes.ToString(),
+			SetOveride = delegate(string str)
+			{
+				TrainCar.decayminutes = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "population",
 			Parent = "traincar",
 			FullName = "traincar.population",
@@ -11292,6 +11306,20 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				TrainCar.wagons_per_engine = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "decayminutesafterunload",
+			Parent = "traincarunloadable",
+			FullName = "traincarunloadable.decayminutesafterunload",
+			ServerAdmin = true,
+			Description = "How long before an unloadable train car despawns afer being unloaded",
+			Variable = true,
+			GetOveride = () => TrainCarUnloadable.decayminutesafterunload.ToString(),
+			SetOveride = delegate(string str)
+			{
+				TrainCarUnloadable.decayminutesafterunload = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command

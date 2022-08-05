@@ -122,8 +122,9 @@ public class CompleteTrain : IDisposable
 				if (trainCar.completeTrain != null)
 				{
 					bool num2 = IsCoupledBackwards(i);
+					bool preChangeCoupledBackwards = trainCar.coupling.PreChangeCoupledBackwards;
 					float preChangeTrackSpeed = trainCar.coupling.PreChangeTrackSpeed;
-					num = ((!num2) ? (num + preChangeTrackSpeed) : (num - preChangeTrackSpeed));
+					num = ((num2 == preChangeCoupledBackwards) ? (num + preChangeTrackSpeed) : (num - preChangeTrackSpeed));
 				}
 				trainCar.SetNewCompleteTrain(this);
 			}
@@ -156,11 +157,23 @@ public class CompleteTrain : IDisposable
 
 	public void RemoveTrainCar(TrainCar trainCar)
 	{
-		if (!disposed)
+		if (disposed)
 		{
-			trainCars.Remove(trainCar);
-			timeSinceLastChange = 0f;
-			LinedUpToUnload = -1;
+			return;
+		}
+		if (trainCars.Count <= 1)
+		{
+			Debug.LogWarning(GetType().Name + ": Can't remove car from CompleteTrain of length one.");
+			return;
+		}
+		int num = IndexOf(trainCar);
+		bool flag = ((num != 0) ? IsCoupledBackwards(0) : IsCoupledBackwards(1));
+		trainCars.RemoveAt(num);
+		timeSinceLastChange = 0f;
+		LinedUpToUnload = -1;
+		if (IsCoupledBackwards(0) != flag)
+		{
+			trackSpeed *= -1f;
 		}
 	}
 
@@ -667,7 +680,7 @@ public class CompleteTrain : IDisposable
 		return -1;
 	}
 
-	private bool IsCoupledBackwards(TrainCar trainCar)
+	public bool IsCoupledBackwards(TrainCar trainCar)
 	{
 		if (disposed)
 		{
@@ -918,7 +931,7 @@ public class CompleteTrain : IDisposable
 			}
 		}
 		float value = num3 / ourTotalMass * deltaTime;
-		value = Mathf.Clamp(value, 0f - Mathf.Abs(num) - 6f, Mathf.Abs(num) + 6f);
+		value = Mathf.Clamp(value, 0f - Mathf.Abs(num - trackSpeed) - 1f, Mathf.Abs(num - trackSpeed) + 1f);
 		trackSpeed -= value;
 		return trackSpeed;
 	}
