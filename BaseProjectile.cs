@@ -1088,13 +1088,13 @@ public class BaseProjectile : AttackEntity
 		if (!fractionalReload)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload not allowed (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_type");
+			player.stats.combat.LogInvalid(player, this, "reload_type");
 			return;
 		}
 		if (!reloadStarted)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload request skipped (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_skip");
+			player.stats.combat.LogInvalid(player, this, "reload_skip");
 			reloadStarted = false;
 			reloadFinished = false;
 			return;
@@ -1102,7 +1102,7 @@ public class BaseProjectile : AttackEntity
 		if (GetReloadIdle() > 3f)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "T+" + GetReloadIdle() + "s (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_time");
+			player.stats.combat.LogInvalid(player, this, "reload_time");
 			reloadStarted = false;
 			reloadFinished = false;
 			return;
@@ -1110,14 +1110,14 @@ public class BaseProjectile : AttackEntity
 		if (UnityEngine.Time.time < startReloadTime + reloadStartDuration)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload too early (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_fraction_too_early");
+			player.stats.combat.LogInvalid(player, this, "reload_fraction_too_early");
 			reloadStarted = false;
 			reloadFinished = false;
 		}
 		if (UnityEngine.Time.time < startReloadTime + reloadStartDuration + (float)fractionalInsertCounter * reloadFractionDuration)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload rate too high (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_fraction_rate");
+			player.stats.combat.LogInvalid(player, this, "reload_fraction_rate");
 			reloadStarted = false;
 			reloadFinished = false;
 		}
@@ -1146,7 +1146,7 @@ public class BaseProjectile : AttackEntity
 		if (!reloadStarted)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Request skipped (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_skip");
+			player.stats.combat.LogInvalid(player, this, "reload_skip");
 			reloadStarted = false;
 			reloadFinished = false;
 			return;
@@ -1156,7 +1156,7 @@ public class BaseProjectile : AttackEntity
 			if (GetReloadCooldown() > 1f)
 			{
 				AntiHack.Log(player, AntiHackType.ReloadHack, "T-" + GetReloadCooldown() + "s (" + base.ShortPrefabName + ")");
-				player.stats.combat.Log(this, "reload_time");
+				player.stats.combat.LogInvalid(player, this, "reload_time");
 				reloadStarted = false;
 				reloadFinished = false;
 				return;
@@ -1164,7 +1164,7 @@ public class BaseProjectile : AttackEntity
 			if (GetReloadIdle() > 1.5f)
 			{
 				AntiHack.Log(player, AntiHackType.ReloadHack, "T+" + GetReloadIdle() + "s (" + base.ShortPrefabName + ")");
-				player.stats.combat.Log(this, "reload_time");
+				player.stats.combat.LogInvalid(player, this, "reload_time");
 				reloadStarted = false;
 				reloadFinished = false;
 				return;
@@ -1196,7 +1196,7 @@ public class BaseProjectile : AttackEntity
 		if (reloadFinished && HasReloadCooldown())
 		{
 			AntiHack.Log(player, AntiHackType.ProjectileHack, "Reloading (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "reload_cooldown");
+			player.stats.combat.LogInvalid(player, this, "reload_cooldown");
 			return;
 		}
 		reloadStarted = false;
@@ -1204,7 +1204,7 @@ public class BaseProjectile : AttackEntity
 		if (primaryMagazine.contents <= 0 && !UsingInfiniteAmmoCheat)
 		{
 			AntiHack.Log(player, AntiHackType.ProjectileHack, "Magazine empty (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "ammo_missing");
+			player.stats.combat.LogInvalid(player, this, "ammo_missing");
 			return;
 		}
 		ItemDefinition primaryMagazineAmmo = PrimaryMagazineAmmo;
@@ -1212,7 +1212,7 @@ public class BaseProjectile : AttackEntity
 		if (primaryMagazineAmmo.itemid != projectileShoot.ammoType)
 		{
 			AntiHack.Log(player, AntiHackType.ProjectileHack, "Ammo mismatch (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "ammo_mismatch");
+			player.stats.combat.LogInvalid(player, this, "ammo_mismatch");
 			return;
 		}
 		if (!UsingInfiniteAmmoCheat)
@@ -1223,12 +1223,12 @@ public class BaseProjectile : AttackEntity
 		if (component == null)
 		{
 			AntiHack.Log(player, AntiHackType.ProjectileHack, "Item mod not found (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "mod_missing");
+			player.stats.combat.LogInvalid(player, this, "mod_missing");
 		}
 		else if (projectileShoot.projectiles.Count > component.numProjectiles)
 		{
 			AntiHack.Log(player, AntiHackType.ProjectileHack, "Count mismatch (" + base.ShortPrefabName + ")");
-			player.stats.combat.Log(this, "count_mismatch");
+			player.stats.combat.LogInvalid(player, this, "count_mismatch");
 		}
 		else
 		{
@@ -1243,7 +1243,7 @@ public class BaseProjectile : AttackEntity
 				if (player.HasFiredProjectile(projectile.projectileID))
 				{
 					AntiHack.Log(player, AntiHackType.ProjectileHack, "Duplicate ID (" + projectile.projectileID + ")");
-					player.stats.combat.Log(this, "duplicate_id");
+					player.stats.combat.LogInvalid(player, this, "duplicate_id");
 				}
 				else if (ValidateEyePos(player, projectile.startPos))
 				{

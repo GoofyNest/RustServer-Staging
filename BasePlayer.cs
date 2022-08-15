@@ -137,7 +137,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		PointOfInterest
 	}
 
-	private struct FiredProjectile
+	public class FiredProjectile : Facepunch.Pool.IPooled
 	{
 		public ItemDefinition itemDef;
 
@@ -180,6 +180,38 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		public int hits;
 
 		public BaseEntity lastEntityHit;
+
+		public float desyncLifeTime;
+
+		public void EnterPool()
+		{
+			itemDef = null;
+			itemMod = null;
+			projectilePrefab = null;
+			firedTime = 0f;
+			travelTime = 0f;
+			partialTime = 0f;
+			weaponSource = null;
+			weaponPrefab = null;
+			projectileModifier = default(Projectile.Modifier);
+			pickupItem = null;
+			integrity = 0f;
+			trajectoryMismatch = 0f;
+			position = default(UnityEngine.Vector3);
+			velocity = default(UnityEngine.Vector3);
+			initialPosition = default(UnityEngine.Vector3);
+			initialVelocity = default(UnityEngine.Vector3);
+			inheritedVelocity = default(UnityEngine.Vector3);
+			protection = 0;
+			ricochets = 0;
+			hits = 0;
+			lastEntityHit = null;
+			desyncLifeTime = 0f;
+		}
+
+		public void LeavePool()
+		{
+		}
 	}
 
 	public enum TimeCategory
@@ -354,7 +386,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	private bool _playerStateDirty;
 
-	private Dictionary<int, FiredProjectile> firedProjectiles = new Dictionary<int, FiredProjectile>();
+	public Dictionary<int, FiredProjectile> firedProjectiles = new Dictionary<int, FiredProjectile>();
 
 	private const int WILDERNESS = 1;
 
@@ -3411,7 +3443,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Contains NaN (" + playerAttack.projectileID + ")");
 			playerProjectileAttack.ResetToPool();
 			playerProjectileAttack = null;
-			stats.combat.Log(hitInfo, "projectile_nan");
+			stats.combat.LogInvalid(hitInfo, "projectile_nan");
 			return;
 		}
 		if (!firedProjectiles.TryGetValue(playerAttack.projectileID, out var value))
@@ -3419,7 +3451,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Missing ID (" + playerAttack.projectileID + ")");
 			playerProjectileAttack.ResetToPool();
 			playerProjectileAttack = null;
-			stats.combat.Log(hitInfo, "projectile_invalid");
+			stats.combat.LogInvalid(hitInfo, "projectile_invalid");
 			return;
 		}
 		hitInfo.ProjectileHits = value.hits;
@@ -3431,7 +3463,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Integrity is zero (" + playerAttack.projectileID + ")");
 			playerProjectileAttack.ResetToPool();
 			playerProjectileAttack = null;
-			stats.combat.Log(hitInfo, "projectile_integrity");
+			stats.combat.LogInvalid(hitInfo, "projectile_integrity");
 			return;
 		}
 		if (value.firedTime < UnityEngine.Time.realtimeSinceStartup - 8f)
@@ -3439,7 +3471,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Lifetime is zero (" + playerAttack.projectileID + ")");
 			playerProjectileAttack.ResetToPool();
 			playerProjectileAttack = null;
-			stats.combat.Log(hitInfo, "projectile_lifetime");
+			stats.combat.LogInvalid(hitInfo, "projectile_lifetime");
 			return;
 		}
 		if (value.ricochets > 0)
@@ -3447,7 +3479,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile is ricochet (" + playerAttack.projectileID + ")");
 			playerProjectileAttack.ResetToPool();
 			playerProjectileAttack = null;
-			stats.combat.Log(hitInfo, "projectile_ricochet");
+			stats.combat.LogInvalid(hitInfo, "projectile_ricochet");
 			return;
 		}
 		hitInfo.Weapon = value.weaponSource;
@@ -3487,7 +3519,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			float num3 = Mathx.Decrement(value.firedTime);
 			float num4 = Mathf.Clamp(Mathx.Increment(UnityEngine.Time.realtimeSinceStartup) - num3, 0f, 8f);
 			float num5 = num;
-			float num6 = Mathf.Abs(num4 - num5);
+			float num6 = (value.desyncLifeTime = Mathf.Abs(num4 - num5));
 			float num7 = Mathf.Min(num4, num5);
 			float num8 = projectile_clientframes / 60f;
 			float num9 = projectile_serverframes * Mathx.Max(UnityEngine.Time.deltaTime, UnityEngine.Time.smoothDeltaTime, UnityEngine.Time.fixedDeltaTime);
@@ -3498,7 +3530,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				string text = hitInfo.ProjectilePrefab.name;
 				string text2 = (flag6 ? hitEntity.ShortPrefabName : "world");
 				AntiHack.Log(this, AntiHackType.ProjectileHack, "Bone is invalid (" + text + " on " + text2 + " bone " + hitInfo.HitBone + ")");
-				stats.combat.Log(hitInfo, "projectile_bone");
+				stats.combat.LogInvalid(hitInfo, "projectile_bone");
 				flag9 = false;
 			}
 			if (flag8)
@@ -3508,7 +3540,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text3 = hitInfo.ProjectilePrefab.name;
 					string text4 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile water hit on entity (" + text3 + " on " + text4 + ")");
-					stats.combat.Log(hitInfo, "water_entity");
+					stats.combat.LogInvalid(hitInfo, "water_entity");
 					flag9 = false;
 				}
 				if (!WaterLevel.Test(hitInfo.HitPositionWorld - 0.5f * UnityEngine.Vector3.up, waves: false, this))
@@ -3516,7 +3548,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text5 = hitInfo.ProjectilePrefab.name;
 					string text6 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile water level (" + text5 + " on " + text6 + ")");
-					stats.combat.Log(hitInfo, "water_level");
+					stats.combat.LogInvalid(hitInfo, "water_level");
 					flag9 = false;
 				}
 			}
@@ -3532,7 +3564,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 						string text7 = hitInfo.ProjectilePrefab.name;
 						string shortPrefabName = hitEntity.ShortPrefabName;
 						AntiHack.Log(this, AntiHackType.ProjectileHack, "Entity too far away (" + text7 + " on " + shortPrefabName + " with " + num14 + "m > " + num13 + "m in " + num11 + "s)");
-						stats.combat.Log(hitInfo, "entity_distance");
+						stats.combat.LogInvalid(hitInfo, "entity_distance");
 						flag9 = false;
 					}
 				}
@@ -3546,7 +3578,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 						string text8 = hitInfo.ProjectilePrefab.name;
 						string shortPrefabName2 = basePlayer.ShortPrefabName;
 						AntiHack.Log(this, AntiHackType.ProjectileHack, "Player too far away (" + text8 + " on " + shortPrefabName2 + " with " + num16 + "m > " + num15 + "m in " + num11 + "s)");
-						stats.combat.Log(hitInfo, "player_distance");
+						stats.combat.LogInvalid(hitInfo, "player_distance");
 						flag9 = false;
 					}
 				}
@@ -3562,7 +3594,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text9 = hitInfo.ProjectilePrefab.name;
 					string text10 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile too fast (" + text9 + " on " + text10 + " with " + num19 + "m > " + num17 + "m in " + num10 + "s)");
-					stats.combat.Log(hitInfo, "projectile_speed");
+					stats.combat.LogInvalid(hitInfo, "projectile_speed");
 					flag9 = false;
 				}
 				if (num19 > num18)
@@ -3570,7 +3602,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text11 = hitInfo.ProjectilePrefab.name;
 					string text12 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile too far away (" + text11 + " on " + text12 + " with " + num19 + "m > " + num18 + "m in " + num10 + "s)");
-					stats.combat.Log(hitInfo, "projectile_distance");
+					stats.combat.LogInvalid(hitInfo, "projectile_distance");
 					flag9 = false;
 				}
 				if (num6 > ConVar.AntiHack.projectile_desync)
@@ -3578,7 +3610,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text13 = hitInfo.ProjectilePrefab.name;
 					string text14 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Projectile desync (" + text13 + " on " + text14 + " with " + num6 + "s > " + ConVar.AntiHack.projectile_desync + "s)");
-					stats.combat.Log(hitInfo, "projectile_desync");
+					stats.combat.LogInvalid(hitInfo, "projectile_desync");
 					flag9 = false;
 				}
 			}
@@ -3598,7 +3630,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					if (num20 != 0)
 					{
 						stats.Add("hit_" + (flag6 ? hitEntity.Categorize() : "world") + "_direct_los", 1, Stats.Server);
-						goto IL_0aff;
+						goto IL_0b06;
 					}
 				}
 				else
@@ -3606,18 +3638,18 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					num20 = 0;
 				}
 				stats.Add("hit_" + (flag6 ? hitEntity.Categorize() : "world") + "_indirect_los", 1, Stats.Server);
-				goto IL_0aff;
+				goto IL_0b06;
 			}
-			goto IL_0d04;
+			goto IL_0d0b;
 		}
-		goto IL_1061;
-		IL_0aff:
+		goto IL_1068;
+		IL_0b06:
 		if (num20 == 0)
 		{
 			string text15 = hitInfo.ProjectilePrefab.name;
 			string text16 = (flag6 ? hitEntity.ShortPrefabName : "world");
 			AntiHack.Log(this, AntiHackType.ProjectileHack, string.Concat("Line of sight (", text15, " on ", text16, ") ", position2, " ", pointStart, " ", vector, " ", hitPositionWorld));
-			stats.combat.Log(hitInfo, "projectile_los");
+			stats.combat.LogInvalid(hitInfo, "projectile_los");
 			flag9 = false;
 		}
 		if (flag9 && flag && !flag7)
@@ -3636,12 +3668,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				string text17 = hitInfo.ProjectilePrefab.name;
 				string text18 = (flag6 ? hitEntity.ShortPrefabName : "world");
 				AntiHack.Log(this, AntiHackType.ProjectileHack, string.Concat("Line of sight (", text17, " on ", text18, ") ", hitPositionWorld2, " ", position3, " or ", hitPositionWorld2, " ", vector2));
-				stats.combat.Log(hitInfo, "projectile_los");
+				stats.combat.LogInvalid(hitInfo, "projectile_los");
 				flag9 = false;
 			}
 		}
-		goto IL_0d04;
-		IL_0d04:
+		goto IL_0d0b;
+		IL_0d0b:
 		if (value.protection >= 4)
 		{
 			SimulateProjectile(ref position, ref velocity, ref partialTime, num - travelTime, gravity, drag, out var prevPosition, out var prevVelocity);
@@ -3654,7 +3686,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				string text19 = value.projectilePrefab.name;
 				string text20 = (flag6 ? hitEntity.ShortPrefabName : "world");
 				AntiHack.Log(this, AntiHackType.ProjectileHack, "Start position trajectory (" + text19 + " on " + text20 + " with " + num21 + "m > " + ConVar.AntiHack.projectile_trajectory + "m)");
-				stats.combat.Log(hitInfo, "trajectory_start");
+				stats.combat.LogInvalid(hitInfo, "trajectory_start");
 				flag9 = false;
 			}
 			if (num22 > ConVar.AntiHack.projectile_trajectory)
@@ -3662,7 +3694,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				string text21 = value.projectilePrefab.name;
 				string text22 = (flag6 ? hitEntity.ShortPrefabName : "world");
 				AntiHack.Log(this, AntiHackType.ProjectileHack, "End position trajectory (" + text21 + " on " + text22 + " with " + num22 + "m > " + ConVar.AntiHack.projectile_trajectory + "m)");
-				stats.combat.Log(hitInfo, "trajectory_end");
+				stats.combat.LogInvalid(hitInfo, "trajectory_end");
 				flag9 = false;
 			}
 			hitInfo.ProjectileVelocity = velocity;
@@ -3675,7 +3707,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text23 = value.projectilePrefab.name;
 					string text24 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Trajectory angle change (" + text23 + " on " + text24 + " with " + num23 + "deg > " + ConVar.AntiHack.projectile_anglechange + "deg)");
-					stats.combat.Log(hitInfo, "angle_change");
+					stats.combat.LogInvalid(hitInfo, "angle_change");
 					flag9 = false;
 				}
 				if (num24 > ConVar.AntiHack.projectile_velocitychange)
@@ -3683,7 +3715,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					string text25 = value.projectilePrefab.name;
 					string text26 = (flag6 ? hitEntity.ShortPrefabName : "world");
 					AntiHack.Log(this, AntiHackType.ProjectileHack, "Trajectory velocity change (" + text25 + " on " + text26 + " with " + num24 + " > " + ConVar.AntiHack.projectile_velocitychange + ")");
-					stats.combat.Log(hitInfo, "velocity_change");
+					stats.combat.LogInvalid(hitInfo, "velocity_change");
 					flag9 = false;
 				}
 			}
@@ -3695,8 +3727,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			playerProjectileAttack = null;
 			return;
 		}
-		goto IL_1061;
-		IL_1061:
+		goto IL_1068;
+		IL_1068:
 		value.position = hitInfo.HitPositionWorld;
 		value.velocity = playerProjectileAttack.hitVelocity;
 		value.travelTime = num;
@@ -3745,7 +3777,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			}
 			else
 			{
-				stats.combat.Log(hitInfo, "ricochet");
+				stats.combat.LogInvalid(hitInfo, "ricochet");
 			}
 		}
 		hitInfo.DoHitEffects = hitInfo.ProjectilePrefab.doDefaultHitEffects;
@@ -3844,7 +3876,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			float num4 = Mathx.Decrement(value.firedTime);
 			float num5 = Mathf.Clamp(Mathx.Increment(UnityEngine.Time.realtimeSinceStartup) - num4, 0f, 8f);
 			float num6 = num2;
-			float num7 = Mathf.Abs(num5 - num6);
+			float num7 = (value.desyncLifeTime = Mathf.Abs(num5 - num6));
 			float num8 = Mathf.Min(num5, num6);
 			float num9 = projectile_clientframes / 60f;
 			float num10 = projectile_serverframes * Mathx.Max(UnityEngine.Time.deltaTime, UnityEngine.Time.smoothDeltaTime, UnityEngine.Time.fixedDeltaTime);
@@ -4023,6 +4055,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		foreach (KeyValuePair<int, FiredProjectile> item in firedProjectiles.Where((KeyValuePair<int, FiredProjectile> x) => x.Value.firedTime < UnityEngine.Time.realtimeSinceStartup - 8f - 1f).ToList())
 		{
 			firedProjectiles.Remove(item.Key);
+			FiredProjectile obj = item.Value;
+			Facepunch.Pool.Free(ref obj);
 		}
 	}
 
@@ -4042,7 +4076,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		{
 			string text = component2.name;
 			AntiHack.Log(this, AntiHackType.ProjectileHack, "Contains NaN (" + text + ")");
-			stats.combat.Log(baseProjectile, "projectile_nan");
+			stats.combat.LogInvalid(this, baseProjectile, "projectile_nan");
 			return;
 		}
 		if (projectile_protection >= 1)
@@ -4060,11 +4094,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			{
 				string text2 = component2.name;
 				AntiHack.Log(this, AntiHackType.ProjectileHack, "Velocity (" + text2 + " with " + magnitude + " > " + num2 + ")");
-				stats.combat.Log(baseProjectile, "projectile_velocity");
+				stats.combat.LogInvalid(this, baseProjectile, "projectile_velocity");
 				return;
 			}
 		}
-		FiredProjectile firedProjectile = default(FiredProjectile);
+		FiredProjectile firedProjectile = Facepunch.Pool.Get<FiredProjectile>();
 		firedProjectile.itemDef = firedItemDef;
 		firedProjectile.itemMod = component;
 		firedProjectile.projectilePrefab = component2;
@@ -4083,8 +4117,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		firedProjectile.protection = projectile_protection;
 		firedProjectile.ricochets = 0;
 		firedProjectile.hits = 0;
-		FiredProjectile value = firedProjectile;
-		firedProjectiles.Add(projectileid, value);
+		firedProjectiles.Add(projectileid, firedProjectile);
 	}
 
 	public void ServerNoteFiredProjectile(int projectileid, UnityEngine.Vector3 startPos, UnityEngine.Vector3 startVel, AttackEntity attackEnt, ItemDefinition firedItemDef, Item pickupItem = null)
@@ -4096,7 +4129,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		UnityEngine.Vector3 zero = UnityEngine.Vector3.zero;
 		if (!startPos.IsNaNOrInfinity() && !startVel.IsNaNOrInfinity())
 		{
-			FiredProjectile firedProjectile = default(FiredProjectile);
+			FiredProjectile firedProjectile = Facepunch.Pool.Get<FiredProjectile>();
 			firedProjectile.itemDef = firedItemDef;
 			firedProjectile.itemMod = component;
 			firedProjectile.projectilePrefab = component2;
@@ -4116,8 +4149,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			firedProjectile.protection = protection;
 			firedProjectile.ricochets = 0;
 			firedProjectile.hits = 0;
-			FiredProjectile value = firedProjectile;
-			firedProjectiles.Add(projectileid, value);
+			firedProjectiles.Add(projectileid, firedProjectile);
 		}
 	}
 
@@ -7477,7 +7509,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	public override void OnAttacked(HitInfo info)
 	{
-		float health_old = base.health;
+		float oldHealth = base.health;
 		if (InSafeZone() && !IsHostile() && info.Initiator != null && info.Initiator != this)
 		{
 			info.damageTypes.ScaleAll(0f);
@@ -7571,15 +7603,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		{
 			if (IsWounded())
 			{
-				stats.combat.Log(info, health_old, base.health, "wounded");
+				stats.combat.LogAttack(info, "wounded", oldHealth);
 			}
 			else if (IsDead())
 			{
-				stats.combat.Log(info, health_old, base.health, "killed");
+				stats.combat.LogAttack(info, "killed", oldHealth);
 			}
 			else
 			{
-				stats.combat.Log(info, health_old, base.health);
+				stats.combat.LogAttack(info, "", oldHealth);
 			}
 		}
 	}
