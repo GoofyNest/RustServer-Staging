@@ -16,6 +16,8 @@ public class SprayCanSpray : DecayEntity, ISplashable
 
 	public static ListHashSet<SprayCanSpray> AllSprays = new ListHashSet<SprayCanSpray>();
 
+	public override bool BypassInsideDecayMultiplier => true;
+
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
 		using (TimeWarning.New("SprayCanSpray.OnRpcMessage"))
