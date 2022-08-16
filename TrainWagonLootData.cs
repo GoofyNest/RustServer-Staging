@@ -133,9 +133,8 @@ public class TrainWagonLootData : ScriptableObject
 		float result = 0f;
 		if (sc.IsValid())
 		{
-			int amount = sc.inventory.GetAmount(lootOption.lootItem.itemid, onlyUsableAmounts: false);
 			int maxLootAmount = lootOption.maxLootAmount;
-			result = Mathf.Clamp01((float)amount / (float)maxLootAmount);
+			result = (((float)maxLootAmount != 0f) ? Mathf.Clamp01((float)sc.inventory.GetAmount(lootOption.lootItem.itemid, onlyUsableAmounts: false) / (float)maxLootAmount) : 0f);
 		}
 		return result;
 	}
