@@ -39,7 +39,7 @@ public static class GamePhysics
 		for (int i = 0; i < num; i++)
 		{
 			BaseEntity baseEntity = colBuffer[i].ToBaseEntity();
-			if (!(ignoreEntity != null) || (baseEntity.isServer == ignoreEntity.isServer && !(baseEntity == ignoreEntity)))
+			if (!(baseEntity != null) || !(ignoreEntity != null) || (baseEntity.isServer == ignoreEntity.isServer && !(baseEntity == ignoreEntity)))
 			{
 				return true;
 			}

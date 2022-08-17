@@ -11,18 +11,18 @@ public class FrankensteinBrain : PetBrain
 		{
 		}
 
-		public override void StateEnter(BaseAIBrain brain, BaseEntity entity)
+		public override void StateEnter()
 		{
-			base.StateEnter(brain, entity);
-			BaseNavigator navigator = brain.Navigator;
+			base.StateEnter();
+			BaseNavigator navigator = GetEntity().Brain.Navigator;
 			originalStopDistance = navigator.StoppingDistance;
 			navigator.StoppingDistance = 0.5f;
 		}
 
-		public override void StateLeave(BaseAIBrain brain, BaseEntity entity)
+		public override void StateLeave()
 		{
-			base.StateLeave(brain, entity);
-			brain.Navigator.StoppingDistance = originalStopDistance;
+			base.StateLeave();
+			GetEntity().Brain.Navigator.StoppingDistance = originalStopDistance;
 			Stop();
 		}
 
@@ -31,9 +31,9 @@ public class FrankensteinBrain : PetBrain
 			brain.Navigator.Stop();
 		}
 
-		public override StateStatus StateThink(float delta, BaseAIBrain brain, BaseEntity entity)
+		public override StateStatus StateThink(float delta)
 		{
-			base.StateThink(delta, brain, entity);
+			base.StateThink(delta);
 			Vector3 pos = brain.Events.Memory.Position.Get(6);
 			if (!brain.Navigator.SetDestination(pos, BaseNavigator.NavigationSpeed.Normal, MoveTowardsRate))
 			{
@@ -58,9 +58,9 @@ public class FrankensteinBrain : PetBrain
 		{
 		}
 
-		public override void StateLeave(BaseAIBrain brain, BaseEntity entity)
+		public override void StateLeave()
 		{
-			base.StateLeave(brain, entity);
+			base.StateLeave();
 			Stop();
 		}
 
@@ -69,9 +69,9 @@ public class FrankensteinBrain : PetBrain
 			brain.Navigator.Stop();
 		}
 
-		public override StateStatus StateThink(float delta, BaseAIBrain brain, BaseEntity entity)
+		public override StateStatus StateThink(float delta)
 		{
-			base.StateThink(delta, brain, entity);
+			base.StateThink(delta);
 			BaseEntity baseEntity = brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot);
 			if (baseEntity == null)
 			{
@@ -109,12 +109,7 @@ public class FrankensteinBrain : PetBrain
 		base.ThinkMode = AIThinkMode.Interval;
 		thinkRate = 0.25f;
 		base.PathFinder = new HumanPathFinder();
-		((HumanPathFinder)base.PathFinder).Init(GetBaseEntity());
-	}
-
-	public FrankensteinPet GetEntity()
-	{
-		return GetBaseEntity() as FrankensteinPet;
+		((HumanPathFinder)base.PathFinder).Init(GetEntity());
 	}
 
 	public override void OnDestroy()

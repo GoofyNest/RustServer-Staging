@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FishBrain : BaseAIBrain
+public class FishBrain : BaseAIBrain<BaseFishNPC>
 {
 	public class IdleState : BaseIdleState
 	{
@@ -13,15 +13,15 @@ public class FishBrain : BaseAIBrain
 
 		private Vector3 idleRootPos;
 
-		public override void StateLeave(BaseAIBrain brain, BaseEntity entity)
+		public override void StateLeave()
 		{
-			base.StateLeave(brain, entity);
+			base.StateLeave();
 			Stop();
 		}
 
-		public override void StateEnter(BaseAIBrain brain, BaseEntity entity)
+		public override void StateEnter()
 		{
-			base.StateEnter(brain, entity);
+			base.StateEnter();
 			idleRootPos = brain.Navigator.transform.position;
 			GenerateIdlePoints(20f, 0f);
 			currentPointIndex = 0;
@@ -44,9 +44,9 @@ public class FishBrain : BaseAIBrain
 			brain.Navigator.Stop();
 		}
 
-		public override StateStatus StateThink(float delta, BaseAIBrain brain, BaseEntity entity)
+		public override StateStatus StateThink(float delta)
 		{
-			base.StateThink(delta, brain, entity);
+			base.StateThink(delta);
 			if (Vector3.Distance(brain.Navigator.transform.position, idleRootPos + idlePoints[currentPointIndex]) < 4f)
 			{
 				currentPointIndex++;
@@ -96,15 +96,15 @@ public class FishBrain : BaseAIBrain
 		{
 		}
 
-		public override void StateLeave(BaseAIBrain brain, BaseEntity entity)
+		public override void StateLeave()
 		{
-			base.StateLeave(brain, entity);
+			base.StateLeave();
 			Stop();
 		}
 
-		public override void StateEnter(BaseAIBrain brain, BaseEntity entity)
+		public override void StateEnter()
 		{
-			base.StateEnter(brain, entity);
+			base.StateEnter();
 			status = StateStatus.Error;
 			if (brain.PathFinder != null)
 			{
@@ -126,9 +126,9 @@ public class FishBrain : BaseAIBrain
 			brain.Navigator.Stop();
 		}
 
-		public override StateStatus StateThink(float delta, BaseAIBrain brain, BaseEntity entity)
+		public override StateStatus StateThink(float delta)
 		{
-			base.StateThink(delta, brain, entity);
+			base.StateThink(delta);
 			if (status == StateStatus.Error)
 			{
 				return status;
@@ -161,7 +161,7 @@ public class FishBrain : BaseAIBrain
 		base.ThinkMode = AIThinkMode.Interval;
 		thinkRate = 0.25f;
 		base.PathFinder = new UnderwaterPathFinder();
-		((UnderwaterPathFinder)base.PathFinder).Init(GetBaseEntity());
+		((UnderwaterPathFinder)base.PathFinder).Init(GetEntity());
 		Count++;
 	}
 

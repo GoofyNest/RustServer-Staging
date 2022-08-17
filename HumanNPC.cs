@@ -29,7 +29,7 @@ public class HumanNPC : NPCPlayer, IAISenses, IAIAttack, IThinker
 
 	private Vector3 aimOverridePosition = Vector3.zero;
 
-	public ScientistBrain Brain { get; private set; }
+	public BaseAIBrain<HumanNPC> Brain { get; private set; }
 
 	public override float StartHealth()
 	{
@@ -54,7 +54,7 @@ public class HumanNPC : NPCPlayer, IAISenses, IAIAttack, IThinker
 	public override void ServerInit()
 	{
 		base.ServerInit();
-		Brain = GetComponent<ScientistBrain>();
+		Brain = GetComponent<BaseAIBrain<HumanNPC>>();
 		if (!base.isClient)
 		{
 			AIThinkManager.Add(this);

@@ -2,7 +2,7 @@ using Network;
 using Rust;
 using UnityEngine;
 
-public class PetBrain : BaseAIBrain
+public class PetBrain : BaseAIBrain<BasePet>
 {
 	[Header("Audio")]
 	public SoundDefinition CommandGivenVocalSFX;
@@ -43,7 +43,7 @@ public class PetBrain : BaseAIBrain
 		base.ThinkMode = AIThinkMode.Interval;
 		thinkRate = 0.25f;
 		base.PathFinder = new HumanPathFinder();
-		((HumanPathFinder)base.PathFinder).Init(GetBaseEntity());
+		((HumanPathFinder)base.PathFinder).Init(GetEntity());
 		Count++;
 	}
 
@@ -58,10 +58,10 @@ public class PetBrain : BaseAIBrain
 		base.Think(delta);
 		if (DrownInDeepWater)
 		{
-			BaseCombatEntity baseCombatEntity = GetBaseEntity() as BaseCombatEntity;
-			if (baseCombatEntity != null && baseCombatEntity.WaterFactor() > 0.85f && !baseCombatEntity.IsDestroyed)
+			BasePet entity = GetEntity();
+			if (entity != null && entity.WaterFactor() > 0.85f && !entity.IsDestroyed)
 			{
-				baseCombatEntity.Hurt(delta * (baseCombatEntity.MaxHealth() / DrownTimer), DamageType.Drowned);
+				entity.Hurt(delta * (entity.MaxHealth() / DrownTimer), DamageType.Drowned);
 			}
 		}
 		EvaluateLoadDefaultDesignTriggers();
@@ -97,15 +97,15 @@ public class PetBrain : BaseAIBrain
 	public override void OnAIDesignLoadedAtIndex(int index)
 	{
 		base.OnAIDesignLoadedAtIndex(index);
-		BaseEntity baseEntity = GetBaseEntity();
-		if (baseEntity != null)
+		BasePet entity = GetEntity();
+		if (entity != null)
 		{
-			BasePlayer basePlayer = BasePlayer.FindByID(baseEntity.OwnerID);
+			BasePlayer basePlayer = BasePlayer.FindByID(entity.OwnerID);
 			if (basePlayer != null)
 			{
 				basePlayer.SendClientPetStateIndex();
 			}
-			baseEntity.ClientRPC(null, "OnCommandGiven");
+			entity.ClientRPC(null, "OnCommandGiven");
 		}
 	}
 }

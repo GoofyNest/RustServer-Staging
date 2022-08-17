@@ -115,7 +115,7 @@ public class NPCSpawner : SpawnGroup
 		}
 	}
 
-	private void ModifyHumanBrainStats(BaseAIBrain brain)
+	private void ModifyHumanBrainStats(BaseAIBrain<HumanNPC> brain)
 	{
 		if (UseStatModifiers && !(brain == null))
 		{

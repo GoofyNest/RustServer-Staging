@@ -14,12 +14,12 @@ public class ScarecrowNPC : NPCPlayer, IAISenses, IAIAttack, IThinker
 
 	private float nextAttackTime;
 
-	public ScarecrowBrain Brain { get; protected set; }
+	public BaseAIBrain<ScarecrowNPC> Brain { get; protected set; }
 
 	public override void ServerInit()
 	{
 		base.ServerInit();
-		Brain = GetComponent<ScarecrowBrain>();
+		Brain = GetComponent<BaseAIBrain<ScarecrowNPC>>();
 		if (!base.isClient)
 		{
 			AIThinkManager.Add(this);

@@ -94,12 +94,12 @@ public class CombatLog
 		{
 			distance = (hitInfo.IsProjectile() ? hitInfo.ProjectileDistance : Vector3.Distance(hitInfo.PointStart, hitInfo.HitPositionWorld));
 		}
-		float health_new = hitEntity.Health();
+		float health_new = hitEntity?.Health() ?? 0f;
 		val.time = UnityEngine.Time.realtimeSinceStartup;
 		val.attacker_id = attacker?.net?.ID ?? 0;
-		val.target_id = (((bool)hitEntity && hitEntity.net != null) ? hitEntity.net.ID : 0u);
-		val.attacker = ((player == attacker) ? "you" : (attacker ? attacker.ShortPrefabName : "N/A"));
-		val.target = ((player == hitEntity) ? "you" : (hitEntity ? hitEntity.ShortPrefabName : "N/A"));
+		val.target_id = ((hitEntity?.net != null) ? hitEntity.net.ID : 0u);
+		val.attacker = ((player == attacker) ? "you" : (attacker?.ShortPrefabName ?? "N/A"));
+		val.target = ((player == hitEntity) ? "you" : (hitEntity?.ShortPrefabName ?? "N/A"));
 		val.weapon = weapon?.name ?? "N/A";
 		val.ammo = projectilePrefab?.name ?? "N/A";
 		val.bone = hitInfo?.boneName ?? "N/A";
@@ -107,7 +107,7 @@ public class CombatLog
 		val.distance = distance;
 		val.health_old = ((healthOld == -1f) ? 0f : healthOld);
 		val.health_new = health_new;
-		val.info = ((description != null) ? description : string.Empty);
+		val.info = description ?? string.Empty;
 		val.proj_hits = hitInfo?.ProjectileHits ?? 0;
 		val.proj_integrity = hitInfo?.ProjectileIntegrity ?? 0f;
 		val.proj_travel = hitInfo?.ProjectileTravelTime ?? 0f;
