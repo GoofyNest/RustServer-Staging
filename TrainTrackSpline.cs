@@ -51,6 +51,8 @@ public class TrainTrackSpline : WorldSpline
 
 		float FrontWheelSplineDist { get; }
 
+		TrainCar.TrainCarType CarType { get; }
+
 		Vector3 GetWorldVelocity();
 	}
 
@@ -352,6 +354,23 @@ public class TrainTrackSpline : WorldSpline
 			float minHazardDist3 = Mathf.Max(num - data.Length, 0f);
 			float maxHazardDist3 = num2 - data.Length;
 			return trackSelection3.track.HasValidHazardWithin(asker, askerForward, askerSplineDist, minHazardDist3, maxHazardDist3, trackSelection, movingForward, preferredAltA, preferredAltB);
+		}
+		return false;
+	}
+
+	public bool HasAnyUsers()
+	{
+		return trackUsers.Count > 0;
+	}
+
+	public bool HasAnyUsersOfType(TrainCar.TrainCarType carType)
+	{
+		foreach (ITrainTrackUser trackUser in trackUsers)
+		{
+			if (trackUser.CarType == carType)
+			{
+				return true;
+			}
 		}
 		return false;
 	}

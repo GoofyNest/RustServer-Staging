@@ -15,7 +15,8 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	public enum TrainCarType
 	{
 		Wagon,
-		Engine
+		Engine,
+		Other
 	}
 
 	protected bool trainDebug;
@@ -135,7 +136,7 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	private Vector3 rearBogieLocalOffset;
 
 	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
-	public static float population = 2.4f;
+	public static float population = 2.3f;
 
 	[ServerVar(Help = "Ratio of wagons to train engines that spawn")]
 	public static int wagons_per_engine = 2;
@@ -674,6 +675,40 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		return num;
 	}
 
+	public bool SpaceIsClear()
+	{
+		List<Collider> obj = Facepunch.Pool.GetList<Collider>();
+		GamePhysics.OverlapOBB(WorldSpaceBounds(), obj, 32768);
+		foreach (Collider item in obj)
+		{
+			if (!ColliderIsPartOfTrain(item))
+			{
+				return false;
+			}
+		}
+		Facepunch.Pool.FreeList(ref obj);
+		return true;
+	}
+
+	public bool ColliderIsPartOfTrain(Collider collider)
+	{
+		BaseEntity baseEntity = collider.ToBaseEntity();
+		if (baseEntity == null)
+		{
+			return false;
+		}
+		if (baseEntity == this)
+		{
+			return true;
+		}
+		BaseEntity baseEntity2 = baseEntity.parentEntity.Get(base.isServer);
+		if (baseEntity2.IsValid())
+		{
+			return baseEntity2 == this;
+		}
+		return false;
+	}
+
 	private void UpdateClients()
 	{
 		if (IsMoving())
@@ -741,32 +776,6 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		}
 		Facepunch.Pool.FreeList(ref obj);
 		return result;
-	}
-
-	private bool SpaceIsClear()
-	{
-		List<Collider> obj = Facepunch.Pool.GetList<Collider>();
-		GamePhysics.OverlapOBB(WorldSpaceBounds(), obj, 32768);
-		foreach (Collider item in obj)
-		{
-			BaseEntity baseEntity = item.ToBaseEntity();
-			if (!(baseEntity != this))
-			{
-				continue;
-			}
-			if (baseEntity != null)
-			{
-				BaseEntity baseEntity2 = baseEntity.parentEntity.Get(base.isServer);
-				if (baseEntity2.IsValid())
-				{
-					_ = baseEntity2 != this;
-				}
-				return false;
-			}
-			return false;
-		}
-		Facepunch.Pool.FreeList(ref obj);
-		return true;
 	}
 
 	[RPC_Server]
