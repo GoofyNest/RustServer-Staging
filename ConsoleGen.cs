@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[858]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[859]
 	{
 		new ConsoleSystem.Command
 		{
@@ -4925,6 +4925,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Global.ClearAllSpraysByPlayer(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "clearspraysatpositioninradius",
+			Parent = "global",
+			FullName = "global.clearspraysatpositioninradius",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Global.ClearSpraysAtPositionInRadius(arg);
 			}
 		},
 		new ConsoleSystem.Command

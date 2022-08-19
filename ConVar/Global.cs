@@ -673,16 +673,20 @@ public class Global : ConsoleSystem
 	public static void ClearSpraysInRadius(Arg arg)
 	{
 		BasePlayer basePlayer = arg.Player();
-		if (basePlayer == null)
+		if (!(basePlayer == null))
 		{
-			return;
+			float @float = arg.GetFloat(0, 16f);
+			int num = ClearSpraysInRadius(basePlayer.transform.position, @float);
+			arg.ReplyWith($"Deleted {num} sprays within {@float} of {basePlayer.displayName}");
 		}
-		float @float = arg.GetFloat(0, 16f);
-		Vector3 position = basePlayer.transform.position;
+	}
+
+	private static int ClearSpraysInRadius(Vector3 position, float radius)
+	{
 		List<SprayCanSpray> obj = Facepunch.Pool.GetList<SprayCanSpray>();
 		foreach (SprayCanSpray allSpray in SprayCanSpray.AllSprays)
 		{
-			if (allSpray.Distance(position) <= @float)
+			if (allSpray.Distance(position) <= radius)
 			{
 				obj.Add(allSpray);
 			}
@@ -693,6 +697,18 @@ public class Global : ConsoleSystem
 		}
 		int count = obj.Count;
 		Facepunch.Pool.FreeList(ref obj);
-		arg.ReplyWith($"Deleted {count} sprays within {@float} of {basePlayer.displayName}");
+		return count;
+	}
+
+	[ServerVar]
+	public static void ClearSpraysAtPositionInRadius(Arg arg)
+	{
+		Vector3 vector = arg.GetVector3(0);
+		float @float = arg.GetFloat(1);
+		if (@float != 0f)
+		{
+			int num = ClearSpraysInRadius(vector, @float);
+			arg.ReplyWith($"Deleted {num} sprays within {@float} of {vector}");
+		}
 	}
 }
