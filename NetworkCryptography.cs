@@ -1,60 +1,36 @@
-using System;
+using System.IO;
 using Network;
 
 public abstract class NetworkCryptography : INetworkCryptocraphy
 {
-	private byte[] buffer = new byte[8388608];
+	private MemoryStream buffer = new MemoryStream();
 
-	public unsafe ArraySegment<byte> EncryptCopy(Connection connection, ArraySegment<byte> data)
+	public MemoryStream EncryptCopy(Connection connection, MemoryStream stream, int offset)
 	{
-		ArraySegment<byte> src = new ArraySegment<byte>(data.Array, data.Offset, data.Count);
-		ArraySegment<byte> dst = new ArraySegment<byte>(buffer, data.Offset, buffer.Length - data.Offset);
-		if (data.Offset > 0)
-		{
-			fixed (byte* destination = dst.Array)
-			{
-				fixed (byte* source = data.Array)
-				{
-					Buffer.MemoryCopy(source, destination, dst.Array.Length, data.Offset);
-				}
-			}
-		}
-		EncryptionHandler(connection, src, ref dst);
-		return dst;
+		buffer.Position = 0L;
+		buffer.SetLength(0L);
+		buffer.Write(stream.GetBuffer(), 0, offset);
+		EncryptionHandler(connection, stream, offset, buffer, offset);
+		return buffer;
 	}
 
-	public unsafe ArraySegment<byte> DecryptCopy(Connection connection, ArraySegment<byte> data)
+	public MemoryStream DecryptCopy(Connection connection, MemoryStream stream, int offset)
 	{
-		ArraySegment<byte> src = new ArraySegment<byte>(data.Array, data.Offset, data.Count);
-		ArraySegment<byte> dst = new ArraySegment<byte>(buffer, data.Offset, buffer.Length - data.Offset);
-		if (data.Offset > 0)
-		{
-			fixed (byte* destination = dst.Array)
-			{
-				fixed (byte* source = data.Array)
-				{
-					Buffer.MemoryCopy(source, destination, dst.Array.Length, data.Offset);
-				}
-			}
-		}
-		DecryptionHandler(connection, src, ref dst);
-		return dst;
+		buffer.Position = 0L;
+		buffer.SetLength(0L);
+		buffer.Write(stream.GetBuffer(), 0, offset);
+		DecryptionHandler(connection, stream, offset, buffer, offset);
+		return buffer;
 	}
 
-	public void Encrypt(Connection connection, ref ArraySegment<byte> data)
+	public void Encrypt(Connection connection, MemoryStream stream, int offset)
 	{
-		ArraySegment<byte> src = new ArraySegment<byte>(data.Array, data.Offset, data.Count);
-		ArraySegment<byte> dst = new ArraySegment<byte>(data.Array, data.Offset, data.Array.Length - data.Offset);
-		EncryptionHandler(connection, src, ref dst);
-		data = dst;
+		EncryptionHandler(connection, stream, offset, stream, offset);
 	}
 
-	public void Decrypt(Connection connection, ref ArraySegment<byte> data)
+	public void Decrypt(Connection connection, MemoryStream stream, int offset)
 	{
-		ArraySegment<byte> src = new ArraySegment<byte>(data.Array, data.Offset, data.Count);
-		ArraySegment<byte> dst = new ArraySegment<byte>(data.Array, data.Offset, data.Array.Length - data.Offset);
-		DecryptionHandler(connection, src, ref dst);
-		data = dst;
+		DecryptionHandler(connection, stream, offset, stream, offset);
 	}
 
 	public bool IsEnabledIncoming(Connection connection)
@@ -75,7 +51,7 @@ public abstract class NetworkCryptography : INetworkCryptocraphy
 		return false;
 	}
 
-	protected abstract void EncryptionHandler(Connection connection, ArraySegment<byte> src, ref ArraySegment<byte> dst);
+	protected abstract void EncryptionHandler(Connection connection, MemoryStream src, int srcOffset, MemoryStream dst, int dstOffset);
 
-	protected abstract void DecryptionHandler(Connection connection, ArraySegment<byte> src, ref ArraySegment<byte> dst);
+	protected abstract void DecryptionHandler(Connection connection, MemoryStream src, int srcOffset, MemoryStream dst, int dstOffset);
 }

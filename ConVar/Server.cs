@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Epic.OnlineServices;
-using Epic.OnlineServices.Reports;
+using EasyAntiCheat.Server.Scout;
 using Facepunch.Extend;
 using Network;
 using UnityEngine;
@@ -58,12 +57,6 @@ public class Server : ConsoleSystem
 
 	[ServerVar]
 	public static int encryption = 2;
-
-	[ServerVar]
-	public static string anticheatid = "xyza7891h6UjNfd0eb2HQGtaul0WhfvS";
-
-	[ServerVar]
-	public static string anticheatkey = "OWUDFZmi9VNL/7VhGVSSmCWALKTltKw8ISepa0VXs60";
 
 	[ServerVar]
 	public static int tickrate = 10;
@@ -639,15 +632,9 @@ public class Server : ConsoleSystem
 			ulong uInt = arg.GetUInt64(0, 0uL);
 			string @string = arg.GetString(1);
 			UnityEngine.Debug.LogWarning(string.Concat(basePlayer, " reported ", uInt, ": ", @string.ToPrintable(140)));
-			if (EACServer.Reports != null)
+			if (EACServer.eacScout != null)
 			{
-				SendPlayerBehaviorReportOptions sendPlayerBehaviorReportOptions = default(SendPlayerBehaviorReportOptions);
-				sendPlayerBehaviorReportOptions.ReportedUserId = ProductUserId.FromString(uInt.ToString());
-				sendPlayerBehaviorReportOptions.ReporterUserId = ProductUserId.FromString(basePlayer.net.connection.userid.ToString());
-				sendPlayerBehaviorReportOptions.Category = PlayerReportsCategory.Cheating;
-				sendPlayerBehaviorReportOptions.Message = @string;
-				SendPlayerBehaviorReportOptions options = sendPlayerBehaviorReportOptions;
-				EACServer.Reports.SendPlayerBehaviorReport(ref options, null, null);
+				EACServer.eacScout.SendPlayerReport(uInt.ToString(), basePlayer.net.connection.userid.ToString(), PlayerReportCategory.PlayerReportCheating, @string);
 			}
 		}
 	}

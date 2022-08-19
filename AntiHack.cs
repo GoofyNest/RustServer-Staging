@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using ConVar;
-using Epic.OnlineServices;
-using Epic.OnlineServices.Reports;
+using EasyAntiCheat.Server.Scout;
 using UnityEngine;
 
 public static class AntiHack
@@ -477,14 +476,9 @@ public static class AntiHack
 
 	private static void LogToEAC(BasePlayer ply, AntiHackType type, string message)
 	{
-		if (ConVar.AntiHack.reporting && EACServer.Reports != null)
+		if (ConVar.AntiHack.reporting && EACServer.eacScout != null)
 		{
-			SendPlayerBehaviorReportOptions sendPlayerBehaviorReportOptions = default(SendPlayerBehaviorReportOptions);
-			sendPlayerBehaviorReportOptions.ReportedUserId = ProductUserId.FromString(ply.UserIDString);
-			sendPlayerBehaviorReportOptions.Category = PlayerReportsCategory.Exploiting;
-			sendPlayerBehaviorReportOptions.Message = string.Concat(type, ": ", message);
-			SendPlayerBehaviorReportOptions options = sendPlayerBehaviorReportOptions;
-			EACServer.Reports.SendPlayerBehaviorReport(ref options, null, null);
+			EACServer.eacScout.SendInvalidPlayerStateReport(ply.UserIDString, InvalidPlayerStateReportCategory.PlayerReportExploiting, string.Concat(type, ": ", message));
 		}
 	}
 
@@ -505,12 +499,20 @@ public static class AntiHack
 
 	public static void Kick(BasePlayer ply, string reason)
 	{
+		if (EACServer.eacScout != null)
+		{
+			EACServer.eacScout.SendKickReport(ply.userID.ToString(), reason, KickReasonCategory.KickReasonOther);
+		}
 		AddRecord(ply, kicks);
 		ConsoleSystem.Run(ConsoleSystem.Option.Server, "kick", ply.userID, reason);
 	}
 
 	public static void Ban(BasePlayer ply, string reason)
 	{
+		if (EACServer.eacScout != null)
+		{
+			EACServer.eacScout.SendKickReport(ply.userID.ToString(), reason, KickReasonCategory.KickReasonCheating);
+		}
 		AddRecord(ply, bans);
 		ConsoleSystem.Run(ConsoleSystem.Option.Server, "ban", ply.userID, reason);
 	}

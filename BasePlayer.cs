@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using CompanionServer;
 using ConVar;
-using Epic.OnlineServices.AntiCheatCommon;
+using EasyAntiCheat.Server.Cerberus;
+using EasyAntiCheat.Server.Hydra;
 using Facepunch;
 using Facepunch.Extend;
 using Facepunch.Math;
@@ -162,15 +163,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 		public float trajectoryMismatch;
 
-		public Vector3 position;
+		public UnityEngine.Vector3 position;
 
-		public Vector3 velocity;
+		public UnityEngine.Vector3 velocity;
 
-		public Vector3 initialPosition;
+		public UnityEngine.Vector3 initialPosition;
 
-		public Vector3 initialVelocity;
+		public UnityEngine.Vector3 initialVelocity;
 
-		public Vector3 inheritedVelocity;
+		public UnityEngine.Vector3 inheritedVelocity;
 
 		public int protection;
 
@@ -196,11 +197,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			pickupItem = null;
 			integrity = 0f;
 			trajectoryMismatch = 0f;
-			position = default(Vector3);
-			velocity = default(Vector3);
-			initialPosition = default(Vector3);
-			initialVelocity = default(Vector3);
-			inheritedVelocity = default(Vector3);
+			position = default(UnityEngine.Vector3);
+			velocity = default(UnityEngine.Vector3);
+			initialPosition = default(UnityEngine.Vector3);
+			initialVelocity = default(UnityEngine.Vector3);
+			inheritedVelocity = default(UnityEngine.Vector3);
 			protection = 0;
 			ricochets = 0;
 			hits = 0;
@@ -243,9 +244,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	public class SpawnPoint
 	{
-		public Vector3 pos;
+		public UnityEngine.Vector3 pos;
 
-		public Quaternion rot;
+		public UnityEngine.Quaternion rot;
 	}
 
 	[Serializable]
@@ -255,9 +256,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 		public float radius;
 
-		public Vector3 center;
+		public UnityEngine.Vector3 center;
 
-		public CapsuleColliderInfo(float height, float radius, Vector3 center)
+		public CapsuleColliderInfo(float height, float radius, UnityEngine.Vector3 center)
 		{
 			this.height = height;
 			this.radius = radius;
@@ -450,7 +451,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 	[NonSerialized]
 	public float nextRespawnTime;
 
-	protected Vector3 viewAngles;
+	protected UnityEngine.Vector3 viewAngles;
 
 	public const int MaxBotIdRange = 10000000;
 
@@ -518,13 +519,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	private bool tickNeedsFinalizing;
 
-	private Vector3 tickViewAngles;
+	private UnityEngine.Vector3 tickViewAngles;
 
 	private TimeAverageValue ticksPerSecond = new TimeAverageValue();
 
 	private TickInterpolator tickInterpolator = new TickInterpolator();
 
-	public Deque<Vector3> eyeHistory = new Deque<Vector3>();
+	public Deque<UnityEngine.Vector3> eyeHistory = new Deque<UnityEngine.Vector3>();
 
 	public TickHistory tickHistory = new TickHistory();
 
@@ -795,7 +796,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	protected override float PositionTickRate => -1f;
 
-	public Vector3 estimatedVelocity { get; private set; }
+	public UnityEngine.Vector3 estimatedVelocity { get; private set; }
 
 	public float estimatedSpeed { get; private set; }
 
@@ -2028,8 +2029,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 	private void SV_Drink(RPCMessage msg)
 	{
 		BasePlayer player = msg.player;
-		Vector3 vector = msg.read.Vector3();
-		if (vector.IsNaNOrInfinity() || !player || !player.metabolism.CanConsume() || Vector3.Distance(player.transform.position, vector) > 5f || !WaterLevel.Test(vector, waves: true, this) || (isMounted && !GetMounted().canDrinkWhileMounted))
+		UnityEngine.Vector3 vector = msg.read.Vector3();
+		if (vector.IsNaNOrInfinity() || !player || !player.metabolism.CanConsume() || UnityEngine.Vector3.Distance(player.transform.position, vector) > 5f || !WaterLevel.Test(vector, waves: true, this) || (isMounted && !GetMounted().canDrinkWhileMounted))
 		{
 			return;
 		}
@@ -2053,15 +2054,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 	{
 		BasePlayer player = msg.player;
 		bool flag = msg.read.Bit();
-		Vector3 vector = msg.read.Vector3();
+		UnityEngine.Vector3 vector = msg.read.Vector3();
 		uint num = msg.read.UInt32();
 		BaseNetworkable baseNetworkable = BaseNetworkable.serverEntities.Find(num);
-		Vector3 vector2 = (flag ? baseNetworkable.transform.TransformPoint(vector) : vector);
+		UnityEngine.Vector3 vector2 = (flag ? baseNetworkable.transform.TransformPoint(vector) : vector);
 		if (!player.isMounted || player.Distance(vector2) > 5f || !GamePhysics.LineOfSight(player.eyes.position, vector2, 1218519041) || !GamePhysics.LineOfSight(vector2, vector2 + player.eyes.offset, 1218519041))
 		{
 			return;
 		}
-		Vector3 end = vector2 - (vector2 - player.eyes.position).normalized * 0.25f;
+		UnityEngine.Vector3 end = vector2 - (vector2 - player.eyes.position).normalized * 0.25f;
 		if (!GamePhysics.CheckCapsule(player.eyes.position, end, 0.25f, 1218519041) && !AntiHack.TestNoClipping(player, vector2 + player.NoClipOffset(), vector2 + player.NoClipOffset(), player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true))
 		{
 			player.EnsureDismounted();
@@ -2342,7 +2343,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 	}
 
-	public int CountWaveTargets(Vector3 position, float distance, float minimumDot, Vector3 forward, HashSet<uint> workingList, int maxCount)
+	public int CountWaveTargets(UnityEngine.Vector3 position, float distance, float minimumDot, UnityEngine.Vector3 forward, HashSet<uint> workingList, int maxCount)
 	{
 		float sqrDistance = distance * distance;
 		Group group = net.group;
@@ -2385,7 +2386,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			{
 				return false;
 			}
-			if (Vector3.Dot((player.transform.position - position).normalized, forward) < minimumDot)
+			if (UnityEngine.Vector3.Dot((player.transform.position - position).normalized, forward) < minimumDot)
 			{
 				return false;
 			}
@@ -2444,7 +2445,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			PlayerTeam.TeamMember teamMember = Facepunch.Pool.Get<PlayerTeam.TeamMember>();
 			teamMember.displayName = ((basePlayer != null) ? basePlayer.displayName : (SingletonComponent<ServerMgr>.Instance.persistance.GetPlayerName(member) ?? "DEAD"));
 			teamMember.healthFraction = ((basePlayer != null && basePlayer.IsAlive()) ? basePlayer.healthFraction : 0f);
-			teamMember.position = ((basePlayer != null) ? basePlayer.transform.position : Vector3.zero);
+			teamMember.position = ((basePlayer != null) ? basePlayer.transform.position : UnityEngine.Vector3.zero);
 			teamMember.online = basePlayer != null && !basePlayer.IsSleeping();
 			teamMember.wounded = basePlayer != null && basePlayer.IsWounded();
 			if ((!sentInstrumentTeamAchievement || !sentSummerTeamAchievement) && basePlayer != null)
@@ -2574,7 +2575,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return false;
 	}
 
-	public void Server_LogDeathMarker(Vector3 position)
+	public void Server_LogDeathMarker(UnityEngine.Vector3 position)
 	{
 		if (!IsNpc)
 		{
@@ -2889,7 +2890,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			missionInstance.endTime = mission.endTime;
 			missionInstance.missionLocation = mission.missionLocation;
 			missionInstance.missionPoints = Facepunch.Pool.GetList<ProtoBuf.MissionPoint>();
-			foreach (KeyValuePair<string, Vector3> missionPoint2 in mission.missionPoints)
+			foreach (KeyValuePair<string, UnityEngine.Vector3> missionPoint2 in mission.missionPoints)
 			{
 				ProtoBuf.MissionPoint missionPoint = Facepunch.Pool.Get<ProtoBuf.MissionPoint>();
 				missionPoint.identifier = missionPoint2.Key;
@@ -3283,7 +3284,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return buildingPrivilege.IsAuthed(this);
 	}
 
-	public bool CanBuild(Vector3 position, Quaternion rotation, Bounds bounds)
+	public bool CanBuild(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, Bounds bounds)
 	{
 		BuildingPrivlidge buildingPrivilege = GetBuildingPrivilege(new OBB(position, rotation, bounds));
 		if (buildingPrivilege == null)
@@ -3313,7 +3314,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return !buildingPrivilege.IsAuthed(this);
 	}
 
-	public bool IsBuildingBlocked(Vector3 position, Quaternion rotation, Bounds bounds)
+	public bool IsBuildingBlocked(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, Bounds bounds)
 	{
 		BuildingPrivlidge buildingPrivilege = GetBuildingPrivilege(new OBB(position, rotation, bounds));
 		if (buildingPrivilege == null)
@@ -3343,7 +3344,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return buildingPrivilege.IsAuthed(this);
 	}
 
-	public bool IsBuildingAuthed(Vector3 position, Quaternion rotation, Bounds bounds)
+	public bool IsBuildingAuthed(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, Bounds bounds)
 	{
 		BuildingPrivlidge buildingPrivilege = GetBuildingPrivilege(new OBB(position, rotation, bounds));
 		if (buildingPrivilege == null)
@@ -3368,7 +3369,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return GetBuildingPrivilege() == null;
 	}
 
-	public bool CanPlaceBuildingPrivilege(Vector3 position, Quaternion rotation, Bounds bounds)
+	public bool CanPlaceBuildingPrivilege(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, Bounds bounds)
 	{
 		return GetBuildingPrivilege(new OBB(position, rotation, bounds)) == null;
 	}
@@ -3392,7 +3393,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return false;
 	}
 
-	public bool IsNearEnemyBase(Vector3 position, Quaternion rotation, Bounds bounds)
+	public bool IsNearEnemyBase(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, Bounds bounds)
 	{
 		BuildingPrivlidge buildingPrivilege = GetBuildingPrivilege(new OBB(position, rotation, bounds));
 		if (buildingPrivilege == null)
@@ -3485,12 +3486,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		hitInfo.WeaponPrefab = value.weaponPrefab;
 		hitInfo.ProjectilePrefab = value.projectilePrefab;
 		hitInfo.damageProperties = value.projectilePrefab.damageProperties;
-		Vector3 position = value.position;
-		Vector3 velocity = value.velocity;
+		UnityEngine.Vector3 position = value.position;
+		UnityEngine.Vector3 velocity = value.velocity;
 		float partialTime = value.partialTime;
 		float travelTime = value.travelTime;
 		float num = Mathf.Clamp(playerProjectileAttack.travelTime, value.travelTime, 8f);
-		Vector3 gravity = UnityEngine.Physics.gravity * value.projectilePrefab.gravityModifier;
+		UnityEngine.Vector3 gravity = UnityEngine.Physics.gravity * value.projectilePrefab.gravityModifier;
 		float drag = value.projectilePrefab.drag;
 		int layerMask = (ConVar.AntiHack.projectile_terraincheck ? 10551296 : 2162688);
 		BaseEntity hitEntity = hitInfo.HitEntity;
@@ -3504,10 +3505,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		bool flag7 = flag6 && hitEntity.IsNpc;
 		bool flag8 = hitInfo.HitMaterial == Projectile.WaterMaterialID();
 		bool flag9;
-		Vector3 position2;
-		Vector3 pointStart;
-		Vector3 hitPositionWorld;
-		Vector3 vector;
+		UnityEngine.Vector3 position2;
+		UnityEngine.Vector3 pointStart;
+		UnityEngine.Vector3 hitPositionWorld;
+		UnityEngine.Vector3 vector;
 		int num20;
 		if (value.protection > 0)
 		{
@@ -3542,7 +3543,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					stats.combat.LogInvalid(hitInfo, "water_entity");
 					flag9 = false;
 				}
-				if (!WaterLevel.Test(hitInfo.HitPositionWorld - 0.5f * Vector3.up, waves: false, this))
+				if (!WaterLevel.Test(hitInfo.HitPositionWorld - 0.5f * UnityEngine.Vector3.up, waves: false, this))
 				{
 					string text5 = hitInfo.ProjectilePrefab.name;
 					string text6 = (flag6 ? hitEntity.ShortPrefabName : "world");
@@ -3587,7 +3588,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				float magnitude2 = value.initialVelocity.magnitude;
 				float num17 = hitInfo.ProjectilePrefab.initialDistance + num10 * magnitude2;
 				float num18 = hitInfo.ProjectileDistance + 1f;
-				float num19 = Vector3.Distance(value.initialPosition, hitInfo.HitPositionWorld);
+				float num19 = UnityEngine.Vector3.Distance(value.initialPosition, hitInfo.HitPositionWorld);
 				if (num19 > num17)
 				{
 					string text9 = hitInfo.ProjectilePrefab.name;
@@ -3653,9 +3654,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		if (flag9 && flag && !flag7)
 		{
-			Vector3 hitPositionWorld2 = hitInfo.HitPositionWorld;
-			Vector3 position3 = basePlayer.eyes.position;
-			Vector3 vector2 = basePlayer.CenterPoint();
+			UnityEngine.Vector3 hitPositionWorld2 = hitInfo.HitPositionWorld;
+			UnityEngine.Vector3 position3 = basePlayer.eyes.position;
+			UnityEngine.Vector3 vector2 = basePlayer.CenterPoint();
 			float projectile_losforgiveness = ConVar.AntiHack.projectile_losforgiveness;
 			bool flag10 = GamePhysics.LineOfSight(hitPositionWorld2, position3, layerMask, 0f, projectile_losforgiveness) && GamePhysics.LineOfSight(position3, hitPositionWorld2, layerMask, projectile_losforgiveness, 0f);
 			if (!flag10)
@@ -3676,7 +3677,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		if (value.protection >= 4)
 		{
 			SimulateProjectile(ref position, ref velocity, ref partialTime, num - travelTime, gravity, drag, out var prevPosition, out var prevVelocity);
-			Vector3 vector3 = prevVelocity * (1f / 32f);
+			UnityEngine.Vector3 vector3 = prevVelocity * (1f / 32f);
 			Line line = new Line(prevPosition - vector3, position + vector3);
 			float num21 = line.Distance(hitInfo.PointStart);
 			float num22 = line.Distance(hitInfo.HitPositionWorld);
@@ -3697,9 +3698,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				flag9 = false;
 			}
 			hitInfo.ProjectileVelocity = velocity;
-			if (playerProjectileAttack.hitVelocity != Vector3.zero && velocity != Vector3.zero)
+			if (playerProjectileAttack.hitVelocity != UnityEngine.Vector3.zero && velocity != UnityEngine.Vector3.zero)
 			{
-				float num23 = Vector3.Angle(playerProjectileAttack.hitVelocity, velocity);
+				float num23 = UnityEngine.Vector3.Angle(playerProjectileAttack.hitVelocity, velocity);
 				float num24 = playerProjectileAttack.hitVelocity.magnitude / velocity.magnitude;
 				if (num23 > ConVar.AntiHack.projectile_anglechange)
 				{
@@ -3858,13 +3859,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			playerProjectileUpdate = null;
 			return;
 		}
-		Vector3 position = value.position;
-		Vector3 velocity = value.velocity;
+		UnityEngine.Vector3 position = value.position;
+		UnityEngine.Vector3 velocity = value.velocity;
 		float num = value.trajectoryMismatch;
 		float partialTime = value.partialTime;
 		float travelTime = value.travelTime;
 		float num2 = Mathf.Clamp(playerProjectileUpdate.travelTime, value.travelTime, 8f);
-		Vector3 gravity = UnityEngine.Physics.gravity * value.projectilePrefab.gravityModifier;
+		UnityEngine.Vector3 gravity = UnityEngine.Physics.gravity * value.projectilePrefab.gravityModifier;
 		float drag = value.projectilePrefab.drag;
 		int layerMask = (ConVar.AntiHack.projectile_terraincheck ? 10551296 : 2162688);
 		if (value.protection > 0)
@@ -3884,7 +3885,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			{
 				float magnitude = value.initialVelocity.magnitude;
 				float num12 = value.projectilePrefab.initialDistance + num11 * magnitude;
-				float num13 = Vector3.Distance(value.initialPosition, playerProjectileUpdate.curPosition);
+				float num13 = UnityEngine.Vector3.Distance(value.initialPosition, playerProjectileUpdate.curPosition);
 				if (num13 > num12)
 				{
 					string text = value.projectilePrefab.name;
@@ -3904,8 +3905,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			}
 			if (value.protection >= 3)
 			{
-				Vector3 position2 = value.position;
-				Vector3 curPosition = playerProjectileUpdate.curPosition;
+				UnityEngine.Vector3 position2 = value.position;
+				UnityEngine.Vector3 curPosition = playerProjectileUpdate.curPosition;
 				if (!GamePhysics.LineOfSight(position2, curPosition, layerMask, value.lastEntityHit))
 				{
 					string text3 = value.projectilePrefab.name;
@@ -3916,7 +3917,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				}
 				if (ConVar.AntiHack.projectile_backtracking > 0f)
 				{
-					Vector3 vector = (curPosition - position2).normalized * ConVar.AntiHack.projectile_backtracking;
+					UnityEngine.Vector3 vector = (curPosition - position2).normalized * ConVar.AntiHack.projectile_backtracking;
 					if (!GamePhysics.LineOfSight(position2, curPosition + vector, layerMask, value.lastEntityHit))
 					{
 						string text4 = value.projectilePrefab.name;
@@ -3930,7 +3931,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			if (value.protection >= 4)
 			{
 				SimulateProjectile(ref position, ref velocity, ref partialTime, num2 - travelTime, gravity, drag, out var prevPosition, out var prevVelocity);
-				Vector3 vector2 = prevVelocity * (1f / 32f);
+				UnityEngine.Vector3 vector2 = prevVelocity * (1f / 32f);
 				num += new Line(prevPosition - vector2, position + vector2).Distance(playerProjectileUpdate.curPosition);
 				if (num > ConVar.AntiHack.projectile_trajectory)
 				{
@@ -3943,15 +3944,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			}
 			if (value.protection >= 5)
 			{
-				if (value.inheritedVelocity != Vector3.zero)
+				if (value.inheritedVelocity != UnityEngine.Vector3.zero)
 				{
-					Vector3 curVelocity = value.inheritedVelocity + velocity;
-					Vector3 curVelocity2 = playerProjectileUpdate.curVelocity;
+					UnityEngine.Vector3 curVelocity = value.inheritedVelocity + velocity;
+					UnityEngine.Vector3 curVelocity2 = playerProjectileUpdate.curVelocity;
 					if (curVelocity2.magnitude > 2f * curVelocity.magnitude)
 					{
 						playerProjectileUpdate.curVelocity = curVelocity;
 					}
-					value.inheritedVelocity = Vector3.zero;
+					value.inheritedVelocity = UnityEngine.Vector3.zero;
 				}
 				else
 				{
@@ -3969,7 +3970,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		playerProjectileUpdate = null;
 	}
 
-	private void SimulateProjectile(ref Vector3 position, ref Vector3 velocity, ref float partialTime, float travelTime, Vector3 gravity, float drag, out Vector3 prevPosition, out Vector3 prevVelocity)
+	private void SimulateProjectile(ref UnityEngine.Vector3 position, ref UnityEngine.Vector3 velocity, ref float partialTime, float travelTime, UnityEngine.Vector3 gravity, float drag, out UnityEngine.Vector3 prevPosition, out UnityEngine.Vector3 prevVelocity)
 	{
 		float num = 1f / 32f;
 		prevPosition = position;
@@ -4012,18 +4013,18 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	protected virtual void CreateWorldProjectile(HitInfo info, ItemDefinition itemDef, ItemModProjectile itemMod, Projectile projectilePrefab, Item recycleItem)
 	{
-		Vector3 projectileVelocity = info.ProjectileVelocity;
+		UnityEngine.Vector3 projectileVelocity = info.ProjectileVelocity;
 		Item item = ((recycleItem != null) ? recycleItem : ItemManager.Create(itemDef, 1, 0uL));
 		BaseEntity baseEntity = null;
 		if (!info.DidHit)
 		{
-			baseEntity = item.CreateWorldObject(info.HitPositionWorld, Quaternion.LookRotation(projectileVelocity.normalized));
+			baseEntity = item.CreateWorldObject(info.HitPositionWorld, UnityEngine.Quaternion.LookRotation(projectileVelocity.normalized));
 			baseEntity.Kill(DestroyMode.Gib);
 			return;
 		}
 		if (projectilePrefab.breakProbability > 0f && UnityEngine.Random.value <= projectilePrefab.breakProbability)
 		{
-			baseEntity = item.CreateWorldObject(info.HitPositionWorld, Quaternion.LookRotation(projectileVelocity.normalized));
+			baseEntity = item.CreateWorldObject(info.HitPositionWorld, UnityEngine.Quaternion.LookRotation(projectileVelocity.normalized));
 			baseEntity.Kill(DestroyMode.Gib);
 			return;
 		}
@@ -4032,18 +4033,18 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			item.LoseCondition(projectilePrefab.conditionLoss * 100f);
 			if (item.isBroken)
 			{
-				baseEntity = item.CreateWorldObject(info.HitPositionWorld, Quaternion.LookRotation(projectileVelocity.normalized));
+				baseEntity = item.CreateWorldObject(info.HitPositionWorld, UnityEngine.Quaternion.LookRotation(projectileVelocity.normalized));
 				baseEntity.Kill(DestroyMode.Gib);
 				return;
 			}
 		}
 		if (projectilePrefab.stickProbability > 0f && UnityEngine.Random.value <= projectilePrefab.stickProbability)
 		{
-			baseEntity = ((info.HitEntity == null) ? item.CreateWorldObject(info.HitPositionWorld, Quaternion.LookRotation(projectileVelocity.normalized)) : ((info.HitBone != 0) ? item.CreateWorldObject(info.HitPositionLocal, Quaternion.LookRotation(info.HitNormalLocal * -1f), info.HitEntity, info.HitBone) : item.CreateWorldObject(info.HitPositionLocal, Quaternion.LookRotation(info.HitEntity.transform.InverseTransformDirection(projectileVelocity.normalized)), info.HitEntity)));
+			baseEntity = ((info.HitEntity == null) ? item.CreateWorldObject(info.HitPositionWorld, UnityEngine.Quaternion.LookRotation(projectileVelocity.normalized)) : ((info.HitBone != 0) ? item.CreateWorldObject(info.HitPositionLocal, UnityEngine.Quaternion.LookRotation(info.HitNormalLocal * -1f), info.HitEntity, info.HitBone) : item.CreateWorldObject(info.HitPositionLocal, UnityEngine.Quaternion.LookRotation(info.HitEntity.transform.InverseTransformDirection(projectileVelocity.normalized)), info.HitEntity)));
 			baseEntity.GetComponent<Rigidbody>().isKinematic = true;
 			return;
 		}
-		baseEntity = item.CreateWorldObject(info.HitPositionWorld, Quaternion.LookRotation(projectileVelocity.normalized));
+		baseEntity = item.CreateWorldObject(info.HitPositionWorld, UnityEngine.Quaternion.LookRotation(projectileVelocity.normalized));
 		Rigidbody component = baseEntity.GetComponent<Rigidbody>();
 		component.AddForce(projectileVelocity.normalized * 200f);
 		component.WakeUp();
@@ -4064,13 +4065,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return firedProjectiles.ContainsKey(id);
 	}
 
-	public void NoteFiredProjectile(int projectileid, Vector3 startPos, Vector3 startVel, AttackEntity attackEnt, ItemDefinition firedItemDef, Item pickupItem = null)
+	public void NoteFiredProjectile(int projectileid, UnityEngine.Vector3 startPos, UnityEngine.Vector3 startVel, AttackEntity attackEnt, ItemDefinition firedItemDef, Item pickupItem = null)
 	{
 		BaseProjectile baseProjectile = attackEnt as BaseProjectile;
 		ItemModProjectile component = firedItemDef.GetComponent<ItemModProjectile>();
 		Projectile component2 = component.projectileObject.Get().GetComponent<Projectile>();
 		int projectile_protection = ConVar.AntiHack.projectile_protection;
-		Vector3 inheritedVelocity = ((attackEnt != null) ? attackEnt.GetInheritedVelocity(this) : Vector3.zero);
+		UnityEngine.Vector3 inheritedVelocity = ((attackEnt != null) ? attackEnt.GetInheritedVelocity(this) : UnityEngine.Vector3.zero);
 		if (startPos.IsNaNOrInfinity() || startVel.IsNaNOrInfinity())
 		{
 			string text = component2.name;
@@ -4119,13 +4120,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		firedProjectiles.Add(projectileid, firedProjectile);
 	}
 
-	public void ServerNoteFiredProjectile(int projectileid, Vector3 startPos, Vector3 startVel, AttackEntity attackEnt, ItemDefinition firedItemDef, Item pickupItem = null)
+	public void ServerNoteFiredProjectile(int projectileid, UnityEngine.Vector3 startPos, UnityEngine.Vector3 startVel, AttackEntity attackEnt, ItemDefinition firedItemDef, Item pickupItem = null)
 	{
 		BaseProjectile baseProjectile = attackEnt as BaseProjectile;
 		ItemModProjectile component = firedItemDef.GetComponent<ItemModProjectile>();
 		Projectile component2 = component.projectileObject.Get().GetComponent<Projectile>();
 		int protection = 0;
-		Vector3 zero = Vector3.zero;
+		UnityEngine.Vector3 zero = UnityEngine.Vector3.zero;
 		if (!startPos.IsNaNOrInfinity() && !startVel.IsNaNOrInfinity())
 		{
 			FiredProjectile firedProjectile = Facepunch.Pool.Get<FiredProjectile>();
@@ -4413,7 +4414,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			{
 				currentTimeCategory = 4;
 			}
-			Vector3 position = base.transform.position;
+			UnityEngine.Vector3 position = base.transform.position;
 			if (TerrainMeta.TopologyMap != null && ((uint)TerrainMeta.TopologyMap.GetTopology(position) & 0x400u) != 0)
 			{
 				foreach (MonumentInfo monument in TerrainMeta.Path.Monuments)
@@ -4646,8 +4647,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 	{
 		tickInterpolator.TransformEntries(matrix);
 		tickHistory.TransformEntries(matrix);
-		Vector3 euler = new Vector3(0f, matrix.rotation.eulerAngles.y, 0f);
-		eyes.bodyRotation = Quaternion.Euler(euler) * eyes.bodyRotation;
+		UnityEngine.Vector3 euler = new UnityEngine.Vector3(0f, matrix.rotation.eulerAngles.y, 0f);
+		eyes.bodyRotation = UnityEngine.Quaternion.Euler(euler) * eyes.bodyRotation;
 	}
 
 	public bool CanSuicide()
@@ -4691,7 +4692,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return inventory.containerBelt.FindItemByUID(svActiveItemID);
 	}
 
-	public void MovePosition(Vector3 newPos)
+	public void MovePosition(UnityEngine.Vector3 newPos)
 	{
 		base.transform.position = newPos;
 		if (parentEntity.Get(base.isServer) != null)
@@ -4707,7 +4708,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		NetworkPositionTick();
 	}
 
-	public void OverrideViewAngles(Vector3 newAng)
+	public void OverrideViewAngles(UnityEngine.Vector3 newAng)
 	{
 		viewAngles = newAng;
 	}
@@ -5131,26 +5132,26 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		float num4 = 0.5f;
 		fallVelocity += UnityEngine.Physics.gravity.y * num3 * num4 * num;
 		float num5 = Mathf.Abs(fallVelocity * num);
-		Vector3 origin = base.transform.position + Vector3.up * (radius + num2);
-		Vector3 position = base.transform.position;
-		Vector3 position2 = base.transform.position;
-		if (UnityEngine.Physics.SphereCast(origin, radius, Vector3.down, out var hitInfo, num5 + num2, 1537286401, QueryTriggerInteraction.Ignore))
+		UnityEngine.Vector3 origin = base.transform.position + UnityEngine.Vector3.up * (radius + num2);
+		UnityEngine.Vector3 position = base.transform.position;
+		UnityEngine.Vector3 position2 = base.transform.position;
+		if (UnityEngine.Physics.SphereCast(origin, radius, UnityEngine.Vector3.down, out var hitInfo, num5 + num2, 1537286401, QueryTriggerInteraction.Ignore))
 		{
 			SetServerFall(wantsOn: false);
 			if (hitInfo.distance > num2)
 			{
-				position2 += Vector3.down * (hitInfo.distance - num2);
+				position2 += UnityEngine.Vector3.down * (hitInfo.distance - num2);
 			}
 			ApplyFallDamageFromVelocity(fallVelocity);
 			UpdateEstimatedVelocity(position2, position2, num);
 			fallVelocity = 0f;
 		}
-		else if (UnityEngine.Physics.Raycast(origin, Vector3.down, out hitInfo, num5 + radius + num2, 1537286401, QueryTriggerInteraction.Ignore))
+		else if (UnityEngine.Physics.Raycast(origin, UnityEngine.Vector3.down, out hitInfo, num5 + radius + num2, 1537286401, QueryTriggerInteraction.Ignore))
 		{
 			SetServerFall(wantsOn: false);
 			if (hitInfo.distance > num2 - radius)
 			{
-				position2 += Vector3.down * (hitInfo.distance - num2 - radius);
+				position2 += UnityEngine.Vector3.down * (hitInfo.distance - num2 - radius);
 			}
 			ApplyFallDamageFromVelocity(fallVelocity);
 			UpdateEstimatedVelocity(position2, position2, num);
@@ -5158,7 +5159,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		else
 		{
-			position2 += Vector3.down * num5;
+			position2 += UnityEngine.Vector3.down * num5;
 			UpdateEstimatedVelocity(position, position2, num);
 			if (WaterLevel.Test(position2, waves: true, this) || AntiHack.TestInsideTerrain(position2))
 			{
@@ -5203,15 +5204,14 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		inventory.containerMain.OnChanged();
 		inventory.containerBelt.OnChanged();
 		inventory.containerWear.OnChanged();
-		if (!(EACServer.Interface != null) || net.connection == null)
+		if (EACServer.playerTracker == null || net.connection == null)
 		{
 			return;
 		}
-		using (TimeWarning.New("EAC.LogPlayerSpawn"))
+		using (TimeWarning.New("playerTracker.LogPlayerSpawn"))
 		{
-			LogPlayerSpawnOptions options = default(LogPlayerSpawnOptions);
-			options.SpawnedPlayerHandle = EACServer.GetClient(net.connection);
-			EACServer.Interface.LogPlayerSpawn(ref options);
+			EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(net.connection);
+			EACServer.playerTracker.LogPlayerSpawn(client, 0, 0);
 		}
 	}
 
@@ -5272,7 +5272,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			Hurt(num2, DamageType.Fall);
 			if (num2 > 20f && fallDamageEffect.isValid)
 			{
-				Effect.server.Run(fallDamageEffect.resourcePath, base.transform.position, Vector3.zero);
+				Effect.server.Run(fallDamageEffect.resourcePath, base.transform.position, UnityEngine.Vector3.zero);
 			}
 		}
 	}
@@ -5410,13 +5410,25 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		{
 			inventory.crafting.CancelAll(returnItems: true);
 		}
-		if (EACServer.Interface != null && net.connection != null)
+		if (EACServer.playerTracker != null && net.connection != null)
 		{
-			using (TimeWarning.New("EAC.LogPlayerDespawn"))
+			BasePlayer basePlayer = ((info != null && info.Initiator != null) ? info.Initiator.ToPlayer() : null);
+			if (basePlayer != null && basePlayer.net.connection != null)
 			{
-				LogPlayerDespawnOptions options = default(LogPlayerDespawnOptions);
-				options.DespawnedPlayerHandle = EACServer.GetClient(net.connection);
-				EACServer.Interface.LogPlayerDespawn(ref options);
+				using (TimeWarning.New("playerTracker.LogPlayerKill"))
+				{
+					EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(basePlayer.net.connection);
+					EasyAntiCheat.Server.Hydra.Client client2 = EACServer.GetClient(net.connection);
+					EACServer.playerTracker.LogPlayerKill(client2, client);
+				}
+			}
+			else
+			{
+				using (TimeWarning.New("playerTracker.LogPlayerDespawn"))
+				{
+					EasyAntiCheat.Server.Hydra.Client client3 = EACServer.GetClient(net.connection);
+					EACServer.playerTracker.LogPlayerDespawn(client3);
+				}
 			}
 		}
 		BaseCorpse baseCorpse = CreateCorpse();
@@ -5427,7 +5439,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				Rigidbody component = baseCorpse.GetComponent<Rigidbody>();
 				if (component != null)
 				{
-					component.AddForce((info.attackNormal + Vector3.up * 0.5f).normalized * 1f, ForceMode.VelocityChange);
+					component.AddForce((info.attackNormal + UnityEngine.Vector3.up * 0.5f).normalized * 1f, ForceMode.VelocityChange);
 				}
 			}
 			if (baseCorpse is PlayerCorpse playerCorpse && playerCorpse.containers != null)
@@ -5488,25 +5500,25 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				{
 					if (info.Initiator is BasePlayer)
 					{
-						BasePlayer basePlayer = info.Initiator.ToPlayer();
-						text = ToString() + " was killed by " + basePlayer.ToString();
-						text2 = "You died: killed by " + basePlayer.displayName + " (" + basePlayer.userID + ")";
-						basePlayer.stats.Add("kill_player", 1, Stats.All);
-						basePlayer.LifeStoryKill(this);
-						OnKilledByPlayer(basePlayer);
+						BasePlayer basePlayer2 = info.Initiator.ToPlayer();
+						text = ToString() + " was killed by " + basePlayer2.ToString();
+						text2 = "You died: killed by " + basePlayer2.displayName + " (" + basePlayer2.userID + ")";
+						basePlayer2.stats.Add("kill_player", 1, Stats.All);
+						basePlayer2.LifeStoryKill(this);
+						OnKilledByPlayer(basePlayer2);
 						if (lastDamage == DamageType.Fun_Water)
 						{
-							basePlayer.GiveAchievement("SUMMER_LIQUIDATOR");
-							LiquidWeapon liquidWeapon = basePlayer.GetHeldEntity() as LiquidWeapon;
+							basePlayer2.GiveAchievement("SUMMER_LIQUIDATOR");
+							LiquidWeapon liquidWeapon = basePlayer2.GetHeldEntity() as LiquidWeapon;
 							if (liquidWeapon != null && liquidWeapon.RequiresPumping && liquidWeapon.PressureFraction <= liquidWeapon.MinimumPressureFraction)
 							{
-								basePlayer.GiveAchievement("SUMMER_NO_PRESSURE");
+								basePlayer2.GiveAchievement("SUMMER_NO_PRESSURE");
 							}
 						}
-						else if (GameInfo.HasAchievements && lastDamage == DamageType.Explosion && info.WeaponPrefab != null && info.WeaponPrefab.ShortPrefabName.Contains("mlrs") && basePlayer != null)
+						else if (GameInfo.HasAchievements && lastDamage == DamageType.Explosion && info.WeaponPrefab != null && info.WeaponPrefab.ShortPrefabName.Contains("mlrs") && basePlayer2 != null)
 						{
-							basePlayer.stats.Add("mlrs_kills", 1, Stats.All);
-							basePlayer.stats.Save(forceSteamSave: true);
+							basePlayer2.stats.Add("mlrs_kills", 1, Stats.All);
+							basePlayer2.stats.Save(forceSteamSave: true);
 						}
 					}
 					else
@@ -5561,7 +5573,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		stats.Save();
 	}
 
-	public void RespawnAt(Vector3 position, Quaternion rotation)
+	public void RespawnAt(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
 	{
 		BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(serverside: true);
 		if (!activeGameMode || activeGameMode.CanPlayerRespawn(this))
@@ -5679,7 +5691,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		if (info.damageTypes.Get(DamageType.Drowned) > 5f && drownEffect.isValid)
 		{
-			Effect.server.Run(drownEffect.resourcePath, this, StringPool.Get("head"), Vector3.zero, Vector3.zero);
+			Effect.server.Run(drownEffect.resourcePath, this, StringPool.Get("head"), UnityEngine.Vector3.zero, UnityEngine.Vector3.zero);
 		}
 		if (modifiers != null)
 		{
@@ -5711,86 +5723,39 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			BasePlayer instigator = info?.InitiatorPlayer;
 			BaseGameMode.GetActiveGameMode(serverside: true).OnPlayerHurt(instigator, this, info);
 		}
-		if (EACServer.Interface != null && info.Initiator != null && info.Initiator is BasePlayer)
+		if (EACServer.playerTracker != null && info.Initiator != null && info.Initiator is BasePlayer)
 		{
 			BasePlayer basePlayer = info.Initiator.ToPlayer();
 			if (net.connection != null && basePlayer.net.connection != null)
 			{
-				using (TimeWarning.New("EAC.LogPlayerTakeDamage"))
+				EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(net.connection);
+				EasyAntiCheat.Server.Hydra.Client client2 = EACServer.GetClient(basePlayer.net.connection);
+				PlayerTakeDamage eventParams = default(PlayerTakeDamage);
+				eventParams.DamageTaken = (int)info.damageTypes.Total();
+				eventParams.HitBoneID = (int)info.HitBone;
+				eventParams.WeaponID = 0;
+				eventParams.DamageFlags = (info.isHeadshot ? PlayerTakeDamageFlags.PlayerTakeDamageCriticalHit : PlayerTakeDamageFlags.PlayerTakeDamageNormalHit);
+				if (info.Weapon != null)
 				{
-					LogPlayerTakeDamageOptions options = default(LogPlayerTakeDamageOptions);
-					LogPlayerUseWeaponData value2 = default(LogPlayerUseWeaponData);
-					options.AttackerPlayerHandle = EACServer.GetClient(basePlayer.net.connection);
-					options.VictimPlayerHandle = EACServer.GetClient(net.connection);
-					options.DamageTaken = info.damageTypes.Total();
-					options.DamagePosition = new Vec3f
+					Item item = info.Weapon.GetItem();
+					if (item != null)
 					{
-						x = info.HitPositionWorld.x,
-						y = info.HitPositionWorld.y,
-						z = info.HitPositionWorld.z
-					};
-					options.IsCriticalHit = info.isHeadshot;
-					if (IsDead())
-					{
-						options.DamageResult = AntiCheatCommonPlayerTakeDamageResult.Eliminated;
+						eventParams.WeaponID = item.info.itemid;
 					}
-					else if (IsWounded())
-					{
-						options.DamageResult = AntiCheatCommonPlayerTakeDamageResult.Downed;
-					}
-					if (info.Weapon != null)
-					{
-						Item item = info.Weapon.GetItem();
-						if (item != null)
-						{
-							value2.WeaponName = item.info.shortname;
-						}
-						else
-						{
-							value2.WeaponName = "unknown";
-						}
-					}
-					else
-					{
-						value2.WeaponName = "unknown";
-					}
-					Vector3 position = basePlayer.eyes.position;
-					Quaternion rotation = basePlayer.eyes.rotation;
-					Vector3 position2 = eyes.position;
-					Quaternion rotation2 = eyes.rotation;
-					options.AttackerPlayerPosition = new Vec3f
-					{
-						x = position.x,
-						y = position.y,
-						z = position.z
-					};
-					options.AttackerPlayerViewRotation = new Quat
-					{
-						w = rotation.w,
-						x = rotation.x,
-						y = rotation.y,
-						z = rotation.z
-					};
-					options.VictimPlayerPosition = new Vec3f
-					{
-						x = position2.x,
-						y = position2.y,
-						z = position2.z
-					};
-					options.VictimPlayerViewRotation = new Quat
-					{
-						w = rotation2.w,
-						x = rotation2.x,
-						y = rotation2.y,
-						z = rotation2.z
-					};
-					options.PlayerUseWeaponData = value2;
-					EACServer.Interface.LogPlayerTakeDamage(ref options);
 				}
+				UnityEngine.Vector3 position = basePlayer.eyes.position;
+				UnityEngine.Quaternion rotation = basePlayer.eyes.rotation;
+				UnityEngine.Vector3 position2 = eyes.position;
+				UnityEngine.Quaternion rotation2 = eyes.rotation;
+				eventParams.AttackerPosition = new EasyAntiCheat.Server.Cerberus.Vector3(position.x, position.y, position.z);
+				eventParams.AttackerViewRotation = new EasyAntiCheat.Server.Cerberus.Quaternion(rotation.w, rotation.x, rotation.y, rotation.z);
+				eventParams.VictimPosition = new EasyAntiCheat.Server.Cerberus.Vector3(position2.x, position2.y, position2.z);
+				eventParams.VictimViewRotation = new EasyAntiCheat.Server.Cerberus.Quaternion(rotation2.w, rotation2.x, rotation2.y, rotation2.z);
+				EACServer.playerTracker.LogPlayerTakeDamage(client, client2, eventParams);
 			}
 		}
 		metabolism.SendChangesToClient();
-		if (info.PointStart != Vector3.zero && (info.damageTypes.Total() >= 0f || IsGod()))
+		if (info.PointStart != UnityEngine.Vector3.zero && (info.damageTypes.Total() >= 0f || IsGod()))
 		{
 			int arg = (int)info.damageTypes.GetMajorityDamageType();
 			if (info.Weapon != null && info.damageTypes.Has(DamageType.Bullet))
@@ -6053,7 +6018,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			{
 				if (Belt != null && ShouldDropActiveItem())
 				{
-					Vector3 vector = new Vector3(UnityEngine.Random.Range(-2f, 2f), 0.2f, UnityEngine.Random.Range(-2f, 2f));
+					UnityEngine.Vector3 vector = new UnityEngine.Vector3(UnityEngine.Random.Range(-2f, 2f), 0.2f, UnityEngine.Random.Range(-2f, 2f));
 					Belt.DropActive(GetDropPosition(), GetInheritedDropVelocity() + vector.normalized * 3f);
 				}
 				if (!WoundInsteadOfDying(info))
@@ -6072,17 +6037,17 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 	}
 
-	public override Vector3 GetDropPosition()
+	public override UnityEngine.Vector3 GetDropPosition()
 	{
 		return eyes.position;
 	}
 
-	public override Vector3 GetDropVelocity()
+	public override UnityEngine.Vector3 GetDropVelocity()
 	{
 		return GetInheritedDropVelocity() + eyes.BodyForward() * 4f + Vector3Ex.Range(-0.5f, 0.5f);
 	}
 
-	public override void ApplyInheritedVelocity(Vector3 velocity)
+	public override void ApplyInheritedVelocity(UnityEngine.Vector3 velocity)
 	{
 		BaseEntity baseEntity = GetParentEntity();
 		if (baseEntity != null)
@@ -6294,7 +6259,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		{
 			return false;
 		}
-		Vector3 vector = (isMounted ? eyes.worldMountedPosition : (IsDucked() ? eyes.worldCrouchedPosition : ((!IsCrawling()) ? eyes.worldStandingPosition : eyes.worldCrawlingPosition)));
+		UnityEngine.Vector3 vector = (isMounted ? eyes.worldMountedPosition : (IsDucked() ? eyes.worldCrouchedPosition : ((!IsCrawling()) ? eyes.worldStandingPosition : eyes.worldCrawlingPosition)));
 		if (!otherPlayer.IsVisibleSpecificLayers(vector, otherPlayer.CenterPoint(), layerMask) && !otherPlayer.IsVisibleSpecificLayers(vector, otherPlayer.transform.position, layerMask) && !otherPlayer.IsVisibleSpecificLayers(vector, otherPlayer.eyes.position, layerMask))
 		{
 			return false;
@@ -6423,7 +6388,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 	}
 
-	public void Teleport(Vector3 position)
+	public void Teleport(UnityEngine.Vector3 position)
 	{
 		MovePosition(position);
 		ClientRPCPlayer(null, this, "ForcePositionTo", position);
@@ -6580,59 +6545,52 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	private void EACStateUpdate()
 	{
-		if (net == null || net.connection == null || EACServer.Interface == null || IsReceivingSnapshot)
+		if (net == null || net.connection == null || EACServer.playerTracker == null || IsReceivingSnapshot)
 		{
 			return;
 		}
-		Vector3 position = eyes.position;
-		Quaternion rotation = eyes.rotation;
-		LogPlayerTickOptions options = default(LogPlayerTickOptions);
-		options.PlayerHandle = EACServer.GetClient(net.connection);
-		options.PlayerPosition = new Vec3f
-		{
-			x = position.x,
-			y = position.y,
-			z = position.z
-		};
-		options.PlayerViewRotation = new Quat
-		{
-			w = rotation.w,
-			x = rotation.x,
-			y = rotation.y,
-			z = rotation.z
-		};
-		options.PlayerHealth = Health();
+		UnityEngine.Vector3 position = eyes.position;
+		UnityEngine.Quaternion rotation = eyes.rotation;
+		EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(net.connection);
+		EasyAntiCheat.Server.Cerberus.PlayerTick eventParams = default(EasyAntiCheat.Server.Cerberus.PlayerTick);
+		eventParams.Position = new EasyAntiCheat.Server.Cerberus.Vector3(position.x, position.y, position.z);
+		eventParams.ViewRotation = new EasyAntiCheat.Server.Cerberus.Quaternion(rotation.w, rotation.x, rotation.y, rotation.z);
 		if (IsDucked())
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Crouching;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickCrouched;
 		}
 		if (isMounted)
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Mounted;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickMounted;
 		}
-		if (IsCrawling())
+		if (IsWounded())
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Prone;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickDowned;
 		}
 		if (IsSwimming())
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Swimming;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickSwimming;
 		}
 		if (!IsOnGround())
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Falling;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickAirborne;
 		}
 		if (OnLadder())
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.OnLadder;
+			eventParams.TickFlags |= PlayerTickFlags.PlayerTickClimbingLadder;
 		}
-		if (IsFlying)
+		using (TimeWarning.New("playerTracker.LogPlayerState"))
 		{
-			options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Flying;
-		}
-		using (TimeWarning.New("EAC.LogPlayerTick"))
-		{
-			EACServer.Interface.LogPlayerTick(ref options);
+			try
+			{
+				EACServer.playerTracker.LogPlayerTick(client, eventParams);
+			}
+			catch (Exception exception)
+			{
+				Debug.LogWarning("Disabling EAC Logging due to exception");
+				EACServer.playerTracker = null;
+				Debug.LogException(exception);
+			}
 		}
 	}
 
@@ -6754,7 +6712,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			}
 			if (wasPlayerStalled)
 			{
-				float num = Vector3.Distance(tick.position, tickInterpolator.EndPoint);
+				float num = UnityEngine.Vector3.Distance(tick.position, tickInterpolator.EndPoint);
 				if (num > 0.01f)
 				{
 					AntiHack.ResetTimer(this);
@@ -6764,7 +6722,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 					ClientRPCPlayer(null, this, "ForcePositionToParentOffset", tickInterpolator.EndPoint, parentEntity.uid);
 				}
 			}
-			else if ((modelState == null || !modelState.flying || (!IsAdmin && !IsDeveloper)) && Vector3.Distance(tick.position, tickInterpolator.EndPoint) > 5f)
+			else if ((modelState == null || !modelState.flying || (!IsAdmin && !IsDeveloper)) && UnityEngine.Vector3.Distance(tick.position, tickInterpolator.EndPoint) > 5f)
 			{
 				AntiHack.ResetTimer(this);
 				ClientRPCPlayer(null, this, "ForcePositionToParentOffset", tickInterpolator.EndPoint, parentEntity.uid);
@@ -6791,7 +6749,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 	}
 
-	public void UpdateEstimatedVelocity(Vector3 lastPos, Vector3 currentPos, float deltaTime)
+	public void UpdateEstimatedVelocity(UnityEngine.Vector3 lastPos, UnityEngine.Vector3 currentPos, float deltaTime)
 	{
 		estimatedVelocity = (currentPos - lastPos) / deltaTime;
 		estimatedSpeed = estimatedVelocity.magnitude;
@@ -6822,9 +6780,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				{
 					AntiHack.NoteAdminHack(this);
 				}
-				if (modelStateTick.inheritedVelocity != Vector3.zero && FindTrigger<TriggerForce>() == null)
+				if (modelStateTick.inheritedVelocity != UnityEngine.Vector3.zero && FindTrigger<TriggerForce>() == null)
 				{
-					modelStateTick.inheritedVelocity = Vector3.zero;
+					modelStateTick.inheritedVelocity = UnityEngine.Vector3.zero;
 				}
 				if (modelState != null)
 				{
@@ -6867,12 +6825,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			if (flag2)
 			{
 				viewAngles = tickViewAngles;
-				base.transform.rotation = Quaternion.identity;
+				base.transform.rotation = UnityEngine.Quaternion.identity;
 				base.transform.hasChanged = true;
 			}
 			if (flag || flag2)
 			{
-				eyes.NetworkUpdate(Quaternion.Euler(viewAngles));
+				eyes.NetworkUpdate(UnityEngine.Quaternion.Euler(viewAngles));
 				NetworkPositionTick();
 			}
 			AntiHack.ValidateEyeHistory(this);
@@ -7061,16 +7019,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		RecoverFromWounded();
 		CancelInvoke(WoundingTick);
-		if (!(EACServer.Interface != null) || net.connection == null || !(source != null) || source.net.connection == null)
+		if (EACServer.playerTracker == null || net.connection == null || !(source != null) || source.net.connection == null)
 		{
 			return;
 		}
-		using (TimeWarning.New("EAC.LogPlayerRevive"))
+		using (TimeWarning.New("playerTracker.LogPlayerRevive"))
 		{
-			LogPlayerReviveOptions options = default(LogPlayerReviveOptions);
-			options.RevivedPlayerHandle = EACServer.GetClient(net.connection);
-			options.ReviverPlayerHandle = EACServer.GetClient(source.net.connection);
-			EACServer.Interface.LogPlayerRevive(ref options);
+			EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(net.connection);
+			EasyAntiCheat.Server.Hydra.Client client2 = EACServer.GetClient(source.net.connection);
+			EACServer.playerTracker.LogPlayerRevive(client, client2);
 		}
 	}
 
@@ -7146,6 +7103,16 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		healingWhileCrawling = 0f;
 		SetPlayerFlag(PlayerFlags.Incapacitated, b: true);
 		SetServerFall(wantsOn: true);
+		BasePlayer basePlayer = info?.InitiatorPlayer;
+		if (EACServer.playerTracker != null && net.connection != null && basePlayer != null && basePlayer.net.connection != null)
+		{
+			using (TimeWarning.New("playerTracker.LogPlayerDowned"))
+			{
+				EasyAntiCheat.Server.Hydra.Client client = EACServer.GetClient(net.connection);
+				EasyAntiCheat.Server.Hydra.Client client2 = EACServer.GetClient(basePlayer.net.connection);
+				EACServer.playerTracker.LogPlayerDowned(client, client2);
+			}
+		}
 		StartWoundedTick(10, 25);
 		SendNetworkUpdateImmediate();
 	}
@@ -7223,13 +7190,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return false;
 	}
 
-	public override Quaternion GetNetworkRotation()
+	public override UnityEngine.Quaternion GetNetworkRotation()
 	{
 		if (base.isServer)
 		{
-			return Quaternion.Euler(viewAngles);
+			return UnityEngine.Quaternion.Euler(viewAngles);
 		}
-		return Quaternion.identity;
+		return UnityEngine.Quaternion.identity;
 	}
 
 	public bool CanInteract()
@@ -7278,8 +7245,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 	{
 		if (IsSleeping())
 		{
-			Vector3 center = bounds.center;
-			Vector3 size = bounds.size;
+			UnityEngine.Vector3 center = bounds.center;
+			UnityEngine.Vector3 size = bounds.size;
 			center.y /= 2f;
 			size.y /= 2f;
 			return new OBB(base.transform.position, base.transform.lossyScale, base.transform.rotation, new Bounds(center, size));
@@ -7287,17 +7254,17 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return base.WorldSpaceBounds();
 	}
 
-	public Vector3 GetMountVelocity()
+	public UnityEngine.Vector3 GetMountVelocity()
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!(baseMountable != null))
 		{
-			return Vector3.zero;
+			return UnityEngine.Vector3.zero;
 		}
 		return baseMountable.GetWorldVelocity();
 	}
 
-	public override Vector3 GetInheritedProjectileVelocity()
+	public override UnityEngine.Vector3 GetInheritedProjectileVelocity()
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!baseMountable)
@@ -7307,7 +7274,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return baseMountable.GetInheritedProjectileVelocity();
 	}
 
-	public override Vector3 GetInheritedThrowVelocity()
+	public override UnityEngine.Vector3 GetInheritedThrowVelocity()
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!baseMountable)
@@ -7317,7 +7284,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return baseMountable.GetInheritedThrowVelocity();
 	}
 
-	public override Vector3 GetInheritedDropVelocity()
+	public override UnityEngine.Vector3 GetInheritedDropVelocity()
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!baseMountable)
@@ -7339,9 +7306,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		playerCollider = GetComponent<CapsuleCollider>();
 		eyes = GetComponent<PlayerEyes>();
 		playerColliderStanding = new CapsuleColliderInfo(playerCollider.height, playerCollider.radius, playerCollider.center);
-		playerColliderDucked = new CapsuleColliderInfo(1.5f, playerCollider.radius, Vector3.up * 0.75f);
-		playerColliderCrawling = new CapsuleColliderInfo(playerCollider.radius, playerCollider.radius, Vector3.up * playerCollider.radius);
-		playerColliderLyingDown = new CapsuleColliderInfo(0.4f, playerCollider.radius, Vector3.up * 0.2f);
+		playerColliderDucked = new CapsuleColliderInfo(1.5f, playerCollider.radius, UnityEngine.Vector3.up * 0.75f);
+		playerColliderCrawling = new CapsuleColliderInfo(playerCollider.radius, playerCollider.radius, UnityEngine.Vector3.up * playerCollider.radius);
+		playerColliderLyingDown = new CapsuleColliderInfo(0.4f, playerCollider.radius, UnityEngine.Vector3.up * 0.2f);
 		Belt = new PlayerBelt(this);
 	}
 
@@ -7433,40 +7400,40 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return GetBounds(modelState.ducked);
 	}
 
-	public Vector3 GetCenter(bool ducked)
+	public UnityEngine.Vector3 GetCenter(bool ducked)
 	{
 		return base.transform.position + GetOffset(ducked);
 	}
 
-	public Vector3 GetCenter()
+	public UnityEngine.Vector3 GetCenter()
 	{
 		return GetCenter(modelState.ducked);
 	}
 
-	public Vector3 GetOffset(bool ducked)
+	public UnityEngine.Vector3 GetOffset(bool ducked)
 	{
 		if (ducked)
 		{
-			return new Vector3(0f, 0.55f, 0f);
+			return new UnityEngine.Vector3(0f, 0.55f, 0f);
 		}
-		return new Vector3(0f, 0.9f, 0f);
+		return new UnityEngine.Vector3(0f, 0.9f, 0f);
 	}
 
-	public Vector3 GetOffset()
+	public UnityEngine.Vector3 GetOffset()
 	{
 		return GetOffset(modelState.ducked);
 	}
 
-	public Vector3 GetSize(bool ducked)
+	public UnityEngine.Vector3 GetSize(bool ducked)
 	{
 		if (ducked)
 		{
-			return new Vector3(1f, 1.1f, 1f);
+			return new UnityEngine.Vector3(1f, 1.1f, 1f);
 		}
-		return new Vector3(1f, 1.8f, 1f);
+		return new UnityEngine.Vector3(1f, 1.8f, 1f);
 	}
 
-	public Vector3 GetSize()
+	public UnityEngine.Vector3 GetSize()
 	{
 		return GetSize(modelState.ducked);
 	}
@@ -7495,14 +7462,14 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return 1.5f;
 	}
 
-	public override Vector3 TriggerPoint()
+	public override UnityEngine.Vector3 TriggerPoint()
 	{
 		return base.transform.position + NoClipOffset();
 	}
 
-	public Vector3 NoClipOffset()
+	public UnityEngine.Vector3 NoClipOffset()
 	{
-		return new Vector3(0f, GetHeight(ducked: true) - GetRadius(), 0f);
+		return new UnityEngine.Vector3(0f, GetHeight(ducked: true) - GetRadius(), 0f);
 	}
 
 	public float NoClipRadius(float margin)
@@ -7587,7 +7554,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				ClientRPCPlayer(null, this, "TakeDamageHit");
 			}
 			string text = StringPool.Get(info.HitBone);
-			bool flag = Vector3.Dot((info.PointEnd - info.PointStart).normalized, eyes.BodyForward()) > 0.4f;
+			bool flag = UnityEngine.Vector3.Dot((info.PointEnd - info.PointStart).normalized, eyes.BodyForward()) > 0.4f;
 			BasePlayer initiatorPlayer = info.InitiatorPlayer;
 			if ((bool)initiatorPlayer && !info.damageTypes.IsMeleeType())
 			{
@@ -7603,7 +7570,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				{
 					SignalBroadcast(Signal.Flinch_Head, string.Empty);
 				}
-				Effect.server.Run("assets/bundled/prefabs/fx/headshot.prefab", this, 0u, new Vector3(0f, 2f, 0f), Vector3.zero, (initiatorPlayer != null) ? initiatorPlayer.net.connection : null);
+				Effect.server.Run("assets/bundled/prefabs/fx/headshot.prefab", this, 0u, new UnityEngine.Vector3(0f, 2f, 0f), UnityEngine.Vector3.zero, (initiatorPlayer != null) ? initiatorPlayer.net.connection : null);
 				if ((bool)initiatorPlayer)
 				{
 					initiatorPlayer.stats.Add("headshot", 1, (Stats)5);
@@ -8009,8 +7976,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 		float radius = playerCollider.radius;
 		float num = playerCollider.height * 0.5f;
-		Vector3 start = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center - Vector3.up * (num - radius));
-		Vector3 end = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center + Vector3.up * (num - radius));
+		UnityEngine.Vector3 start = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center - UnityEngine.Vector3.up * (num - radius));
+		UnityEngine.Vector3 end = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center + UnityEngine.Vector3.up * (num - radius));
 		return WaterLevel.Factor(start, end, radius, this);
 	}
 
@@ -8068,7 +8035,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return IsSpectating();
 	}
 
-	public static bool AnyPlayersVisibleToEntity(Vector3 pos, float radius, BaseEntity source, Vector3 entityEyePos, bool ignorePlayersWithPriv = false)
+	public static bool AnyPlayersVisibleToEntity(UnityEngine.Vector3 pos, float radius, BaseEntity source, UnityEngine.Vector3 entityEyePos, bool ignorePlayersWithPriv = false)
 	{
 		List<RaycastHit> obj = Facepunch.Pool.GetList<RaycastHit>();
 		List<BasePlayer> obj2 = Facepunch.Pool.GetList<BasePlayer>();
@@ -8111,7 +8078,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		{
 			return false;
 		}
-		if (UnityEngine.Physics.SphereCast(base.transform.position + Vector3.up * (0.25f + GetRadius()), GetRadius() * 0.95f, Vector3.down, out var hitInfo, 4f, layerMask))
+		if (UnityEngine.Physics.SphereCast(base.transform.position + UnityEngine.Vector3.up * (0.25f + GetRadius()), GetRadius() * 0.95f, UnityEngine.Vector3.down, out var hitInfo, 4f, layerMask))
 		{
 			BaseEntity entity = hitInfo.GetEntity();
 			if (entity != null)

@@ -1,4 +1,4 @@
-using System;
+using System.IO;
 
 public static class Craptography
 {
@@ -32,14 +32,17 @@ public static class Craptography
 		78, 66, 215, 61, 156, 180
 	};
 
-	public static void XOR(uint seed, ArraySegment<byte> src, ref ArraySegment<byte> dst)
+	public static void XOR(uint seed, MemoryStream src, int srcOffset, MemoryStream dst, int dstOffset)
 	{
-		int num = hash.Length;
-		int num2 = (int)((long)seed % (long)num);
-		for (int i = 0; i < src.Count; i++)
+		int num = (int)(src.Length - srcOffset);
+		int num2 = hash.Length;
+		int num3 = (int)((long)seed % (long)num2);
+		dst.SetLength(dstOffset + num);
+		byte[] buffer = src.GetBuffer();
+		byte[] buffer2 = dst.GetBuffer();
+		for (int i = 0; i < num; i++)
 		{
-			dst.Array[dst.Offset + i] = (byte)(src.Array[src.Offset + i] ^ hash[(num2 + i) % num]);
+			buffer2[dstOffset + i] = (byte)(buffer[srcOffset + i] ^ hash[(num3 + i) % num2]);
 		}
-		dst = new ArraySegment<byte>(dst.Array, dst.Offset, src.Count);
 	}
 }

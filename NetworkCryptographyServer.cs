@@ -1,29 +1,29 @@
-using System;
+using System.IO;
 using Network;
 
 public class NetworkCryptographyServer : NetworkCryptography
 {
-	protected override void EncryptionHandler(Connection connection, ArraySegment<byte> src, ref ArraySegment<byte> dst)
+	protected override void EncryptionHandler(Connection connection, MemoryStream src, int srcOffset, MemoryStream dst, int dstOffset)
 	{
 		if (connection.encryptionLevel > 1)
 		{
-			EACServer.Encrypt(connection, src, ref dst);
+			EACServer.Encrypt(connection, src, srcOffset, dst, dstOffset);
 		}
 		else
 		{
-			Craptography.XOR(2354u, src, ref dst);
+			Craptography.XOR(2352u, src, srcOffset, dst, dstOffset);
 		}
 	}
 
-	protected override void DecryptionHandler(Connection connection, ArraySegment<byte> src, ref ArraySegment<byte> dst)
+	protected override void DecryptionHandler(Connection connection, MemoryStream src, int srcOffset, MemoryStream dst, int dstOffset)
 	{
 		if (connection.encryptionLevel > 1)
 		{
-			EACServer.Decrypt(connection, src, ref dst);
+			EACServer.Decrypt(connection, src, srcOffset, dst, dstOffset);
 		}
 		else
 		{
-			Craptography.XOR(2354u, src, ref dst);
+			Craptography.XOR(2352u, src, srcOffset, dst, dstOffset);
 		}
 	}
 }
