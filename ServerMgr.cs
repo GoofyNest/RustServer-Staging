@@ -319,7 +319,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 
 	public void ReadDisconnectReason(Message packet)
 	{
-		string text = packet.read.String(2048);
+		string text = packet.read.String(4096);
 		string text2 = packet.connection.ToString();
 		if (!string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(text2))
 		{
@@ -493,14 +493,14 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their branch is '", text, "' not '", branch, "'"));
 			Network.Net.sv.Kick(packet.connection, "Wrong Steam Beta: Requires '" + branch + "' branch!");
 		}
-		else if (packet.connection.protocol > 2352)
+		else if (packet.connection.protocol > 2354)
 		{
-			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2352));
+			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2354));
 			Network.Net.sv.Kick(packet.connection, "Wrong Connection Protocol: Server update required!");
 		}
-		else if (packet.connection.protocol < 2352)
+		else if (packet.connection.protocol < 2354)
 		{
-			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2352));
+			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2354));
 			Network.Net.sv.Kick(packet.connection, "Wrong Connection Protocol: Client update required!");
 		}
 		else
@@ -776,10 +776,6 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 		}
 		using (TimeWarning.New("ServerMgr.Update", 500))
 		{
-			if (EACServer.playerTracker != null)
-			{
-				EACServer.playerTracker.BeginFrame();
-			}
 			try
 			{
 				using (TimeWarning.New("PlatformService.Update", 100))
@@ -1028,10 +1024,6 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 				UnityEngine.Debug.LogWarning("Server Exception: JunkPileWater.UpdateNearbyPlayers");
 				UnityEngine.Debug.LogException(exception18, this);
 			}
-			if (EACServer.playerTracker != null)
-			{
-				EACServer.playerTracker.EndFrame();
-			}
 		}
 	}
 
@@ -1143,7 +1135,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			string text4 = (ConVar.Server.pve ? ",pve" : string.Empty);
 			string text5 = ConVar.Server.tags?.Trim(',') ?? "";
 			string text6 = ((!string.IsNullOrWhiteSpace(text5)) ? ("," + text5) : "");
-			SteamServer.GameTags = $"mp{ConVar.Server.maxplayers},cp{BasePlayer.activePlayerList.Count},pt{Network.Net.sv.ProtocolId},qp{SingletonComponent<ServerMgr>.Instance.connectionQueue.Queued},v{2352}{text4}{text6},h{AssemblyHash},{text},{text2},{text3}";
+			SteamServer.GameTags = $"mp{ConVar.Server.maxplayers},cp{BasePlayer.activePlayerList.Count},pt{Network.Net.sv.ProtocolId},qp{SingletonComponent<ServerMgr>.Instance.connectionQueue.Queued},v{2354}{text4}{text6},h{AssemblyHash},{text},{text2},{text3}";
 			if (ConVar.Server.description != null && ConVar.Server.description.Length > 100)
 			{
 				string[] array = ConVar.Server.description.SplitToChunks(100).ToArray();
