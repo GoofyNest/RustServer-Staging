@@ -62,8 +62,6 @@ public class TrainTrackSpline : WorldSpline
 	[Tooltip("Can above-ground trains spawn here?")]
 	public bool aboveGroundSpawn;
 
-	public bool useNewTangentCalc;
-
 	public int hierarchy;
 
 	public static List<TrainTrackSpline> SidingSplines = new List<TrainTrackSpline>();
@@ -89,7 +87,6 @@ public class TrainTrackSpline : WorldSpline
 		lutInterval = sourceSpline.lutInterval;
 		isStation = sourceSpline.isStation;
 		aboveGroundSpawn = sourceSpline.aboveGroundSpawn;
-		useNewTangentCalc = sourceSpline.useNewTangentCalc;
 		hierarchy = sourceSpline.hierarchy;
 	}
 
@@ -283,8 +280,8 @@ public class TrainTrackSpline : WorldSpline
 	public bool IsForward(Vector3 askerForward, float askerSplineDist)
 	{
 		WorldSplineData data = GetData();
-		Vector3 rhs = ((!useNewTangentCalc) ? GetTangentWorld(askerSplineDist, data) : GetTangentCubicHermiteWorld(askerSplineDist, data));
-		return Vector3.Dot(askerForward, rhs) >= 0f;
+		Vector3 tangentCubicHermiteWorld = GetTangentCubicHermiteWorld(askerSplineDist, data);
+		return Vector3.Dot(askerForward, tangentCubicHermiteWorld) >= 0f;
 	}
 
 	public bool HasValidHazardWithin(TrainCar asker, float askerSplineDist, float minHazardDist, float maxHazardDist, TrackSelection trackSelection, float trackSpeed, TrainTrackSpline preferredAltA, TrainTrackSpline preferredAltB)
