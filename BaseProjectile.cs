@@ -932,7 +932,7 @@ public class BaseProjectile : AttackEntity
 			cachedModHash = num2;
 		}
 		float num3 = aimCone;
-		if (recoilProperties != null && recoilProperties.overrideAimconeWithCurve)
+		if (recoilProperties != null && recoilProperties.overrideAimconeWithCurve && primaryMagazine.capacity > 0)
 		{
 			num3 += recoilProperties.aimconeCurve.Evaluate((float)numShotsFired / (float)primaryMagazine.capacity % 1f) * recoilProperties.aimconeCurveScale;
 			aimconePenalty = 0f;

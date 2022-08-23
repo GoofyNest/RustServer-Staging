@@ -1543,11 +1543,11 @@ public class BaseEntity : BaseNetworkable, IOnParentSpawning, IPrefabPreProcess
 		Rigidbody component = GetComponent<Rigidbody>();
 		if ((bool)component)
 		{
-			if (oldParent != null)
+			if (oldParent != null && oldParent.GetComponent<Rigidbody>() == null)
 			{
 				component.velocity += oldParent.GetWorldVelocity();
 			}
-			if (newParent != null)
+			if (newParent != null && newParent.GetComponent<Rigidbody>() == null)
 			{
 				component.velocity -= newParent.GetWorldVelocity();
 			}
