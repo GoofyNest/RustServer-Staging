@@ -106,6 +106,17 @@ public class Prefab : IComparable<Prefab>
 		return Object.transform.ApplyWaterChecks(anchors, pos, rot, scale);
 	}
 
+	public bool ApplyBoundsChecks(Vector3 pos, Quaternion rot, Vector3 scale, LayerMask rejectOnLayer)
+	{
+		BoundsCheck[] bounds = Attribute.FindAll<BoundsCheck>(ID);
+		BaseEntity component = Object.GetComponent<BaseEntity>();
+		if (component != null)
+		{
+			return component.ApplyBoundsChecks(bounds, pos, rot, scale, rejectOnLayer);
+		}
+		return true;
+	}
+
 	public void ApplyDecorComponents(ref Vector3 pos, ref Quaternion rot, ref Vector3 scale)
 	{
 		DecorComponent[] components = Attribute.FindAll<DecorComponent>(ID);

@@ -393,7 +393,7 @@ public class SpawnHandler : SingletonComponent<SpawnHandler>
 		{
 			return null;
 		}
-		if (!CheckBounds(prefab.Object, pos, rot, scale))
+		if (!prefab.ApplyBoundsChecks(pos, rot, scale, BoundsCheckMask))
 		{
 			return null;
 		}
