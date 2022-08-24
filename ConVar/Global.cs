@@ -47,6 +47,9 @@ public class Global : ConsoleSystem
 	[ClientVar]
 	public static bool asyncWarmup = false;
 
+	[ClientVar(Saved = true, Help = "Experimental faster loading, requires game restart (0 = off, 1 = partial, 2 = full)")]
+	public static int asyncLoadingPreset = 0;
+
 	[ServerVar(Saved = true)]
 	[ClientVar(Saved = true)]
 	public static int perf = 0;
@@ -77,6 +80,44 @@ public class Global : ConsoleSystem
 		set
 		{
 			_developer = value;
+		}
+	}
+
+	public static void ApplyAsyncLoadingPreset()
+	{
+		if (asyncLoadingPreset != 0)
+		{
+			UnityEngine.Debug.Log($"Applying async loading preset number {asyncLoadingPreset}");
+		}
+		switch (asyncLoadingPreset)
+		{
+		case 1:
+			if (warmupConcurrency <= 1)
+			{
+				warmupConcurrency = 256;
+			}
+			if (preloadConcurrency <= 1)
+			{
+				preloadConcurrency = 256;
+			}
+			asyncWarmup = false;
+			break;
+		case 2:
+			if (warmupConcurrency <= 1)
+			{
+				warmupConcurrency = 256;
+			}
+			if (preloadConcurrency <= 1)
+			{
+				preloadConcurrency = 256;
+			}
+			asyncWarmup = true;
+			break;
+		default:
+			UnityEngine.Debug.LogWarning($"There is no asyncLoading preset number {asyncLoadingPreset}");
+			break;
+		case 0:
+			break;
 		}
 	}
 

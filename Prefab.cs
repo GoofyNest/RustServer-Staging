@@ -42,7 +42,7 @@ public class Prefab : IComparable<Prefab>
 	{
 		ID = StringPool.Get(name);
 		Name = name;
-		Folder = Path.GetDirectoryName(name);
+		Folder = (string.IsNullOrWhiteSpace(name) ? "" : Path.GetDirectoryName(name));
 		Object = prefab;
 		Manager = manager;
 		Attribute = attribute;
@@ -178,6 +178,11 @@ public class Prefab : IComparable<Prefab>
 			attribute = DefaultAttribute;
 		}
 		string text = StringPool.Get(id);
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			Debug.LogWarning($"Could not find path for prefab ID {id}");
+			return null;
+		}
 		GameObject gameObject = manager.FindPrefab(text);
 		T component = gameObject.GetComponent<T>();
 		return new Prefab<T>(text, gameObject, component, manager, attribute);
@@ -194,6 +199,11 @@ public class Prefab : IComparable<Prefab>
 			attribute = DefaultAttribute;
 		}
 		string text = StringPool.Get(id);
+		if (string.IsNullOrWhiteSpace(text))
+		{
+			Debug.LogWarning($"Could not find path for prefab ID {id}");
+			return null;
+		}
 		GameObject prefab = manager.FindPrefab(text);
 		return new Prefab(text, prefab, manager, attribute);
 	}
