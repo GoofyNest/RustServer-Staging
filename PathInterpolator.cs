@@ -129,16 +129,19 @@ public class PathInterpolator
 				num3 = 0f;
 				num6 -= num7;
 			}
-			if (num5 == Points.Length - 1 && num6 > distance * 0.5f)
+			num3 += num6;
+			if (num5 == Points.Length - 1 && num3 > distance * 0.5f)
 			{
 				list.Add(vector4);
 			}
-			num3 += num6;
 		}
-		Points = list.ToArray();
-		MinIndex = DefaultMinIndex;
-		MaxIndex = DefaultMaxIndex;
-		initialized = false;
+		if (list.Count >= 2)
+		{
+			Points = list.ToArray();
+			MinIndex = DefaultMinIndex;
+			MaxIndex = DefaultMaxIndex;
+			initialized = false;
+		}
 	}
 
 	public void Smoothen(int iterations, Func<int, float> filter = null)
