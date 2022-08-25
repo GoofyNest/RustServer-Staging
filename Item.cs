@@ -218,7 +218,7 @@ public class Item
 		{
 			if (parent != null)
 			{
-				return parent.temperature;
+				return parent.GetTemperature(position);
 			}
 			return 15f;
 		}
@@ -562,21 +562,7 @@ public class Item
 
 	public BaseEntity GetEntityOwner()
 	{
-		ItemContainer itemContainer = parent;
-		for (int i = 0; i < 10; i++)
-		{
-			if (itemContainer.entityOwner != null)
-			{
-				return itemContainer.entityOwner;
-			}
-			ItemContainer itemContainer2 = itemContainer.parent?.parent;
-			if (itemContainer2 == null || itemContainer2 == itemContainer)
-			{
-				return null;
-			}
-			itemContainer = itemContainer2;
-		}
-		return null;
+		return parent?.GetEntityOwner();
 	}
 
 	public bool IsChildContainer(ItemContainer c)
@@ -620,11 +606,49 @@ public class Item
 		return true;
 	}
 
-	public bool MoveToContainer(ItemContainer newcontainer, int iTargetPos = -1, bool allowStack = true, bool ignoreStackLimit = false)
+	public bool MoveToContainer(ItemContainer newcontainer, int iTargetPos = -1, bool allowStack = true, bool ignoreStackLimit = false, BasePlayer sourcePlayer = null)
 	{
 		using (TimeWarning.New("MoveToContainer"))
 		{
 			ItemContainer itemContainer = parent;
+			if (iTargetPos == -1)
+			{
+				if (allowStack && info.stackable > 1)
+				{
+					foreach (Item item3 in from x in newcontainer.FindItemsByItemID(info.itemid)
+						orderby x.amount
+						select x)
+					{
+						if (item3.CanStack(this) && item3.amount < item3.MaxStackable())
+						{
+							iTargetPos = item3.position;
+						}
+					}
+				}
+				if (iTargetPos == -1 && newcontainer.GetEntityOwner() is IItemContainerEntity itemContainerEntity)
+				{
+					iTargetPos = itemContainerEntity.GetIdealSlot(sourcePlayer, newcontainer, this);
+				}
+				if (iTargetPos == -1)
+				{
+					if (newcontainer == parent)
+					{
+						return false;
+					}
+					for (int i = 0; i < newcontainer.capacity; i++)
+					{
+						if (newcontainer.GetSlot(i) == null)
+						{
+							iTargetPos = i;
+							break;
+						}
+					}
+				}
+				if (iTargetPos == -1)
+				{
+					return false;
+				}
+			}
 			if (!CanMoveTo(newcontainer, iTargetPos, allowStack))
 			{
 				return false;
@@ -632,6 +656,10 @@ public class Item
 			if (iTargetPos >= 0 && newcontainer.SlotTaken(this, iTargetPos))
 			{
 				Item slot = newcontainer.GetSlot(iTargetPos);
+				if (slot == this)
+				{
+					return false;
+				}
 				if (allowStack)
 				{
 					int num = slot.MaxStackable();
@@ -654,7 +682,7 @@ public class Item
 						if (num2 > 0)
 						{
 							Item item = slot.SplitItem(num2);
-							if (item != null && !item.MoveToContainer(newcontainer, -1, allowStack: false) && (itemContainer == null || !item.MoveToContainer(itemContainer)))
+							if (item != null && !item.MoveToContainer(newcontainer, -1, allowStack, ignoreStackLimit, sourcePlayer) && (itemContainer == null || !item.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
 							{
 								item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
 							}
@@ -673,8 +701,8 @@ public class Item
 					}
 					RemoveFromContainer();
 					slot.RemoveFromContainer();
-					slot.MoveToContainer(newcontainer2, iTargetPos2);
-					return MoveToContainer(newcontainer, iTargetPos);
+					slot.MoveToContainer(newcontainer2, iTargetPos2, allowStack: true, ignoreStackLimit: false, sourcePlayer);
+					return MoveToContainer(newcontainer, iTargetPos, allowStack: true, ignoreStackLimit: false, sourcePlayer);
 				}
 				return false;
 			}
@@ -688,43 +716,12 @@ public class Item
 				}
 				return false;
 			}
-			if (iTargetPos == -1 && allowStack && info.stackable > 1)
-			{
-				Item item2 = (from x in newcontainer.FindItemsByItemID(info.itemid)
-					orderby x.amount
-					select x).FirstOrDefault();
-				if (item2 != null && item2.CanStack(this))
-				{
-					int num3 = item2.MaxStackable();
-					if (ignoreStackLimit)
-					{
-						num3 = int.MaxValue;
-					}
-					if (item2.amount < num3)
-					{
-						item2.amount += amount;
-						item2.MarkDirty();
-						int num4 = item2.amount - num3;
-						if (num4 <= 0)
-						{
-							RemoveFromWorld();
-							RemoveFromContainer();
-							Remove();
-							return true;
-						}
-						amount = num4;
-						MarkDirty();
-						item2.amount = num3;
-						return MoveToContainer(newcontainer, iTargetPos, allowStack);
-					}
-				}
-			}
 			if (newcontainer.maxStackSize > 0 && newcontainer.maxStackSize < amount)
 			{
-				Item item3 = SplitItem(newcontainer.maxStackSize);
-				if (item3 != null && !item3.MoveToContainer(newcontainer, iTargetPos, allowStack: false) && (itemContainer == null || !item3.MoveToContainer(itemContainer)))
+				Item item2 = SplitItem(newcontainer.maxStackSize);
+				if (item2 != null && !item2.MoveToContainer(newcontainer, iTargetPos, allowStack: false, ignoreStackLimit: false, sourcePlayer) && (itemContainer == null || !item2.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
 				{
-					item3.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
+					item2.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
 				}
 				return true;
 			}

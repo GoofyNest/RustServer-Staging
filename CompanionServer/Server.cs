@@ -75,6 +75,7 @@ public static class Server
 
 	public static void Shutdown()
 	{
+		SetServerId(null);
 		Listener?.Dispose();
 		Listener = null;
 	}

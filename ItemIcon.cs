@@ -5,9 +5,13 @@ using UnityEngine.UI;
 
 public class ItemIcon : BaseMonoBehaviour, IPointerClickHandler, IEventSystemHandler, IPointerEnterHandler, IPointerExitHandler, IDraggable, IInventoryChanged, IItemAmountChanged, IItemIconChanged
 {
-	public static Color defaultBackgroundColor = new Color(0.96862745f, 47f / 51f, 0.88235295f, 3f / 85f);
+	private Color backgroundColor;
 
-	public static Color selectedBackgroundColor = new Color(0.12156863f, 0.41960785f, 32f / 51f, 40f / 51f);
+	public Color selectedBackgroundColor = new Color(0.12156863f, 0.41960785f, 32f / 51f, 40f / 51f);
+
+	public float unoccupiedAlpha = 1f;
+
+	public Color unoccupiedColor;
 
 	public ItemContainerSource containerSource;
 
@@ -21,6 +25,8 @@ public class ItemIcon : BaseMonoBehaviour, IPointerClickHandler, IEventSystemHan
 	public GameObject slots;
 
 	public CanvasGroup iconContents;
+
+	public CanvasGroup canvasGroup;
 
 	public Image iconImage;
 

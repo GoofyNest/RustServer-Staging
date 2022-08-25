@@ -7,7 +7,7 @@ using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class ContainerIOEntity : IOEntity, IItemContainerEntity, LootPanel.IHasLootPanel, IContainerSounds
+public class ContainerIOEntity : IOEntity, IItemContainerEntity, IIdealSlotEntity, LootPanel.IHasLootPanel, IContainerSounds
 {
 	public ItemDefinition onlyAllowedItem;
 
@@ -230,6 +230,16 @@ public class ContainerIOEntity : IOEntity, IItemContainerEntity, LootPanel.IHasL
 	public bool ShouldDropItemsIndividually()
 	{
 		return false;
+	}
+
+	public virtual int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	{
+		return -1;
+	}
+
+	public virtual uint GetIdealContainer(BasePlayer player, Item item)
+	{
+		return 0u;
 	}
 
 	public virtual void DropBonusItems(BaseEntity initiator, ItemContainer container)

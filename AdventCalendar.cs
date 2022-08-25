@@ -150,7 +150,7 @@ public class AdventCalendar : BaseCombatEntity
 		BasePlayer player = msg.player;
 		if (WasAwardedTodaysGift(player))
 		{
-			player.ShowToast(1, CheckLater);
+			player.ShowToast(GameTip.Styles.Red_Normal, CheckLater);
 		}
 		else
 		{

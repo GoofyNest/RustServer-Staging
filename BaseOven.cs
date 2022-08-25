@@ -1,5 +1,7 @@
 #define UNITY_ASSERTIONS
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using ConVar;
 using Network;
 using UnityEngine;
@@ -16,6 +18,29 @@ public class BaseOven : StorageContainer, ISplashable
 		Fractioning
 	}
 
+	private struct MinMax
+	{
+		public int Min;
+
+		public int Max;
+
+		public MinMax(int min, int max)
+		{
+			Min = min;
+			Max = max;
+		}
+	}
+
+	private enum OvenItemType
+	{
+		Burnable,
+		Byproduct,
+		MaterialInput,
+		MaterialOutput
+	}
+
+	private static Dictionary<float, HashSet<ItemDefinition>> _materialOutputCache;
+
 	public TemperatureType temperature;
 
 	public Menu.Option switchOnMenu;
@@ -31,6 +56,20 @@ public class BaseOven : StorageContainer, ISplashable
 	public bool canModFire;
 
 	public bool disabledBySplash = true;
+
+	public int smeltSpeed = 1;
+
+	public int fuelSlots = 1;
+
+	public int inputSlots = 1;
+
+	public int outputSlots = 1;
+
+	private int _activeCookingSlot;
+
+	private int _inputSlotIndex;
+
+	private int _outputSlotIndex;
 
 	private const float UpdateRate = 0.5f;
 
@@ -87,6 +126,19 @@ public class BaseOven : StorageContainer, ISplashable
 		return base.OnRpcMessage(player, rpc, msg);
 	}
 
+	public override void PreInitShared()
+	{
+		base.PreInitShared();
+		_inputSlotIndex = fuelSlots;
+		_outputSlotIndex = _inputSlotIndex + inputSlots;
+	}
+
+	public override void ServerInit()
+	{
+		inventorySlots = fuelSlots + inputSlots + outputSlots;
+		base.ServerInit();
+	}
+
 	public override void PostServerLoad()
 	{
 		base.PostServerLoad();
@@ -119,25 +171,97 @@ public class BaseOven : StorageContainer, ISplashable
 		}
 	}
 
+	public override bool ItemFilter(Item item, int targetSlot)
+	{
+		if (!base.ItemFilter(item, targetSlot))
+		{
+			return false;
+		}
+		if (targetSlot == -1)
+		{
+			return false;
+		}
+		if (IsOutputItem(item) && item.GetEntityOwner() != this)
+		{
+			BaseEntity entityOwner = item.GetEntityOwner();
+			if (entityOwner != this && entityOwner != null)
+			{
+				return false;
+			}
+		}
+		MinMax? allowedSlots = GetAllowedSlots(item);
+		if (!allowedSlots.HasValue)
+		{
+			return false;
+		}
+		if (targetSlot >= allowedSlots.Value.Min)
+		{
+			return targetSlot <= allowedSlots.Value.Max;
+		}
+		return false;
+	}
+
+	private MinMax? GetAllowedSlots(Item item)
+	{
+		int num = 0;
+		int num2 = 0;
+		if (IsBurnableItem(item))
+		{
+			num2 = fuelSlots;
+		}
+		else if (IsMaterialInput(item))
+		{
+			num = _inputSlotIndex;
+			num2 = num + inputSlots;
+		}
+		else
+		{
+			if (!IsOutputItem(item))
+			{
+				return null;
+			}
+			num = _outputSlotIndex;
+			num2 = num + outputSlots;
+		}
+		return new MinMax(num, num2 - 1);
+	}
+
+	public override int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	{
+		MinMax? allowedSlots = GetAllowedSlots(item);
+		if (!allowedSlots.HasValue)
+		{
+			return -1;
+		}
+		for (int i = allowedSlots.Value.Min; i <= allowedSlots.Value.Max; i++)
+		{
+			Item slot = container.GetSlot(i);
+			if (slot == null || (slot.CanStack(item) && slot.amount < slot.MaxStackable()))
+			{
+				return i;
+			}
+		}
+		return base.GetIdealSlot(player, container, item);
+	}
+
 	public void OvenFull()
 	{
 		StopCooking();
 	}
 
-	private Item FindBurnable()
+	private int GetFuelRate()
 	{
-		if (base.inventory == null)
-		{
-			return null;
-		}
-		foreach (Item item in base.inventory.itemList)
-		{
-			if ((bool)item.info.GetComponent<ItemModBurnable>() && (fuelType == null || item.info == fuelType))
-			{
-				return item;
-			}
-		}
-		return null;
+		return 1;
+	}
+
+	private int GetCharcoalRate()
+	{
+		return 1;
+	}
+
+	public int GetSmeltingSpeed()
+	{
+		return smeltSpeed;
 	}
 
 	public void Cook()
@@ -148,6 +272,7 @@ public class BaseOven : StorageContainer, ISplashable
 			StopCooking();
 			return;
 		}
+		_activeCookingSlot = FindActiveCookingSlot();
 		base.inventory.OnCycle(0.5f);
 		BaseEntity slot = GetSlot(Slot.FireMod);
 		if ((bool)slot)
@@ -176,19 +301,19 @@ public class BaseOven : StorageContainer, ISplashable
 	{
 		if (allowByproductCreation && burnable.byproductItem != null && UnityEngine.Random.Range(0f, 1f) > burnable.byproductChance)
 		{
-			Item item = ItemManager.Create(burnable.byproductItem, burnable.byproductAmount, 0uL);
+			Item item = ItemManager.Create(burnable.byproductItem, burnable.byproductAmount * GetCharcoalRate(), 0uL);
 			if (!item.MoveToContainer(base.inventory))
 			{
 				OvenFull();
 				item.Drop(base.inventory.dropPosition, base.inventory.dropVelocity);
 			}
 		}
-		if (fuel.amount <= 1)
+		if (fuel.amount <= GetFuelRate())
 		{
 			fuel.Remove();
 			return;
 		}
-		fuel.amount--;
+		fuel.UseItem(GetFuelRate());
 		fuel.fuel = burnable.fuelAmount;
 		fuel.MarkDirty();
 	}
@@ -209,6 +334,32 @@ public class BaseOven : StorageContainer, ISplashable
 				StopCooking();
 			}
 		}
+	}
+
+	private int FindActiveCookingSlot()
+	{
+		int num = _inputSlotIndex + inputSlots;
+		for (int i = _inputSlotIndex; i <= num; i++)
+		{
+			if (base.inventory.GetSlot(i) != null)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public float GetTemperature(int slot)
+	{
+		if (slot != _activeCookingSlot)
+		{
+			return 15f;
+		}
+		if (!HasFlag(Flags.On))
+		{
+			return 15f;
+		}
+		return cookingTemperature;
 	}
 
 	public void UpdateAttachmentTemperature()
@@ -263,6 +414,96 @@ public class BaseOven : StorageContainer, ISplashable
 	{
 		StopCooking();
 		return Mathf.Min(200, amount);
+	}
+
+	public Item FindBurnable()
+	{
+		if (base.inventory == null)
+		{
+			return null;
+		}
+		foreach (Item item in base.inventory.itemList)
+		{
+			if (IsBurnableItem(item))
+			{
+				return item;
+			}
+		}
+		return null;
+	}
+
+	private bool IsBurnableItem(Item item)
+	{
+		if ((bool)item.info.GetComponent<ItemModBurnable>() && (fuelType == null || item.info == fuelType))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	private bool IsBurnableByproduct(Item item)
+	{
+		ItemModBurnable itemModBurnable = fuelType?.GetComponent<ItemModBurnable>();
+		if (itemModBurnable == null)
+		{
+			return false;
+		}
+		return item.info == itemModBurnable.byproductItem;
+	}
+
+	private bool IsMaterialInput(Item item)
+	{
+		ItemModCookable component = item.info.GetComponent<ItemModCookable>();
+		if (component == null || (float)component.lowTemp > cookingTemperature || (float)component.highTemp < cookingTemperature)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	private bool IsMaterialOutput(Item item)
+	{
+		if (_materialOutputCache == null)
+		{
+			BuildMaterialOutputCache();
+		}
+		if (!_materialOutputCache.TryGetValue(cookingTemperature, out var value))
+		{
+			Debug.LogError("Can't find smeltable item list for oven");
+			return true;
+		}
+		return value.Contains(item.info);
+	}
+
+	private bool IsOutputItem(Item item)
+	{
+		if (!IsMaterialOutput(item))
+		{
+			return IsBurnableByproduct(item);
+		}
+		return true;
+	}
+
+	private void BuildMaterialOutputCache()
+	{
+		_materialOutputCache = new Dictionary<float, HashSet<ItemDefinition>>();
+		float[] array = (from x in GameManager.server.preProcessed.prefabList.Values
+			select x.GetComponent<BaseOven>() into x
+			where x != null
+			select x.cookingTemperature).Distinct().ToArray();
+		foreach (float key in array)
+		{
+			HashSet<ItemDefinition> hashSet = new HashSet<ItemDefinition>();
+			_materialOutputCache[key] = hashSet;
+			foreach (ItemDefinition item in ItemManager.itemList)
+			{
+				ItemModCookable component = item.GetComponent<ItemModCookable>();
+				if (!(component == null) && component.CanBeCookedByAtTemperature(key))
+				{
+					hashSet.Add(component.becomeOnCooked);
+				}
+			}
+		}
 	}
 
 	public override bool HasSlot(Slot slot)

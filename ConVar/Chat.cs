@@ -19,7 +19,8 @@ public class Chat : ConsoleSystem
 		Global,
 		Team,
 		Server,
-		Cards
+		Cards,
+		Local
 	}
 
 	public struct ChatEntry
@@ -37,7 +38,14 @@ public class Chat : ConsoleSystem
 		public int Time { get; set; }
 	}
 
-	private const float textRange = 50f;
+	[ServerVar]
+	public static float localChatRange = 100f;
+
+	[ReplicatedVar]
+	public static bool globalchat = true;
+
+	[ReplicatedVar]
+	public static bool localchat = false;
 
 	private const float textVolumeBoost = 0.2f;
 
@@ -70,7 +78,19 @@ public class Chat : ConsoleSystem
 	[ServerUserVar]
 	public static void say(Arg arg)
 	{
-		sayImpl(ChatChannel.Global, arg);
+		if (globalchat)
+		{
+			sayImpl(ChatChannel.Global, arg);
+		}
+	}
+
+	[ServerUserVar]
+	public static void localsay(Arg arg)
+	{
+		if (localchat)
+		{
+			sayImpl(ChatChannel.Local, arg);
+		}
 	}
 
 	[ServerUserVar]
@@ -219,12 +239,25 @@ public class Chat : ConsoleSystem
 			return true;
 		}
 		case ChatChannel.Global:
-			if (Server.globalchat)
-			{
-				ConsoleNetwork.BroadcastToAllClients("chat.add2", 0, userId, text, text4, text3, 1f);
-				return true;
-			}
+			ConsoleNetwork.BroadcastToAllClients("chat.add2", 0, userId, text, text4, text3, 1f);
 			break;
+		case ChatChannel.Local:
+		{
+			if (!(player != null))
+			{
+				break;
+			}
+			float num2 = localChatRange * localChatRange;
+			foreach (BasePlayer activePlayer in BasePlayer.activePlayerList)
+			{
+				float sqrMagnitude = (activePlayer.transform.position - player.transform.position).sqrMagnitude;
+				if (!(sqrMagnitude > num2))
+				{
+					ConsoleNetwork.SendClientCommand(activePlayer.net.connection, "chat.add2", 4, userId, text, text4, text3, Mathf.Clamp01(sqrMagnitude / num2 + 0.2f));
+				}
+			}
+			return true;
+		}
 		case ChatChannel.Team:
 		{
 			RelationshipManager.PlayerTeam playerTeam = RelationshipManager.ServerInstance.FindPlayersTeam(userId);
@@ -240,19 +273,6 @@ public class Chat : ConsoleSystem
 			playerTeam.BroadcastTeamChat(userId, text4, text, text3);
 			return true;
 		}
-		}
-		if (player != null)
-		{
-			float num2 = 2500f;
-			foreach (BasePlayer activePlayer in BasePlayer.activePlayerList)
-			{
-				float sqrMagnitude = (activePlayer.transform.position - player.transform.position).sqrMagnitude;
-				if (!(sqrMagnitude > num2))
-				{
-					ConsoleNetwork.SendClientCommand(activePlayer.net.connection, "chat.add2", 0, userId, text, text4, text3, Mathf.Clamp01(num2 - sqrMagnitude + 0.2f));
-				}
-			}
-			return true;
 		}
 		return false;
 	}

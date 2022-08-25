@@ -23,7 +23,7 @@ using SilentOrbit.ProtocolBuffers;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
+public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotEntity
 {
 	public enum CameraMode
 	{
@@ -2876,7 +2876,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		Missions missions = Facepunch.Pool.Get<Missions>();
 		missions.missions = Facepunch.Pool.GetList<MissionInstance>();
 		missions.activeMission = GetActiveMission();
-		missions.protocol = 227;
+		missions.protocol = 228;
 		missions.seed = World.Seed;
 		missions.saveCreatedTime = Epoch.FromDateTime(SaveRestore.SaveCreatedTime);
 		foreach (BaseMission.MissionInstance mission in this.missions)
@@ -2976,7 +2976,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			uint seed = loadedMissions.seed;
 			int saveCreatedTime = loadedMissions.saveCreatedTime;
 			int num2 = Epoch.FromDateTime(SaveRestore.SaveCreatedTime);
-			if (227 != protocol || World.Seed != seed || num2 != saveCreatedTime)
+			if (228 != protocol || World.Seed != seed || num2 != saveCreatedTime)
 			{
 				Debug.Log("Missions were from old protocol or different seed, or not from a loaded save clearing");
 				loadedMissions.activeMission = -1;
@@ -5589,6 +5589,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			tickInterpolator.Reset(position);
 			tickHistory.Reset(position);
 			eyeHistory.Clear();
+			estimatedVelocity = UnityEngine.Vector3.zero;
+			estimatedSpeed = 0f;
+			estimatedSpeed2D = 0f;
 			lastTickTime = 0f;
 			StopWounded();
 			ResetWoundingVars();
@@ -6023,6 +6026,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 				}
 				if (!WoundInsteadOfDying(info))
 				{
+					SleepingBag.OnPlayerDeath(this);
 					base.Die(info);
 				}
 			}
@@ -6253,6 +6257,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		}
 	}
 
+	public void InvalidateCachedPeristantPlayer()
+	{
+		cachedPersistantPlayer = null;
+	}
+
 	public bool IsPlayerVisibleToUs(BasePlayer otherPlayer, int layerMask)
 	{
 		if (otherPlayer == null)
@@ -6273,6 +6282,38 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	protected virtual void OnKilledByPlayer(BasePlayer p)
 	{
+	}
+
+	public int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	{
+		return -1;
+	}
+
+	public uint GetIdealContainer(BasePlayer player, Item item)
+	{
+		bool flag = player.inventory.loot.containers.Count > 0;
+		ItemContainer parent = item.parent;
+		if (item.info.isWearable && (item.parent == player.inventory.containerBelt || item.parent == player.inventory.containerMain))
+		{
+			return player.inventory.containerWear.uid;
+		}
+		if (parent == player.inventory.containerMain)
+		{
+			if (flag)
+			{
+				return 0u;
+			}
+			return player.inventory.containerBelt.uid;
+		}
+		if (parent == player.inventory.containerWear)
+		{
+			return player.inventory.containerMain.uid;
+		}
+		if (parent == player.inventory.containerBelt)
+		{
+			return player.inventory.containerMain.uid;
+		}
+		return 0u;
 	}
 
 	private void Tick_Spectator()
@@ -7001,7 +7042,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 			return;
 		}
 		woundedByFallDamage = flag;
-		if (flag)
+		if (flag || !ConVar.Server.crawlingenabled)
 		{
 			GoToIncapacitated(info);
 		}
@@ -7362,6 +7403,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 
 	public bool InSafeZone()
 	{
+		BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(base.isServer);
+		if (activeGameMode != null && !activeGameMode.safeZone)
+		{
+			return false;
+		}
 		if (base.isServer)
 		{
 			return currentSafeLevel > 0f;
@@ -7794,11 +7840,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel
 		return false;
 	}
 
-	public void ShowToast(int style, Translate.Phrase phrase)
+	public void ShowToast(GameTip.Styles style, Translate.Phrase phrase, params string[] arguments)
 	{
 		if (base.isServer)
 		{
-			SendConsoleCommand("gametip.showtoast_translated", style, phrase.token, phrase.english);
+			SendConsoleCommand("gametip.showtoast_translated", (int)style, phrase.token, phrase.english, arguments);
 		}
 	}
 

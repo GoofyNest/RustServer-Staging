@@ -134,7 +134,7 @@ public class CombatLog
 		}
 	}
 
-	public string Get(int count, uint filterByAttacker = 0u, bool json = false)
+	public string Get(int count, uint filterByAttacker = 0u, bool json = false, bool isAdmin = false)
 	{
 		if (storage == null)
 		{
@@ -165,13 +165,14 @@ public class CombatLog
 		int num = storage.Count - count;
 		int combatlogdelay = Server.combatlogdelay;
 		int num2 = 0;
+		BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(serverside: true);
 		foreach (Event item in storage)
 		{
 			if (num > 0)
 			{
 				num--;
 			}
-			else if (filterByAttacker == 0 || item.attacker_id == filterByAttacker)
+			else if ((filterByAttacker == 0 || item.attacker_id == filterByAttacker) && (!(activeGameMode != null) || activeGameMode.returnValidCombatlog || isAdmin || item.proj_hits <= 0))
 			{
 				float num3 = UnityEngine.Time.realtimeSinceStartup - item.time;
 				if (num3 >= (float)combatlogdelay)

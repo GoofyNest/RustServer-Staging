@@ -144,7 +144,7 @@ public class Recycler : StorageContainer
 			}
 			if (slot.CanStack(newItem))
 			{
-				if (slot.amount + newItem.amount <= slot.info.stackable)
+				if (slot.amount + newItem.amount <= slot.MaxStackable())
 				{
 					num = i;
 					break;

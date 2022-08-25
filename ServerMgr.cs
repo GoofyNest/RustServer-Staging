@@ -493,14 +493,14 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their branch is '", text, "' not '", branch, "'"));
 			Network.Net.sv.Kick(packet.connection, "Wrong Steam Beta: Requires '" + branch + "' branch!");
 		}
-		else if (packet.connection.protocol > 2352)
+		else if (packet.connection.protocol > 2355)
 		{
-			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2352));
+			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2355));
 			Network.Net.sv.Kick(packet.connection, "Wrong Connection Protocol: Server update required!");
 		}
-		else if (packet.connection.protocol < 2352)
+		else if (packet.connection.protocol < 2355)
 		{
-			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2352));
+			DebugEx.Log(string.Concat("Kicking ", packet.connection, " - their protocol is ", packet.connection.protocol, " not ", 2355));
 			Network.Net.sv.Kick(packet.connection, "Wrong Connection Protocol: Client update required!");
 		}
 		else
@@ -1143,7 +1143,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			string text4 = (ConVar.Server.pve ? ",pve" : string.Empty);
 			string text5 = ConVar.Server.tags?.Trim(',') ?? "";
 			string text6 = ((!string.IsNullOrWhiteSpace(text5)) ? ("," + text5) : "");
-			SteamServer.GameTags = $"mp{ConVar.Server.maxplayers},cp{BasePlayer.activePlayerList.Count},pt{Network.Net.sv.ProtocolId},qp{SingletonComponent<ServerMgr>.Instance.connectionQueue.Queued},v{2352}{text4}{text6},h{AssemblyHash},{text},{text2},{text3}";
+			SteamServer.GameTags = $"mp{ConVar.Server.maxplayers},cp{BasePlayer.activePlayerList.Count},pt{Network.Net.sv.ProtocolId},qp{SingletonComponent<ServerMgr>.Instance.connectionQueue.Queued},v{2355}{text4}{text6},h{AssemblyHash},{text},{text2},{text3}";
 			if (ConVar.Server.description != null && ConVar.Server.description.Length > 100)
 			{
 				string[] array = ConVar.Server.description.SplitToChunks(100).ToArray();
@@ -1168,7 +1168,13 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 				}
 			}
 			SteamServer.SetKey("hash", AssemblyHash);
-			SteamServer.SetKey("world.seed", World.Seed.ToString());
+			string value = World.Seed.ToString();
+			BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(serverside: true);
+			if (activeGameMode != null && !activeGameMode.ingameMap)
+			{
+				value = "0";
+			}
+			SteamServer.SetKey("world.seed", value);
 			SteamServer.SetKey("world.size", World.Size.ToString());
 			SteamServer.SetKey("pve", ConVar.Server.pve.ToString());
 			SteamServer.SetKey("headerimage", ConVar.Server.headerimage);

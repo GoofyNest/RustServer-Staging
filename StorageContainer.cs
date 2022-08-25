@@ -7,7 +7,7 @@ using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class StorageContainer : DecayEntity, IItemContainerEntity, LootPanel.IHasLootPanel, IContainerSounds, PlayerInventory.ICanMoveFrom
+public class StorageContainer : DecayEntity, IItemContainerEntity, IIdealSlotEntity, LootPanel.IHasLootPanel, PlayerInventory.ICanMoveFrom
 {
 	[Header("Storage Container")]
 	public static readonly Translate.Phrase LockedMessage = new Translate.Phrase("storage.locked", "Can't loot right now");
@@ -332,12 +332,12 @@ public class StorageContainer : DecayEntity, IItemContainerEntity, LootPanel.IHa
 	{
 		if (IsLocked())
 		{
-			player.ShowToast(1, LockedMessage);
+			player.ShowToast(GameTip.Styles.Red_Normal, LockedMessage);
 			return false;
 		}
 		if (onlyOneUser && IsOpen())
 		{
-			player.ShowToast(1, InUseMessage);
+			player.ShowToast(GameTip.Styles.Red_Normal, InUseMessage);
 			return false;
 		}
 		if (panelToOpen == "")
@@ -450,6 +450,16 @@ public class StorageContainer : DecayEntity, IItemContainerEntity, LootPanel.IHa
 				Debug.LogWarning("Storage container without inventory: " + ToString());
 			}
 		}
+	}
+
+	public virtual int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	{
+		return -1;
+	}
+
+	public virtual uint GetIdealContainer(BasePlayer player, Item item)
+	{
+		return 0u;
 	}
 
 	public override bool HasSlot(Slot slot)

@@ -597,7 +597,7 @@ public class VendingMachine : StorageContainer
 			int numberOfTransactions = rpc.read.Int32();
 			if (IsVending())
 			{
-				rpc.player.ShowToast(1, WaitForVendingMessage);
+				rpc.player.ShowToast(GameTip.Styles.Red_Normal, WaitForVendingMessage);
 				return;
 			}
 			SetPendingOrder(rpc.player, sellOrderId, numberOfTransactions);
