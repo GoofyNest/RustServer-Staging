@@ -149,7 +149,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			}
 			if (packet.connection.GetPacketsPerSecond(packet.type) >= (ulong)ConVar.Server.maxpacketspersecond_rpc)
 			{
-				Network.Net.sv.Kick(packet.connection, "Paket Flooding: RPC Message");
+				Network.Net.sv.Kick(packet.connection, "Packet Flooding: RPC Message");
 				break;
 			}
 			using (TimeWarning.New("OnRPCMessage", 20))
