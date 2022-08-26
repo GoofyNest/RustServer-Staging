@@ -7,7 +7,7 @@ using ProtoBuf;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class StorageContainer : DecayEntity, IItemContainerEntity, IIdealSlotEntity, LootPanel.IHasLootPanel, PlayerInventory.ICanMoveFrom
+public class StorageContainer : DecayEntity, IItemContainerEntity, IIdealSlotEntity, LootPanel.IHasLootPanel, IContainerSounds, PlayerInventory.ICanMoveFrom
 {
 	[Header("Storage Container")]
 	public static readonly Translate.Phrase LockedMessage = new Translate.Phrase("storage.locked", "Can't loot right now");
