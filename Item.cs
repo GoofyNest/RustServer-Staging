@@ -23,7 +23,7 @@ public class Item
 		Cooking = 0x10
 	}
 
-	private static string DefaultArmourBreakEffectPath = string.Empty;
+	private const string DefaultArmourBreakEffectPath = "assets/bundled/prefabs/fx/armor_break.prefab";
 
 	private float _condition;
 
@@ -320,9 +320,9 @@ public class Item
 				{
 					Effect.server.Run(component.breakEffect.resourcePath, ownerPlayer, 0u, Vector3.zero, Vector3.zero);
 				}
-				else if (!string.IsNullOrEmpty(DefaultArmourBreakEffectPath))
+				else
 				{
-					Effect.server.Run(DefaultArmourBreakEffectPath, ownerPlayer, 0u, Vector3.zero, Vector3.zero);
+					Effect.server.Run("assets/bundled/prefabs/fx/armor_break.prefab", ownerPlayer, 0u, Vector3.zero, Vector3.zero);
 				}
 			}
 		}

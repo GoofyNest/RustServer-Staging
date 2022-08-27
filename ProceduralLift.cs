@@ -24,6 +24,14 @@ public class ProceduralLift : BaseEntity
 
 	private int floorIndex = -1;
 
+	public SoundDefinition startSoundDef;
+
+	public SoundDefinition stopSoundDef;
+
+	public SoundDefinition movementLoopSoundDef;
+
+	private Sound movementLoopSound;
+
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
 		using (TimeWarning.New("ProceduralLift.OnRpcMessage"))
@@ -175,5 +183,13 @@ public class ProceduralLift : BaseEntity
 				OnFinishedMoving();
 			}
 		}
+	}
+
+	public void StartMovementSounds()
+	{
+	}
+
+	public void StopMovementSounds()
+	{
 	}
 }
