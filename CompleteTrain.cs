@@ -962,6 +962,14 @@ public class CompleteTrain : IDisposable
 		{
 			if (trainContent.completeTrain != this)
 			{
+				if (trainContent == null)
+				{
+					Debug.LogError("CTDebugNRE: Train Car is null.");
+				}
+				else if (trainContent.completeTrain == null)
+				{
+					Debug.LogError("CTDebugNRE: Train Car is not null, but CompleteTrain is null. Dead? " + trainContent.IsDead() + " Destroyed? " + trainContent.IsDestroyed);
+				}
 				Vector3 ourForward2 = (trainContent.completeTrain.IsCoupledBackwards(trainContent) ? (-trainContent.transform.forward) : trainContent.transform.forward);
 				float totalPushingMass = trainContent.completeTrain.GetTotalPushingMass(pushDirection, ourForward2, ref prevTrains);
 				if (totalPushingMass < 0f)
