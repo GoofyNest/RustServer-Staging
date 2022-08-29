@@ -122,7 +122,7 @@ public class TriggerTrainCollisions : TriggerBase
 		}
 		if (!staticContents.Remove(obj))
 		{
-			TrainCar trainCar = obj.ToBaseEntity() as TrainCar;
+			TrainCar trainCar = obj.GetComponentInParent<BaseEntity>() as TrainCar;
 			if (trainCar != null)
 			{
 				if (!HasAnotherColliderFor<TrainCar>(trainCar))
