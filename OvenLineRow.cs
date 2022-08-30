@@ -108,7 +108,7 @@ public class OvenLineRow : MonoBehaviour
 		GameObject gameObject = new GameObject("Line");
 		Image image = gameObject.AddComponent<Image>();
 		images.Add(gameObject);
-		image.transform.parent = Container ?? base.transform;
+		image.rectTransform.SetParent(Container ?? base.transform);
 		image.transform.localScale = Vector3.one;
 		image.color = Color;
 		return image;

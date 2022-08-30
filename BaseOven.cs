@@ -18,7 +18,7 @@ public class BaseOven : StorageContainer, ISplashable
 		Fractioning
 	}
 
-	private struct MinMax
+	public struct MinMax
 	{
 		public int Min;
 
@@ -209,21 +209,26 @@ public class BaseOven : StorageContainer, ISplashable
 		{
 			num2 = fuelSlots;
 		}
-		else if (IsMaterialInput(item))
+		else if (IsOutputItem(item))
 		{
-			num = _inputSlotIndex;
-			num2 = num + inputSlots;
-		}
-		else
-		{
-			if (!IsOutputItem(item))
-			{
-				return null;
-			}
 			num = _outputSlotIndex;
 			num2 = num + outputSlots;
 		}
+		else
+		{
+			if (!IsMaterialInput(item))
+			{
+				return null;
+			}
+			num = _inputSlotIndex;
+			num2 = num + inputSlots;
+		}
 		return new MinMax(num, num2 - 1);
+	}
+
+	public MinMax GetOutputSlotRange()
+	{
+		return new MinMax(_outputSlotIndex, _outputSlotIndex + outputSlots - 1);
 	}
 
 	public override int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)

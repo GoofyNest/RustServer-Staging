@@ -635,14 +635,23 @@ public class Item
 					{
 						return false;
 					}
+					bool flag = newcontainer.HasFlag(ItemContainer.Flag.Clothing) && info.isWearable;
+					ItemModWearable itemModWearable = info.ItemModWearable;
 					for (int i = 0; i < newcontainer.capacity; i++)
 					{
-						if (newcontainer.GetSlot(i) == null)
+						Item slot = newcontainer.GetSlot(i);
+						if (slot == null)
+						{
+							iTargetPos = i;
+							break;
+						}
+						if (flag && slot != null && !slot.info.ItemModWearable.CanExistWith(itemModWearable))
 						{
 							iTargetPos = i;
 							break;
 						}
 					}
+					_ = -1;
 				}
 				if (iTargetPos == -1)
 				{
@@ -655,38 +664,38 @@ public class Item
 			}
 			if (iTargetPos >= 0 && newcontainer.SlotTaken(this, iTargetPos))
 			{
-				Item slot = newcontainer.GetSlot(iTargetPos);
-				if (slot == this)
+				Item slot2 = newcontainer.GetSlot(iTargetPos);
+				if (slot2 == this)
 				{
 					return false;
 				}
 				if (allowStack)
 				{
-					int num = slot.MaxStackable();
-					if (slot.CanStack(this))
+					int num = slot2.MaxStackable();
+					if (slot2.CanStack(this))
 					{
 						if (ignoreStackLimit)
 						{
 							num = int.MaxValue;
 						}
-						if (slot.amount >= num)
+						if (slot2.amount >= num)
 						{
 							return false;
 						}
-						slot.amount += amount;
-						slot.MarkDirty();
+						slot2.amount += amount;
+						slot2.MarkDirty();
 						RemoveFromWorld();
 						RemoveFromContainer();
 						Remove();
-						int num2 = slot.amount - num;
+						int num2 = slot2.amount - num;
 						if (num2 > 0)
 						{
-							Item item = slot.SplitItem(num2);
+							Item item = slot2.SplitItem(num2);
 							if (item != null && !item.MoveToContainer(newcontainer, -1, allowStack, ignoreStackLimit, sourcePlayer) && (itemContainer == null || !item.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
 							{
 								item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
 							}
-							slot.amount = num;
+							slot2.amount = num;
 						}
 						return true;
 					}
@@ -695,13 +704,13 @@ public class Item
 				{
 					ItemContainer newcontainer2 = parent;
 					int iTargetPos2 = position;
-					if (!slot.CanMoveTo(newcontainer2, iTargetPos2))
+					if (!slot2.CanMoveTo(newcontainer2, iTargetPos2))
 					{
 						return false;
 					}
 					RemoveFromContainer();
-					slot.RemoveFromContainer();
-					slot.MoveToContainer(newcontainer2, iTargetPos2, allowStack: true, ignoreStackLimit: false, sourcePlayer);
+					slot2.RemoveFromContainer();
+					slot2.MoveToContainer(newcontainer2, iTargetPos2, allowStack: true, ignoreStackLimit: false, sourcePlayer);
 					return MoveToContainer(newcontainer, iTargetPos, allowStack: true, ignoreStackLimit: false, sourcePlayer);
 				}
 				return false;

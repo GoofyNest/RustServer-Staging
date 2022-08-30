@@ -553,6 +553,7 @@ public class BaseGameMode : BaseEntity
 	{
 		gameModeTags.Add("missions-" + (missionSystem ? "enabled" : "disabled"));
 		gameModeTags.Add("mlrs-" + (mlrs ? "enabled" : "disabled"));
+		gameModeTags.Add("map-" + (ingameMap ? "enabled" : "disabled"));
 	}
 
 	public virtual float? EvaluateSleepingBagReset(SleepingBag bag, Vector3 position, SleepingBag.SleepingBagResetReason reason)
