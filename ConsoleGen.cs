@@ -3612,7 +3612,7 @@ public class ConsoleGen
 			{
 				Chat.globalchat = str.ToBool();
 			},
-			Default = "False"
+			Default = "True"
 		},
 		new ConsoleSystem.Command
 		{
@@ -3643,7 +3643,7 @@ public class ConsoleGen
 			{
 				Chat.localchat = str.ToBool();
 			},
-			Default = "True"
+			Default = "False"
 		},
 		new ConsoleSystem.Command
 		{
@@ -10730,7 +10730,7 @@ public class ConsoleGen
 			{
 				RelationshipManager.contacts = str.ToBool();
 			},
-			Default = "False"
+			Default = "True"
 		},
 		new ConsoleSystem.Command
 		{
