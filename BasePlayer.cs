@@ -6293,7 +6293,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	{
 		bool flag = player.inventory.loot.containers.Count > 0;
 		ItemContainer parent = item.parent;
-		if (item.info.isWearable && (item.parent == player.inventory.containerBelt || item.parent == player.inventory.containerMain))
+		if (item.info.isWearable && (item.parent == player.inventory.containerBelt || item.parent == player.inventory.containerMain) && !flag)
 		{
 			return player.inventory.containerWear.uid;
 		}

@@ -374,7 +374,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 				{
 					foreach (ItemContainer container in loot.containers)
 					{
-						if (item.MoveToContainer(container, -1, allowStack: true, ignoreStackLimit: false, base.baseEntity))
+						if (!container.PlayerItemInputBlocked() && item.MoveToContainer(container, -1, allowStack: true, ignoreStackLimit: false, base.baseEntity))
 						{
 							break;
 						}

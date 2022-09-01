@@ -78,11 +78,11 @@ public class BaseGameMode : BaseEntity
 	public const Flags Flag_WaitingForPlayers = Flags.Reserved3;
 
 	[Header("Changelog")]
-	public List<string> addedFeatures = new List<string>();
+	public Translate.Phrase[] addedFeatures;
 
-	public List<string> removedFeatures = new List<string>();
+	public Translate.Phrase[] removedFeatures;
 
-	public List<string> changedFeatures = new List<string>();
+	public Translate.Phrase[] changedFeatures;
 
 	public List<string> convars = new List<string>();
 
@@ -621,24 +621,12 @@ public class BaseGameMode : BaseEntity
 		return value;
 	}
 
-	protected void OnCreated_Vanilla()
+	private void DeleteEntities()
 	{
-		if (rustPlus != CompanionServer.Server.IsEnabled)
+		if (!SingletonComponent<ServerMgr>.Instance.runFrameUpdate)
 		{
-			if (rustPlus)
-			{
-				CompanionServer.Server.Initialize();
-			}
-			else
-			{
-				CompanionServer.Server.Shutdown();
-			}
+			Invoke(DeleteEntities, 5f);
 		}
-		if (!teamSystem)
-		{
-			RelationshipManager.maxTeamSize = 0;
-		}
-		ConVar.Server.crawlingenabled = crawling;
 		MonumentInfo[] array = TerrainMeta.Path.Monuments.Where((MonumentInfo x) => x.IsSafeZone).ToArray();
 		foreach (MonumentInfo monumentInfo in array)
 		{
@@ -662,7 +650,7 @@ public class BaseGameMode : BaseEntity
 		}
 		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
 		{
-			if (mlrs && serverEntity is MLRS)
+			if (!mlrs && serverEntity is MLRS)
 			{
 				serverEntity.Kill();
 			}
@@ -671,14 +659,35 @@ public class BaseGameMode : BaseEntity
 				serverEntity.Kill();
 			}
 		}
+	}
+
+	protected void OnCreated_Vanilla()
+	{
+		if (rustPlus != CompanionServer.Server.IsEnabled)
+		{
+			if (rustPlus)
+			{
+				CompanionServer.Server.Initialize();
+			}
+			else
+			{
+				CompanionServer.Server.Shutdown();
+			}
+		}
+		if (!teamSystem)
+		{
+			RelationshipManager.maxTeamSize = 0;
+		}
+		ConVar.Server.crawlingenabled = crawling;
+		DeleteEntities();
 		if (wipeBpsOnProtocol)
 		{
 			SingletonComponent<ServerMgr>.Instance.persistance.Dispose();
 			SingletonComponent<ServerMgr>.Instance.persistance = new UserPersistance(ConVar.Server.rootFolder);
-			BasePlayer[] array2 = UnityEngine.Object.FindObjectsOfType<BasePlayer>();
-			for (int i = 0; i < array2.Length; i++)
+			BasePlayer[] array = UnityEngine.Object.FindObjectsOfType<BasePlayer>();
+			for (int i = 0; i < array.Length; i++)
 			{
-				array2[i].InvalidateCachedPeristantPlayer();
+				array[i].InvalidateCachedPeristantPlayer();
 			}
 		}
 		RelationshipManager.contacts = contactSystem;

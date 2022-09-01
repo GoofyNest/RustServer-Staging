@@ -39,8 +39,6 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 
 	private ConnectionAuth auth;
 
-	private bool runFrameUpdate;
-
 	private bool useQueryPort;
 
 	public UserPersistance persistance;
@@ -54,6 +52,8 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 	private string _AssemblyHash;
 
 	private IEnumerator restartCoroutine;
+
+	public bool runFrameUpdate { get; private set; }
 
 	public static int AvailableSlots => ConVar.Server.maxplayers - BasePlayer.activePlayerList.Count;
 

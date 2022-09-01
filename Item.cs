@@ -693,7 +693,15 @@ public class Item
 							Item item = slot2.SplitItem(num2);
 							if (item != null && !item.MoveToContainer(newcontainer, -1, allowStack, ignoreStackLimit, sourcePlayer) && (itemContainer == null || !item.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
 							{
-								item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
+								BasePlayer basePlayer = newcontainer.GetEntityOwner() as BasePlayer;
+								if (basePlayer != null)
+								{
+									basePlayer.GiveItem(item);
+								}
+								else
+								{
+									item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
+								}
 							}
 							slot2.amount = num;
 						}
