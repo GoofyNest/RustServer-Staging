@@ -16,6 +16,8 @@ public class IndividualSpawner : BaseMonoBehaviour, IServerComponent, ISpawnPoin
 	[SerializeField]
 	private bool oneTimeSpawner;
 
+	internal bool isSpawnerActive = true;
+
 	private SpawnPointInstance spawnInstance;
 
 	private float nextSpawnTime = -1f;
@@ -111,7 +113,7 @@ public class IndividualSpawner : BaseMonoBehaviour, IServerComponent, ISpawnPoin
 
 	private void TrySpawnEntity()
 	{
-		if (IsSpawned)
+		if (!isSpawnerActive || IsSpawned)
 		{
 			return;
 		}

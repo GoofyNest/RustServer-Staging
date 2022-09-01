@@ -647,6 +647,18 @@ public class BaseGameMode : BaseEntity
 					componentsInChildren[j].isSpawnerActive = false;
 				}
 			}
+			if (mlrs)
+			{
+				continue;
+			}
+			IndividualSpawner[] componentsInChildren2 = monumentInfo.GetComponentsInChildren<IndividualSpawner>();
+			foreach (IndividualSpawner individualSpawner in componentsInChildren2)
+			{
+				if (individualSpawner.entityPrefab.isValid && individualSpawner.entityPrefab.GetEntity() is MLRS)
+				{
+					individualSpawner.isSpawnerActive = false;
+				}
+			}
 		}
 		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
 		{
