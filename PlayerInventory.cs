@@ -368,13 +368,19 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 			{
 				num2 = idealSlotEntity.GetIdealContainer(base.baseEntity, item);
 			}
+			ItemContainer parent = item.parent;
+			if (parent != null && parent.IsLocked())
+			{
+				msg.player.ChatMessage("Container is locked!");
+				return;
+			}
 			if (num2 == 0)
 			{
 				if (baseEntity == loot.entitySource)
 				{
 					foreach (ItemContainer container in loot.containers)
 					{
-						if (!container.PlayerItemInputBlocked() && item.MoveToContainer(container, -1, allowStack: true, ignoreStackLimit: false, base.baseEntity))
+						if (!container.PlayerItemInputBlocked() && !container.IsLocked() && item.MoveToContainer(container, -1, allowStack: true, ignoreStackLimit: false, base.baseEntity))
 						{
 							break;
 						}
@@ -394,8 +400,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 			msg.player.ChatMessage("Invalid container (" + num2 + ")");
 			return;
 		}
-		ItemContainer parent = item.parent;
-		if ((parent != null && parent.IsLocked()) || itemContainer.IsLocked())
+		if (itemContainer.IsLocked())
 		{
 			msg.player.ChatMessage("Container is locked!");
 			return;

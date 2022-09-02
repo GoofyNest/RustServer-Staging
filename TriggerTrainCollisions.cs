@@ -73,31 +73,31 @@ public class TriggerTrainCollisions : TriggerBase
 			Rigidbody componentInParent = obj.GetComponentInParent<Rigidbody>();
 			if (componentInParent != null)
 			{
-				TrainCar trainCar = obj.ToBaseEntity() as TrainCar;
-				if (trainCar != null)
+				TrainCar componentInParent2 = obj.GetComponentInParent<TrainCar>();
+				if (componentInParent2 != null)
 				{
-					trainContents.Add(trainCar);
+					trainContents.Add(componentInParent2);
 					if (owner.coupling != null)
 					{
-						owner.coupling.Touched(trainCar, location);
+						owner.coupling.Touched(componentInParent2, location);
 					}
 				}
-				else if (owner.rigidBody != componentInParent)
+				else
 				{
 					otherRigidbodyContents.Add(componentInParent);
 				}
 			}
 			else
 			{
-				ITrainCollidable componentInParent2 = obj.GetComponentInParent<ITrainCollidable>();
-				if (componentInParent2 == null)
+				ITrainCollidable componentInParent3 = obj.GetComponentInParent<ITrainCollidable>();
+				if (componentInParent3 == null)
 				{
 					if (!obj.CompareTag("Railway"))
 					{
 						staticContents.Add(obj);
 					}
 				}
-				else if (!componentInParent2.EqualNetID(owner) && !componentInParent2.CustomCollision(owner, this))
+				else if (!componentInParent3.EqualNetID(owner) && !componentInParent3.CustomCollision(owner, this))
 				{
 					staticContents.Add(obj);
 				}
@@ -122,20 +122,20 @@ public class TriggerTrainCollisions : TriggerBase
 		}
 		if (!staticContents.Remove(obj))
 		{
-			TrainCar trainCar = obj.GetComponentInParent<BaseEntity>() as TrainCar;
-			if (trainCar != null)
+			TrainCar componentInParent = obj.GetComponentInParent<TrainCar>();
+			if (componentInParent != null)
 			{
-				if (!HasAnotherColliderFor<TrainCar>(trainCar))
+				if (!HasAnotherColliderFor<TrainCar>(componentInParent))
 				{
-					trainContents.Remove(trainCar);
+					trainContents.Remove(componentInParent);
 				}
 			}
 			else
 			{
-				Rigidbody componentInParent = obj.GetComponentInParent<Rigidbody>();
-				if (componentInParent != null && !HasAnotherColliderFor<Rigidbody>(componentInParent))
+				Rigidbody componentInParent2 = obj.GetComponentInParent<Rigidbody>();
+				if (!HasAnotherColliderFor<Rigidbody>(componentInParent2))
 				{
-					otherRigidbodyContents.Remove(componentInParent);
+					otherRigidbodyContents.Remove(componentInParent2);
 				}
 			}
 		}
