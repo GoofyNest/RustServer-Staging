@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[866]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[868]
 	{
 		new ConsoleSystem.Command
 		{
@@ -1110,6 +1110,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "removeskipqueue",
+			Parent = "global",
+			FullName = "global.removeskipqueue",
+			ServerAdmin = true,
+			Description = "Removes skip queue permission from a SteamID",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.removeskipqueue(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "say",
 			Parent = "global",
 			FullName = "global.say",
@@ -1145,6 +1158,19 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Admin.skipqueue(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "skipqueueid",
+			Parent = "global",
+			FullName = "global.skipqueueid",
+			ServerAdmin = true,
+			Description = "Adds skip queue permissions to a SteamID",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.skipqueueid(arg);
 			}
 		},
 		new ConsoleSystem.Command

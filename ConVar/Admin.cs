@@ -568,6 +568,56 @@ public class Admin : ConsoleSystem
 		}
 	}
 
+	[ServerVar(Help = "Adds skip queue permissions to a SteamID")]
+	public static void skipqueueid(Arg arg)
+	{
+		ulong uInt = arg.GetUInt64(0, 0uL);
+		string @string = arg.GetString(1, "unnamed");
+		string string2 = arg.GetString(2, "no reason");
+		if (uInt < 70000000000000000L)
+		{
+			arg.ReplyWith("This doesn't appear to be a 64bit steamid: " + uInt);
+			return;
+		}
+		ServerUsers.User user = ServerUsers.Get(uInt);
+		if (user != null && (user.group == ServerUsers.UserGroup.Owner || user.group == ServerUsers.UserGroup.Moderator || user.group == ServerUsers.UserGroup.SkipQueue))
+		{
+			arg.ReplyWith($"User {uInt} will already skip the queue ({user.group})");
+			return;
+		}
+		if (user != null && user.group == ServerUsers.UserGroup.Banned)
+		{
+			arg.ReplyWith($"User {uInt} is banned");
+			return;
+		}
+		ServerUsers.Set(uInt, ServerUsers.UserGroup.SkipQueue, @string, string2, -1L);
+		arg.ReplyWith($"Added skip queue permission for {@string} ({uInt})");
+	}
+
+	[ServerVar(Help = "Removes skip queue permission from a SteamID")]
+	public static void removeskipqueue(Arg arg)
+	{
+		ulong uInt = arg.GetUInt64(0, 0uL);
+		if (uInt < 70000000000000000L)
+		{
+			arg.ReplyWith("This doesn't appear to be a 64bit steamid: " + uInt);
+			return;
+		}
+		ServerUsers.User user = ServerUsers.Get(uInt);
+		if (user != null && (user.group == ServerUsers.UserGroup.Owner || user.group == ServerUsers.UserGroup.Moderator))
+		{
+			arg.ReplyWith($"User is a {user.group}, cannot remove skip queue permission with this command");
+			return;
+		}
+		if (user == null || user.group != ServerUsers.UserGroup.SkipQueue)
+		{
+			arg.ReplyWith("User does not have skip queue permission");
+			return;
+		}
+		ServerUsers.Remove(uInt);
+		arg.ReplyWith("Removed skip queue permission: " + uInt);
+	}
+
 	[ServerVar(Help = "Print out currently connected clients etc")]
 	public static void players(Arg arg)
 	{
