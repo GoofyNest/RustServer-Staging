@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[864]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[866]
 	{
 		new ConsoleSystem.Command
 		{
@@ -5721,6 +5721,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "clearinventory",
+			Parent = "inventory",
+			FullName = "inventory.clearinventory",
+			ServerAdmin = true,
+			Description = "Clears the inventory of a target player. eg. inventory.clearInventory jim",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Inventory.clearInventory(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "copyto",
 			Parent = "inventory",
 			FullName = "inventory.copyto",
@@ -5768,6 +5781,20 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Inventory.deployLoadoutInRange(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "disableattirelimitations",
+			Parent = "inventory",
+			FullName = "inventory.disableattirelimitations",
+			ServerAdmin = true,
+			Description = "Disables all attire limitations, so NPC clothing and invalid overlaps can be equipped",
+			Variable = true,
+			GetOveride = () => Inventory.disableAttireLimitations.ToString(),
+			SetOveride = delegate(string str)
+			{
+				Inventory.disableAttireLimitations = str.ToBool();
 			}
 		},
 		new ConsoleSystem.Command

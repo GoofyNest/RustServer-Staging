@@ -478,7 +478,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 		{
 			return false;
 		}
-		if (component.npcOnly)
+		if (component.npcOnly && !Inventory.disableAttireLimitations)
 		{
 			BasePlayer basePlayer = base.baseEntity;
 			if (basePlayer != null && !basePlayer.IsNpc)
@@ -494,7 +494,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 				continue;
 			}
 			ItemModWearable component2 = item2.info.GetComponent<ItemModWearable>();
-			if (!(component2 == null) && !component.CanExistWith(component2))
+			if (!(component2 == null) && !Inventory.disableAttireLimitations && !component.CanExistWith(component2))
 			{
 				bool flag = false;
 				if (item.parent == containerBelt)
