@@ -5483,8 +5483,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			{
 				if (info.Initiator == this)
 				{
-					text = ToString() + " was suicide by " + lastDamage;
-					text2 = "You died: suicide by " + lastDamage;
+					text = string.Concat(ToString(), " was killed by ", lastDamage, " at ", base.transform.position);
+					text2 = "You died: killed by " + lastDamage;
 					if (lastDamage == DamageType.Suicide)
 					{
 						Analytics.Server.Death("suicide", ServerPosition);
@@ -5501,7 +5501,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 					if (info.Initiator is BasePlayer)
 					{
 						BasePlayer basePlayer2 = info.Initiator.ToPlayer();
-						text = ToString() + " was killed by " + basePlayer2.ToString();
+						text = ToString() + " was killed by " + basePlayer2.ToString() + " at " + base.transform.position;
 						text2 = "You died: killed by " + basePlayer2.displayName + " (" + basePlayer2.userID + ")";
 						basePlayer2.stats.Add("kill_player", 1, Stats.All);
 						basePlayer2.LifeStoryKill(this);
@@ -5523,7 +5523,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 					}
 					else
 					{
-						text = ToString() + " was killed by " + info.Initiator.ShortPrefabName + " (" + info.Initiator.Categorize() + ")";
+						text = ToString() + " was killed by " + info.Initiator.ShortPrefabName + " (" + info.Initiator.Categorize() + ") at " + base.transform.position;
 						text2 = "You died: killed by " + info.Initiator.Categorize();
 						stats.Add("death_" + info.Initiator.Categorize(), 1);
 					}
@@ -5535,13 +5535,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			}
 			else if (lastDamage == DamageType.Fall)
 			{
-				text = ToString() + " was killed by fall!";
-				text2 = "You died: killed by fall!";
+				text = ToString() + " was killed by fall at " + base.transform.position;
+				text2 = "You died: killed by fall";
 				Analytics.Server.Death("fall", ServerPosition);
 			}
 			else
 			{
-				text = ToString() + " was killed by " + info.damageTypes.GetMajorityDamageType();
+				text = ToString() + " was killed by " + info.damageTypes.GetMajorityDamageType().ToString() + " at " + base.transform.position;
 				text2 = "You died: " + info.damageTypes.GetMajorityDamageType();
 			}
 		}

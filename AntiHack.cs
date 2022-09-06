@@ -471,7 +471,7 @@ public static class AntiHack
 
 	private static void LogToConsole(BasePlayer ply, AntiHackType type, string message)
 	{
-		Debug.LogWarning(string.Concat(ply, " ", type, ": ", message));
+		Debug.LogWarning(string.Concat(ply, " ", type, ": ", message, " at ", ply.transform.position));
 	}
 
 	private static void LogToEAC(BasePlayer ply, AntiHackType type, string message)
