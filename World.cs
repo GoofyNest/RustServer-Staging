@@ -216,6 +216,16 @@ public static class World
 		return Serialization.GetMap(name)?.data;
 	}
 
+	public static int GetCachedHeightMapResolution()
+	{
+		return Mathf.RoundToInt(Mathf.Sqrt(GetMap("height").Length / 2));
+	}
+
+	public static int GetCachedSplatMapResolution()
+	{
+		return Mathf.RoundToInt(Mathf.Sqrt(GetMap("splat").Length / 8));
+	}
+
 	public static void AddMap(string name, byte[] data)
 	{
 		Serialization.AddMap(name, data);
