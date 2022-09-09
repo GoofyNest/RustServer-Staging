@@ -66,6 +66,9 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	private TriggerHurtNotChild hurtTriggerRear;
 
 	[SerializeField]
+	private GameObject[] hurtOrRepelTriggersInternal;
+
+	[SerializeField]
 	private float hurtTriggerMinSpeed = 1f;
 
 	[SerializeField]
@@ -521,6 +524,11 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 			float trackSpeed = GetTrackSpeed();
 			hurtTriggerFront.gameObject.SetActive(!coupling.IsFrontCoupled && trackSpeed > hurtTriggerMinSpeed);
 			hurtTriggerRear.gameObject.SetActive(!coupling.IsRearCoupled && trackSpeed < 0f - hurtTriggerMinSpeed);
+			GameObject[] array = hurtOrRepelTriggersInternal;
+			for (int i = 0; i < array.Length; i++)
+			{
+				array[i].SetActive(Mathf.Abs(trackSpeed) > hurtTriggerMinSpeed);
+			}
 		}
 	}
 
