@@ -494,9 +494,9 @@ public class BaseProjectile : AttackEntity
 		return base.OnRpcMessage(player, rpc, msg);
 	}
 
-	public override UnityEngine.Vector3 GetInheritedVelocity(BasePlayer player)
+	public override UnityEngine.Vector3 GetInheritedVelocity(BasePlayer player, UnityEngine.Vector3 direction)
 	{
-		return player.GetInheritedProjectileVelocity();
+		return player.GetInheritedProjectileVelocity(direction);
 	}
 
 	public virtual float GetDamageScale(bool getMax = false)

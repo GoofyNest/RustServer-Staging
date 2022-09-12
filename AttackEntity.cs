@@ -50,7 +50,7 @@ public class AttackEntity : HeldEntity
 
 	public float NextAttackTime => nextAttackTime;
 
-	public virtual Vector3 GetInheritedVelocity(BasePlayer player)
+	public virtual Vector3 GetInheritedVelocity(BasePlayer player, Vector3 direction)
 	{
 		return Vector3.zero;
 	}

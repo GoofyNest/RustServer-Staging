@@ -4070,8 +4070,6 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		BaseProjectile baseProjectile = attackEnt as BaseProjectile;
 		ItemModProjectile component = firedItemDef.GetComponent<ItemModProjectile>();
 		Projectile component2 = component.projectileObject.Get().GetComponent<Projectile>();
-		int projectile_protection = ConVar.AntiHack.projectile_protection;
-		UnityEngine.Vector3 inheritedVelocity = ((attackEnt != null) ? attackEnt.GetInheritedVelocity(this) : UnityEngine.Vector3.zero);
 		if (startPos.IsNaNOrInfinity() || startVel.IsNaNOrInfinity())
 		{
 			string text = component2.name;
@@ -4079,6 +4077,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			stats.combat.LogInvalid(this, baseProjectile, "projectile_nan");
 			return;
 		}
+		int projectile_protection = ConVar.AntiHack.projectile_protection;
+		UnityEngine.Vector3 inheritedVelocity = ((attackEnt != null) ? attackEnt.GetInheritedVelocity(this, startVel.normalized) : UnityEngine.Vector3.zero);
 		if (projectile_protection >= 1)
 		{
 			float num = 1f + ConVar.AntiHack.projectile_forgiveness;
@@ -7305,24 +7305,24 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		return baseMountable.GetWorldVelocity();
 	}
 
-	public override UnityEngine.Vector3 GetInheritedProjectileVelocity()
+	public override UnityEngine.Vector3 GetInheritedProjectileVelocity(UnityEngine.Vector3 direction)
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!baseMountable)
 		{
-			return base.GetInheritedProjectileVelocity();
+			return base.GetInheritedProjectileVelocity(direction);
 		}
-		return baseMountable.GetInheritedProjectileVelocity();
+		return baseMountable.GetInheritedProjectileVelocity(direction);
 	}
 
-	public override UnityEngine.Vector3 GetInheritedThrowVelocity()
+	public override UnityEngine.Vector3 GetInheritedThrowVelocity(UnityEngine.Vector3 direction)
 	{
 		BaseMountable baseMountable = GetMounted();
 		if (!baseMountable)
 		{
-			return base.GetInheritedThrowVelocity();
+			return base.GetInheritedThrowVelocity(direction);
 		}
-		return baseMountable.GetInheritedThrowVelocity();
+		return baseMountable.GetInheritedThrowVelocity(direction);
 	}
 
 	public override UnityEngine.Vector3 GetInheritedDropVelocity()
