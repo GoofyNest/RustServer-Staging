@@ -65,7 +65,7 @@ public class RHIB : MotorRowboat
 		if (!(GetParentEntity() == null))
 		{
 			SetParent(null, worldPositionStays: true, sendImmediate: true);
-			SetToNonKinematic();
+			rigidBody.isKinematic = false;
 		}
 	}
 

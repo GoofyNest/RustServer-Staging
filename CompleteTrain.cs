@@ -755,14 +755,14 @@ public class CompleteTrain : IDisposable
 	{
 		TrainCar owner = frontCollisionTrigger.owner;
 		Vector3 forwardVector = (IsCoupledBackwards(owner) ? (-owner.transform.forward) : owner.transform.forward);
-		trackSpeed = ApplyCollisions(trackSpeed, owner, forwardVector, atOurFront: true, frontCollisionTrigger, totalMass, ref staticCollidingAtFront, staticCollidingAtRear, deltaTime);
+		trackSpeed = ApplyCollisions(trackSpeed, owner, forwardVector, atOurFront: true, frontCollisionTrigger, totalMass, ref staticCollidingAtFront, deltaTime);
 		if (disposed)
 		{
 			return trackSpeed;
 		}
 		owner = rearCollisionTrigger.owner;
 		forwardVector = (IsCoupledBackwards(owner) ? (-owner.transform.forward) : owner.transform.forward);
-		trackSpeed = ApplyCollisions(trackSpeed, owner, forwardVector, atOurFront: false, rearCollisionTrigger, totalMass, ref staticCollidingAtRear, staticCollidingAtFront, deltaTime);
+		trackSpeed = ApplyCollisions(trackSpeed, owner, forwardVector, atOurFront: false, rearCollisionTrigger, totalMass, ref staticCollidingAtRear, deltaTime);
 		if (disposed)
 		{
 			return trackSpeed;
@@ -783,13 +783,13 @@ public class CompleteTrain : IDisposable
 		return trackSpeed;
 	}
 
-	private float ApplyCollisions(float trackSpeed, TrainCar ourTrainCar, Vector3 forwardVector, bool atOurFront, TriggerTrainCollisions trigger, float ourTotalMass, ref StaticCollisionState wasStaticColliding, StaticCollisionState otherEndStaticColliding, float deltaTime)
+	private float ApplyCollisions(float trackSpeed, TrainCar ourTrainCar, Vector3 forwardVector, bool atOurFront, TriggerTrainCollisions trigger, float ourTotalMass, ref StaticCollisionState wasStaticColliding, float deltaTime)
 	{
 		Vector3 vector = forwardVector * trackSpeed;
 		bool hasAnyStaticContents = trigger.HasAnyStaticContents;
 		float num = (hasAnyStaticContents ? (vector.magnitude * Mathf.Clamp(ourTotalMass, 1f, 13000f)) : 0f);
 		trackSpeed = HandleStaticCollisions(hasAnyStaticContents, atOurFront, trackSpeed, ref wasStaticColliding, trigger);
-		if (!hasAnyStaticContents && otherEndStaticColliding == StaticCollisionState.Free)
+		if (!hasAnyStaticContents)
 		{
 			foreach (TrainCar trainContent in trigger.trainContents)
 			{
@@ -841,26 +841,21 @@ public class CompleteTrain : IDisposable
 		else if (wasStaticColliding == StaticCollisionState.StayingStill)
 		{
 			bool flag = (front ? (trackSpeed > 0.01f) : (trackSpeed < -0.01f));
-			bool flag2 = false;
-			if (!flag)
-			{
-				flag2 = (front ? (trackSpeed < -0.01f) : (trackSpeed > 0.01f));
-			}
 			if (flag)
 			{
 				HashSet<GameObject> hashSet2 = (front ? monitoredStaticContentF : monitoredStaticContentR);
 				if (hashSet2.Count > 0)
 				{
-					bool flag3 = true;
+					bool flag2 = true;
 					foreach (GameObject item in hashSet2)
 					{
 						if (item != null)
 						{
-							flag3 = false;
+							flag2 = false;
 							break;
 						}
 					}
-					if (flag3)
+					if (flag2)
 					{
 						flag = false;
 					}
@@ -870,7 +865,7 @@ public class CompleteTrain : IDisposable
 			{
 				trackSpeed = 0f;
 			}
-			else if (flag2)
+			else
 			{
 				wasStaticColliding = StaticCollisionState.Free;
 			}

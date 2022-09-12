@@ -188,8 +188,6 @@ public class BaseVehicle : BaseMountable
 
 	private float nextCollisionFXTime;
 
-	private CollisionDetectionMode savedCollisionDetectionMode;
-
 	private ProtoBuf.BaseVehicle pendingLoad;
 
 	private Queue<BasePlayer> recentDrivers = new Queue<BasePlayer>();
@@ -543,7 +541,6 @@ public class BaseVehicle : BaseMountable
 		base.ServerInit();
 		clearRecentDriverAction = ClearRecentDriver;
 		prevSleeping = false;
-		savedCollisionDetectionMode = rigidBody.collisionDetectionMode;
 	}
 
 	public virtual void SpawnSubEntities()
@@ -1026,25 +1023,6 @@ public class BaseVehicle : BaseMountable
 				contactPoint += (base.transform.position - contactPoint) * 0.25f;
 				Effect.server.Run(effectGO.resourcePath, contactPoint, base.transform.up);
 			}
-		}
-	}
-
-	public void SetToKinematic()
-	{
-		if (!(rigidBody == null) && !rigidBody.isKinematic)
-		{
-			savedCollisionDetectionMode = rigidBody.collisionDetectionMode;
-			rigidBody.collisionDetectionMode = CollisionDetectionMode.Discrete;
-			rigidBody.isKinematic = true;
-		}
-	}
-
-	public void SetToNonKinematic()
-	{
-		if (!(rigidBody == null) && rigidBody.isKinematic)
-		{
-			rigidBody.isKinematic = false;
-			rigidBody.collisionDetectionMode = savedCollisionDetectionMode;
 		}
 	}
 

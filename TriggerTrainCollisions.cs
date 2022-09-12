@@ -28,8 +28,6 @@ public class TriggerTrainCollisions : TriggerBase
 	[NonSerialized]
 	public HashSet<Collider> colliderContents = new HashSet<Collider>();
 
-	private const float TICK_RATE = 0.2f;
-
 	public bool HasAnyStaticContents => staticContents.Count > 0;
 
 	public bool HasAnyTrainContents => trainContents.Count > 0;
@@ -81,9 +79,8 @@ public class TriggerTrainCollisions : TriggerBase
 					trainContents.Add(componentInParent2);
 					if (owner.coupling != null)
 					{
-						owner.coupling.TryCouple(componentInParent2, location);
+						owner.coupling.Touched(componentInParent2, location);
 					}
-					InvokeRepeating(TrainContentsTick, 0.2f, 0.2f);
 				}
 				else
 				{
@@ -131,10 +128,6 @@ public class TriggerTrainCollisions : TriggerBase
 				if (!HasAnotherColliderFor<TrainCar>(componentInParent))
 				{
 					trainContents.Remove(componentInParent);
-					if (trainContents == null || trainContents.Count == 0)
-					{
-						CancelInvoke(TrainContentsTick);
-					}
 				}
 			}
 			else
@@ -157,21 +150,6 @@ public class TriggerTrainCollisions : TriggerBase
 				}
 			}
 			return false;
-		}
-	}
-
-	private void TrainContentsTick()
-	{
-		if (trainContents == null)
-		{
-			return;
-		}
-		foreach (TrainCar trainContent in trainContents)
-		{
-			if (trainContent.IsValid() && !trainContent.IsDestroyed && owner.coupling != null)
-			{
-				owner.coupling.TryCouple(trainContent, location);
-			}
 		}
 	}
 }
