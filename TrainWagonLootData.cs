@@ -82,6 +82,11 @@ public class TrainWagonLootData : ScriptableObject
 
 	public bool TryGetLootFromIndex(int index, out LootOption lootOption)
 	{
+		if (index < 0 || index >= oreOptions.Length)
+		{
+			lootOption = null;
+			return false;
+		}
 		switch (index)
 		{
 		case 1000:
@@ -91,7 +96,6 @@ public class TrainWagonLootData : ScriptableObject
 			lootOption = fuelWagonContent;
 			return true;
 		default:
-			index = Mathf.Clamp(index, 0, oreOptions.Length - 1);
 			lootOption = oreOptions[index];
 			return true;
 		}
