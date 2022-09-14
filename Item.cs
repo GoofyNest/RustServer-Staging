@@ -585,7 +585,7 @@ public class Item
 		return false;
 	}
 
-	public bool CanMoveTo(ItemContainer newcontainer, int iTargetPos = -1, bool allowStack = true)
+	public bool CanMoveTo(ItemContainer newcontainer, int iTargetPos = -1)
 	{
 		if (IsChildContainer(newcontainer))
 		{
@@ -619,7 +619,7 @@ public class Item
 						orderby x.amount
 						select x)
 					{
-						if (item3.CanStack(this) && item3.amount < item3.MaxStackable())
+						if (item3.CanStack(this) && (ignoreStackLimit || item3.amount < item3.MaxStackable()))
 						{
 							iTargetPos = item3.position;
 						}
@@ -658,7 +658,7 @@ public class Item
 					return false;
 				}
 			}
-			if (!CanMoveTo(newcontainer, iTargetPos, allowStack))
+			if (!CanMoveTo(newcontainer, iTargetPos))
 			{
 				return false;
 			}
