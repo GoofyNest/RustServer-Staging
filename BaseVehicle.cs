@@ -389,8 +389,8 @@ public class BaseVehicle : BaseMountable
 		}
 		if (rigidBody != null)
 		{
+			SetFlag(Flags.Reserved7, DetermineIfStationary());
 			bool flag = rigidBody.IsSleeping();
-			SetFlag(Flags.Reserved7, flag && !AnyMounted());
 			if (prevSleeping && !flag)
 			{
 				OnServerWake();
@@ -405,6 +405,15 @@ public class BaseVehicle : BaseMountable
 		{
 			ClearOwnerEntry();
 		}
+	}
+
+	protected virtual bool DetermineIfStationary()
+	{
+		if (rigidBody.IsSleeping())
+		{
+			return !AnyMounted();
+		}
+		return false;
 	}
 
 	public override Vector3 GetLocalVelocityServer()

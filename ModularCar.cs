@@ -333,9 +333,6 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 			lastGoodRot = rigidBody.rotation;
 			lastPosWasBad = false;
 		}
-		SetFlag(Flags.Reserved7, rigidBody.position == prevPosition && rigidBody.rotation == prevRotation);
-		prevPosition = rigidBody.position;
-		prevRotation = rigidBody.rotation;
 		if (IsMoving())
 		{
 			Vector3 cOMMultiplier = GetCOMMultiplier();
@@ -345,6 +342,14 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 				prevCOMMultiplier = cOMMultiplier;
 			}
 		}
+	}
+
+	protected override bool DetermineIfStationary()
+	{
+		bool result = rigidBody.position == prevPosition && rigidBody.rotation == prevRotation;
+		prevPosition = rigidBody.position;
+		prevRotation = rigidBody.rotation;
+		return result;
 	}
 
 	public override void PlayerServerInput(InputState inputState, BasePlayer player)
