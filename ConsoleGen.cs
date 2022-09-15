@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[871]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[873]
 	{
 		new ConsoleSystem.Command
 		{
@@ -1373,6 +1373,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "clearignoredplayers",
+			Parent = "ai",
+			FullName = "ai.clearignoredplayers",
+			ServerAdmin = true,
+			Description = "Remove all players from the AIs ignore list.",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				AI.clearignoredplayers(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "frametime",
 			Parent = "ai",
 			FullName = "ai.frametime",
@@ -2142,6 +2155,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				AI.ocean_patrol_path_iterations = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "printignoredplayers",
+			Parent = "ai",
+			FullName = "ai.printignoredplayers",
+			ServerAdmin = true,
+			Description = "Print a lost of all the players in the AI ignore list.",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				AI.printignoredplayers(arg);
 			}
 		},
 		new ConsoleSystem.Command
