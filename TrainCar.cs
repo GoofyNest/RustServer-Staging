@@ -23,6 +23,10 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 
 	public CompleteTrain completeTrain;
 
+	private bool frontAtEndOfLine;
+
+	private bool rearAtEndOfLine;
+
 	private float frontBogieYRot;
 
 	private float rearBogieYRot;
@@ -163,6 +167,10 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	public Vector3 Position => base.transform.position;
 
 	public float FrontWheelSplineDist { get; private set; }
+
+	public bool FrontAtEndOfLine => frontAtEndOfLine;
+
+	public bool RearAtEndOfLine => rearAtEndOfLine;
 
 	protected virtual bool networkUpdateOnCompleteTrainChange => false;
 
@@ -590,7 +598,7 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 
 	private void MoveFrontWheelsAlongTrackSpline(TrainTrackSpline trackSpline, float prevSplineDist, float distToMove, TrainTrackSpline preferredAltTrack, TrainTrackSpline.TrackSelection trackSelection)
 	{
-		FrontWheelSplineDist = trackSpline.GetSplineDistAfterMove(prevSplineDist, base.transform.forward, distToMove, trackSelection, out var onSpline, out var _, preferredAltTrack, null);
+		FrontWheelSplineDist = trackSpline.GetSplineDistAfterMove(prevSplineDist, base.transform.forward, distToMove, trackSelection, out var onSpline, out frontAtEndOfLine, preferredAltTrack, null);
 		Vector3 tangent;
 		Vector3 positionAndTangent = onSpline.GetPositionAndTangent(FrontWheelSplineDist, base.transform.forward, out tangent);
 		SetTheRestFromFrontWheelData(ref onSpline, positionAndTangent, tangent, trackSelection, trackSpline, instantMove: false);
@@ -610,13 +618,12 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	private void SetTheRestFromFrontWheelData(ref TrainTrackSpline frontTS, Vector3 targetFrontWheelPos, Vector3 targetFrontWheelTangent, TrainTrackSpline.TrackSelection trackSelection, TrainTrackSpline additionalAlt, bool instantMove)
 	{
 		TrainTrackSpline onSpline;
-		bool atEndOfLine;
-		float splineDistAfterMove = frontTS.GetSplineDistAfterMove(FrontWheelSplineDist, base.transform.forward, 0f - distFrontToBackWheel, trackSelection, out onSpline, out atEndOfLine, RearTrackSection, additionalAlt);
+		float splineDistAfterMove = frontTS.GetSplineDistAfterMove(FrontWheelSplineDist, base.transform.forward, 0f - distFrontToBackWheel, trackSelection, out onSpline, out rearAtEndOfLine, RearTrackSection, additionalAlt);
 		Vector3 tangent;
 		Vector3 positionAndTangent = onSpline.GetPositionAndTangent(splineDistAfterMove, base.transform.forward, out tangent);
-		if (atEndOfLine)
+		if (rearAtEndOfLine)
 		{
-			FrontWheelSplineDist = onSpline.GetSplineDistAfterMove(splineDistAfterMove, base.transform.forward, distFrontToBackWheel, trackSelection, out frontTS, out var _, onSpline, additionalAlt);
+			FrontWheelSplineDist = onSpline.GetSplineDistAfterMove(splineDistAfterMove, base.transform.forward, distFrontToBackWheel, trackSelection, out frontTS, out frontAtEndOfLine, onSpline, additionalAlt);
 			targetFrontWheelPos = frontTS.GetPositionAndTangent(FrontWheelSplineDist, base.transform.forward, out targetFrontWheelTangent);
 		}
 		RearTrackSection = onSpline;

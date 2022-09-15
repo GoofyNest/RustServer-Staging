@@ -786,10 +786,18 @@ public class CompleteTrain : IDisposable
 	private float ApplyCollisions(float trackSpeed, TrainCar ourTrainCar, Vector3 forwardVector, bool atOurFront, TriggerTrainCollisions trigger, float ourTotalMass, ref StaticCollisionState wasStaticColliding, StaticCollisionState otherEndStaticColliding, float deltaTime)
 	{
 		Vector3 vector = forwardVector * trackSpeed;
-		bool hasAnyStaticContents = trigger.HasAnyStaticContents;
-		float num = (hasAnyStaticContents ? (vector.magnitude * Mathf.Clamp(ourTotalMass, 1f, 13000f)) : 0f);
-		trackSpeed = HandleStaticCollisions(hasAnyStaticContents, atOurFront, trackSpeed, ref wasStaticColliding, trigger);
-		if (!hasAnyStaticContents && otherEndStaticColliding == StaticCollisionState.Free)
+		bool flag = trigger.HasAnyStaticContents;
+		if (atOurFront && ourTrainCar.FrontAtEndOfLine)
+		{
+			flag = true;
+		}
+		else if (!atOurFront && ourTrainCar.RearAtEndOfLine)
+		{
+			flag = true;
+		}
+		float num = (flag ? (vector.magnitude * Mathf.Clamp(ourTotalMass, 1f, 13000f)) : 0f);
+		trackSpeed = HandleStaticCollisions(flag, atOurFront, trackSpeed, ref wasStaticColliding, trigger);
+		if (!flag && otherEndStaticColliding == StaticCollisionState.Free)
 		{
 			foreach (TrainCar trainContent in trigger.trainContents)
 			{
