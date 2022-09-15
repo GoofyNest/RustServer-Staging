@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Epic.OnlineServices;
+using Epic.OnlineServices.Logging;
 using Epic.OnlineServices.Reports;
 using Facepunch.Extend;
 using Network;
@@ -349,6 +350,19 @@ public class Server : ConsoleSystem
 
 	[ServerVar]
 	public static bool rpclog_enabled = false;
+
+	[ServerVar]
+	public static int anticheatlog
+	{
+		get
+		{
+			return (int)EOS.LogLevel;
+		}
+		set
+		{
+			EOS.LogLevel = (LogLevel)value;
+		}
+	}
 
 	[ServerVar]
 	public static int maxconnectionsperip
