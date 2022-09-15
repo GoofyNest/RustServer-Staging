@@ -950,7 +950,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public override bool CanBeLooted(BasePlayer player)
 	{
-		if (!base.CanBeLooted(player))
+		if (player == null)
 		{
 			return false;
 		}

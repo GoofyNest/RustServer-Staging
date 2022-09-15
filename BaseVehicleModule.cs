@@ -340,6 +340,15 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		RefreshConditionals(canGib: false);
 	}
 
+	public override bool CanBeLooted(BasePlayer player)
+	{
+		if (!IsOnAVehicle)
+		{
+			return false;
+		}
+		return Vehicle.CanBeLooted(player);
+	}
+
 	public virtual void OnEngineStateChanged(VehicleEngineController<GroundVehicle>.EngineState oldState, VehicleEngineController<GroundVehicle>.EngineState newState)
 	{
 	}
