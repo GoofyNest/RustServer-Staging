@@ -85,7 +85,7 @@ public class EngineStorage : StorageContainer
 		return false;
 	}
 
-	public override int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	public override int GetIdealSlot(BasePlayer player, Item item)
 	{
 		return GetValidSlot(item);
 	}

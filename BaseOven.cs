@@ -231,7 +231,7 @@ public class BaseOven : StorageContainer, ISplashable
 		return new MinMax(_outputSlotIndex, _outputSlotIndex + outputSlots - 1);
 	}
 
-	public override int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	public override int GetIdealSlot(BasePlayer player, Item item)
 	{
 		MinMax? allowedSlots = GetAllowedSlots(item);
 		if (!allowedSlots.HasValue)
@@ -240,13 +240,13 @@ public class BaseOven : StorageContainer, ISplashable
 		}
 		for (int i = allowedSlots.Value.Min; i <= allowedSlots.Value.Max; i++)
 		{
-			Item slot = container.GetSlot(i);
+			Item slot = base.inventory.GetSlot(i);
 			if (slot == null || (slot.CanStack(item) && slot.amount < slot.MaxStackable()))
 			{
 				return i;
 			}
 		}
-		return base.GetIdealSlot(player, container, item);
+		return base.GetIdealSlot(player, item);
 	}
 
 	public void OvenFull()

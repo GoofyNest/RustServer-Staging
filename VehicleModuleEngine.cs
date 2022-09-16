@@ -140,6 +140,15 @@ public class VehicleModuleEngine : VehicleModuleStorage
 		RefreshPerformanceStats(GetContainer() as EngineStorage);
 	}
 
+	public override bool CanBeLooted(BasePlayer player)
+	{
+		if (!base.CanBeLooted(player))
+		{
+			return false;
+		}
+		return true;
+	}
+
 	public override void VehicleFixedUpdate()
 	{
 		if (isSpawned && base.IsOnAVehicle)

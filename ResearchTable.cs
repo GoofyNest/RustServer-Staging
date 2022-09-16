@@ -79,11 +79,11 @@ public class ResearchTable : StorageContainer
 		researchFinishedTime = 0f;
 	}
 
-	public override int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	public override int GetIdealSlot(BasePlayer player, Item item)
 	{
 		if (item.info.shortname == "scrap")
 		{
-			Item slot = container.GetSlot(1);
+			Item slot = base.inventory.GetSlot(1);
 			if (slot == null)
 			{
 				return 1;
@@ -93,7 +93,7 @@ public class ResearchTable : StorageContainer
 				return 1;
 			}
 		}
-		return base.GetIdealSlot(player, container, item);
+		return base.GetIdealSlot(player, item);
 	}
 
 	public bool IsResearching()

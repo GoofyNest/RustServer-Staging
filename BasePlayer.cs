@@ -6319,7 +6319,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	{
 	}
 
-	public int GetIdealSlot(BasePlayer player, ItemContainer container, Item item)
+	public int GetIdealSlot(BasePlayer player, Item item)
 	{
 		return -1;
 	}
