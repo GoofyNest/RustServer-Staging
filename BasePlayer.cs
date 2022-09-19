@@ -7833,7 +7833,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public bool OnLadder()
 	{
-		if (modelState.onLadder)
+		if (modelState.onLadder && !IsWounded())
 		{
 			return FindTrigger<TriggerLadder>();
 		}
