@@ -43,6 +43,8 @@ public class SpawnPopulation : BaseScriptableObject
 
 	public float FilterCutoff;
 
+	public float FilterRadius;
+
 	internal Prefab<Spawnable>[] Prefabs;
 
 	private int[] numToSpawn;
