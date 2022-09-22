@@ -227,9 +227,9 @@ public static class EACServer
 		}
 	}
 
-	public static void DoUpdate()
+	public static void DoUpdate(float deltaTime)
 	{
-		EOS.Tick(UnityEngine.Time.deltaTime);
+		EOS.Tick(deltaTime);
 	}
 
 	public static void DoShutdown()
