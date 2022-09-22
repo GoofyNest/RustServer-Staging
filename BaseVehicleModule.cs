@@ -259,6 +259,15 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		}
 	}
 
+	public override bool AdminFixUp(int tier)
+	{
+		if (IsOnAVehicle && Vehicle.IsDead())
+		{
+			return false;
+		}
+		return base.AdminFixUp(tier);
+	}
+
 	public virtual void OnPlayerDismountedVehicle(BasePlayer player)
 	{
 	}
