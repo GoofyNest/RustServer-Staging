@@ -1,5 +1,7 @@
 using System;
-using TMPro;
+using System.Collections.Generic;
+using Facepunch;
+using Rust.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,13 +17,17 @@ public class TweakUIDropdown : TweakUIBase
 		public Translate.Phrase label;
 	}
 
-	public Button Left;
-
-	public Button Right;
-
-	public TextMeshProUGUI Current;
+	public RustText Current;
 
 	public Image BackgroundImage;
+
+	public RustButton Opener;
+
+	public RectTransform Dropdown;
+
+	public RectTransform DropdownContainer;
+
+	public GameObject DropdownItemPrefab;
 
 	public NameValue[] nameValues;
 
@@ -32,12 +38,38 @@ public class TweakUIDropdown : TweakUIBase
 	protected override void Init()
 	{
 		base.Init();
+		DropdownItemPrefab.SetActive(value: false);
+		UpdateDropdownOptions();
+		Opener.SetToggleFalse();
 		ResetToConvar();
 	}
 
 	protected void OnEnable()
 	{
 		ResetToConvar();
+	}
+
+	public void UpdateDropdownOptions()
+	{
+		List<RustButton> obj = Pool.GetList<RustButton>();
+		DropdownContainer.GetComponentsInChildren(includeInactive: false, obj);
+		foreach (RustButton item in obj)
+		{
+			UnityEngine.Object.Destroy(item.gameObject);
+		}
+		Pool.FreeList(ref obj);
+		for (int i = 0; i < nameValues.Length; i++)
+		{
+			GameObject obj2 = UnityEngine.Object.Instantiate(DropdownItemPrefab, DropdownContainer);
+			int itemIndex = i;
+			RustButton component = obj2.GetComponent<RustButton>();
+			component.Text.SetPhrase(nameValues[i].label);
+			component.OnPressed.AddListener(delegate
+			{
+				ChangeValue(itemIndex);
+			});
+			obj2.SetActive(value: true);
+		}
 	}
 
 	public void OnValueChanged()
@@ -48,19 +80,25 @@ public class TweakUIDropdown : TweakUIBase
 		}
 	}
 
-	public void ChangeValue(int change)
+	public void OnDropdownOpen()
 	{
-		currentValue += change;
-		if (currentValue < 0)
+		RectTransform rectTransform = (RectTransform)base.transform;
+		if (rectTransform.position.y <= (float)Screen.height / 2f)
 		{
-			currentValue = 0;
+			Dropdown.pivot = new Vector2(0.5f, 0f);
+			Dropdown.anchoredPosition = Dropdown.anchoredPosition.WithY(0f);
 		}
-		if (currentValue > nameValues.Length - 1)
+		else
 		{
-			currentValue = nameValues.Length - 1;
+			Dropdown.pivot = new Vector2(0.5f, 1f);
+			Dropdown.anchoredPosition = Dropdown.anchoredPosition.WithY(0f - rectTransform.rect.height);
 		}
-		Left.interactable = currentValue > 0;
-		Right.interactable = currentValue < nameValues.Length - 1;
+	}
+
+	public void ChangeValue(int index)
+	{
+		Opener.SetToggleFalse();
+		currentValue = Mathf.Clamp(index, 0, nameValues.Length - 1);
 		if (ApplyImmediatelyOnChange)
 		{
 			SetConvarValue();
@@ -97,12 +135,13 @@ public class TweakUIDropdown : TweakUIBase
 		{
 			if (!(nameValues[i].value != value))
 			{
-				Current.text = nameValues[i].label.translated;
+				Current.SetPhrase(nameValues[i].label);
 				currentValue = i;
 				if (assignImageColor)
 				{
 					BackgroundImage.color = nameValues[i].imageColor;
 				}
+				break;
 			}
 		}
 	}
