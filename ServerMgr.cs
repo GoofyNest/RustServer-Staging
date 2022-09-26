@@ -1305,6 +1305,10 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			{
 				num = 1u;
 			}
+			if (num > 1 && !ConVar.Server.secure)
+			{
+				num = 1u;
+			}
 			approval.level = UnityEngine.Application.loadedLevelName;
 			approval.levelTransfer = World.Transfer;
 			approval.levelUrl = World.Url;
