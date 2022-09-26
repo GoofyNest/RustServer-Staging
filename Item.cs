@@ -55,6 +55,8 @@ public class Item
 
 	public string text;
 
+	public float cookTimeLeft;
+
 	public Flag flags;
 
 	public ItemContainer contents;
@@ -1190,6 +1192,7 @@ public class Item
 		item.skinid = skin;
 		item.name = name;
 		item.text = text;
+		item.cooktime = cookTimeLeft;
 		if (hasCondition)
 		{
 			item.conditionData = Facepunch.Pool.Get<ProtoBuf.Item.ConditionData>();
@@ -1212,6 +1215,7 @@ public class Item
 		uid = load.UID;
 		name = load.name;
 		text = load.text;
+		cookTimeLeft = load.cooktime;
 		amount = load.amount;
 		position = load.slot;
 		busyTime = load.locktime;

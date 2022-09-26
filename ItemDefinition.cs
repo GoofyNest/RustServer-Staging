@@ -28,6 +28,8 @@ public class ItemDefinition : MonoBehaviour
 		[Tooltip("If true, never lose max condition when repaired")]
 		public bool maintainMaxCondition;
 
+		public bool ovenCondition;
+
 		public WorldSpawnCondition foundCondition;
 	}
 
