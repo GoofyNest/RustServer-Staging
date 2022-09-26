@@ -148,11 +148,6 @@ public static class EACServer
 				Debug.LogError("[EAC] Status update for invalid client: " + clientHandle);
 				return;
 			}
-			if (connection.authLevel >= 3)
-			{
-				Debug.Log($"[EAC] Ignoring client action for admin: {connection.userid} / {connection.username} ({data.ActionReasonDetailsString})");
-				return;
-			}
 			AntiCheatCommonClientAction clientAction = data.ClientAction;
 			if (clientAction != AntiCheatCommonClientAction.RemovePlayer)
 			{
@@ -225,64 +220,98 @@ public static class EACServer
 			LogGameRoundStartOptions options5 = logGameRoundStartOptions;
 			Interface.LogGameRoundStart(ref options5);
 		}
+		else
+		{
+			client2connection.Clear();
+			connection2client.Clear();
+			connection2status.Clear();
+		}
 	}
 
 	public static void DoUpdate()
 	{
-		EOS.Tick();
+		if (ConVar.Server.secure && !Application.isEditor)
+		{
+			EOS.Tick();
+		}
 	}
 
 	public static void DoShutdown()
 	{
-		client2connection.Clear();
-		connection2client.Clear();
-		connection2status.Clear();
-		if (Interface != null)
+		if (ConVar.Server.secure && !Application.isEditor)
 		{
-			Debug.Log("EasyAntiCheat Server Shutting Down");
-			EndSessionOptions options = default(EndSessionOptions);
-			Interface.EndSession(ref options);
-			Interface = null;
+			client2connection.Clear();
+			connection2client.Clear();
+			connection2status.Clear();
+			if (Interface != null)
+			{
+				Debug.Log("EasyAntiCheat Server Shutting Down");
+				EndSessionOptions options = default(EndSessionOptions);
+				Interface.EndSession(ref options);
+				Interface = null;
+			}
+			EOS.Shutdown();
 		}
-		EOS.Shutdown();
+		else
+		{
+			client2connection.Clear();
+			connection2client.Clear();
+			connection2status.Clear();
+		}
 	}
 
 	public static void OnLeaveGame(Connection connection)
 	{
-		if (Interface != null)
+		if (ConVar.Server.secure && !Application.isEditor)
 		{
-			IntPtr client = GetClient(connection);
-			UnregisterClientOptions unregisterClientOptions = default(UnregisterClientOptions);
-			unregisterClientOptions.ClientHandle = client;
-			UnregisterClientOptions options = unregisterClientOptions;
-			Interface.UnregisterClient(ref options);
-			client2connection.Remove(client);
-			connection2client.Remove(connection);
+			if (Interface != null)
+			{
+				IntPtr client = GetClient(connection);
+				UnregisterClientOptions unregisterClientOptions = default(UnregisterClientOptions);
+				unregisterClientOptions.ClientHandle = client;
+				UnregisterClientOptions options = unregisterClientOptions;
+				Interface.UnregisterClient(ref options);
+				client2connection.Remove(client);
+				connection2client.Remove(connection);
+				connection2status.Remove(connection);
+			}
+		}
+		else
+		{
 			connection2status.Remove(connection);
 		}
 	}
 
 	public static void OnJoinGame(Connection connection)
 	{
-		if (Interface != null)
+		if (ConVar.Server.secure && !Application.isEditor)
 		{
-			IntPtr intPtr = GenerateCompatibilityClient();
-			RegisterClientOptions registerClientOptions = default(RegisterClientOptions);
-			registerClientOptions.ClientHandle = intPtr;
-			registerClientOptions.AccountId = connection.userid.ToString();
-			registerClientOptions.IpAddress = connection.IPAddressWithoutPort();
-			registerClientOptions.ClientType = AntiCheatCommonClientType.ProtectedClient;
-			registerClientOptions.ClientPlatform = ((connection.os == "windows") ? AntiCheatCommonClientPlatform.Windows : ((connection.os == "linux") ? AntiCheatCommonClientPlatform.Linux : ((connection.os == "mac") ? AntiCheatCommonClientPlatform.Mac : AntiCheatCommonClientPlatform.Unknown)));
-			RegisterClientOptions options = registerClientOptions;
-			Interface.RegisterClient(ref options);
-			SetClientDetailsOptions setClientDetailsOptions = default(SetClientDetailsOptions);
-			setClientDetailsOptions.ClientHandle = intPtr;
-			setClientDetailsOptions.ClientFlags = ((connection.authLevel != 0) ? AntiCheatCommonClientFlags.Admin : AntiCheatCommonClientFlags.None);
-			SetClientDetailsOptions options2 = setClientDetailsOptions;
-			Interface.SetClientDetails(ref options2);
-			client2connection.Add(intPtr, connection);
-			connection2client.Add(connection, intPtr);
+			if (Interface != null)
+			{
+				IntPtr intPtr = GenerateCompatibilityClient();
+				RegisterClientOptions registerClientOptions = default(RegisterClientOptions);
+				registerClientOptions.ClientHandle = intPtr;
+				registerClientOptions.AccountId = connection.userid.ToString();
+				registerClientOptions.IpAddress = connection.IPAddressWithoutPort();
+				registerClientOptions.ClientType = ((connection.authLevel >= 3 && connection.os == "editor") ? AntiCheatCommonClientType.UnprotectedClient : AntiCheatCommonClientType.ProtectedClient);
+				registerClientOptions.ClientPlatform = ((connection.os == "windows") ? AntiCheatCommonClientPlatform.Windows : ((connection.os == "linux") ? AntiCheatCommonClientPlatform.Linux : ((connection.os == "mac") ? AntiCheatCommonClientPlatform.Mac : AntiCheatCommonClientPlatform.Unknown)));
+				RegisterClientOptions options = registerClientOptions;
+				Interface.RegisterClient(ref options);
+				SetClientDetailsOptions setClientDetailsOptions = default(SetClientDetailsOptions);
+				setClientDetailsOptions.ClientHandle = intPtr;
+				setClientDetailsOptions.ClientFlags = ((connection.authLevel != 0) ? AntiCheatCommonClientFlags.Admin : AntiCheatCommonClientFlags.None);
+				SetClientDetailsOptions options2 = setClientDetailsOptions;
+				Interface.SetClientDetails(ref options2);
+				client2connection.Add(intPtr, connection);
+				connection2client.Add(connection, intPtr);
+				connection2status.Add(connection, AntiCheatCommonClientAuthStatus.Invalid);
+			}
+		}
+		else
+		{
 			connection2status.Add(connection, AntiCheatCommonClientAuthStatus.Invalid);
+			OnAuthenticatedLocal(connection);
+			OnAuthenticatedRemote(connection);
 		}
 	}
 
