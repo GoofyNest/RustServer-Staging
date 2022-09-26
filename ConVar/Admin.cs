@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Facepunch;
 using Facepunch.Extend;
 using Facepunch.Math;
@@ -1404,5 +1405,65 @@ public class Admin : ConsoleSystem
 		{
 			arg.ReplyWith($"Invalid entity id: {uInt}");
 		}
+	}
+
+	[ServerVar]
+	public static void entcount(Arg arg)
+	{
+		BasePlayer player = arg.GetPlayer(0);
+		if (player == null)
+		{
+			arg.ReplyWith("Please provide a valid player, unable to find '" + arg.GetString(0) + "'");
+			return;
+		}
+		string text = arg.GetString(1);
+		if (text == "--json")
+		{
+			text = string.Empty;
+		}
+		List<BaseEntity> obj = Facepunch.Pool.GetList<BaseEntity>();
+		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
+		{
+			if (serverEntity is BaseEntity baseEntity)
+			{
+				bool flag = false;
+				if (baseEntity.OwnerID == player.net.ID)
+				{
+					flag = true;
+				}
+				if (baseEntity is BuildingPrivlidge buildingPrivlidge && buildingPrivlidge.IsAuthed(player.userID))
+				{
+					flag = true;
+				}
+				if (baseEntity is BaseLock baseLock && baseLock.HasLockPermission(player))
+				{
+					flag = true;
+				}
+				if (flag && !string.IsNullOrEmpty(text) && !serverEntity.ShortPrefabName.Contains(text, CompareOptions.IgnoreCase))
+				{
+					flag = false;
+				}
+				if (flag)
+				{
+					obj.Add(baseEntity);
+				}
+			}
+		}
+		TextTable textTable = new TextTable();
+		textTable.AddColumns("Prefab name", "Position");
+		foreach (BaseEntity item in obj)
+		{
+			textTable.AddRow(item.ShortPrefabName, item.transform.position.ToString());
+		}
+		Facepunch.Pool.FreeList(ref obj);
+		if (arg.HasArg("--json"))
+		{
+			arg.ReplyWith(textTable.ToJson());
+			return;
+		}
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.AppendLine("Found entities associated with " + player.displayName);
+		stringBuilder.AppendLine(textTable.ToString());
+		arg.ReplyWith(stringBuilder.ToString());
 	}
 }

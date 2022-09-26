@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[873]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[874]
 	{
 		new ConsoleSystem.Command
 		{
@@ -909,6 +909,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Admin.clientperf_frametime(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "entcount",
+			Parent = "global",
+			FullName = "global.entcount",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.entcount(arg);
 			}
 		},
 		new ConsoleSystem.Command
