@@ -774,7 +774,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 			{
 				using (TimeWarning.New("EACServer.DoUpdate", 100))
 				{
-					EACServer.DoUpdate(UnityEngine.Time.deltaTime);
+					EACServer.DoUpdate();
 				}
 			}
 			catch (Exception exception)

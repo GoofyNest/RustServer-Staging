@@ -227,9 +227,9 @@ public static class EACServer
 		}
 	}
 
-	public static void DoUpdate(float deltaTime)
+	public static void DoUpdate()
 	{
-		EOS.Tick(deltaTime);
+		EOS.Tick();
 	}
 
 	public static void DoShutdown()
