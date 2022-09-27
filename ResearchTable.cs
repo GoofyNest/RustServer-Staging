@@ -10,6 +10,12 @@ using UnityEngine.Assertions;
 
 public class ResearchTable : StorageContainer
 {
+	public enum ResearchType
+	{
+		ResearchTable,
+		TechTree
+	}
+
 	[NonSerialized]
 	public float researchFinishedTime;
 
@@ -144,26 +150,39 @@ public class ResearchTable : StorageContainer
 		return result;
 	}
 
-	public static int ScrapForResearch(ItemDefinition info)
+	public static int ScrapForResearch(ItemDefinition info, ResearchType type)
 	{
-		int result = 0;
+		int num = 0;
 		if (info.rarity == Rarity.Common)
 		{
-			result = 20;
+			num = 20;
 		}
 		if (info.rarity == Rarity.Uncommon)
 		{
-			result = 75;
+			num = 75;
 		}
 		if (info.rarity == Rarity.Rare)
 		{
-			result = 125;
+			num = 125;
 		}
 		if (info.rarity == Rarity.VeryRare || info.rarity == Rarity.None)
 		{
-			result = 500;
+			num = 500;
 		}
-		return result;
+		BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(serverside: true);
+		if (activeGameMode != null)
+		{
+			BaseGameMode.ResearchCostResult scrapCostForResearch = activeGameMode.GetScrapCostForResearch(info, type);
+			if (scrapCostForResearch.Scale.HasValue)
+			{
+				num = Mathf.RoundToInt((float)num * scrapCostForResearch.Scale.Value);
+			}
+			else if (scrapCostForResearch.Amount.HasValue)
+			{
+				num = scrapCostForResearch.Amount.Value;
+			}
+		}
+		return num;
 	}
 
 	public bool IsItemResearchable(Item item)
