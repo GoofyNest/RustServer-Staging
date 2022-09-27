@@ -108,6 +108,9 @@
     <Reference Include="Rust.FileSystem">
       <HintPath>Rust.FileSystem.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.ClothModule">
       <HintPath>UnityEngine.ClothModule.dll</HintPath>
     </Reference>
@@ -125,9 +128,6 @@
     </Reference>
     <Reference Include="Ionic.Zip.Reduced">
       <HintPath>Ionic.Zip.Reduced.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.Sqlite">
       <HintPath>Facepunch.Sqlite.dll</HintPath>
