@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Facepunch;
 using UnityEngine;
 
@@ -11,19 +10,11 @@ public class ServerBrowserTagGroup : MonoBehaviour
 	[NonSerialized]
 	public ServerBrowserTag[] tags;
 
-	[NonSerialized]
-	public string[] tagValues;
-
 	private void Initialize()
 	{
-		if (tags == null || tagValues == null)
+		if (tags == null)
 		{
 			tags = GetComponentsInChildren<ServerBrowserTag>(includeInactive: true);
-			tagValues = new string[tags.Length];
-			for (int i = 0; i < tags.Length; i++)
-			{
-				tagValues[i] = tags[i].serverTag ?? "";
-			}
 		}
 	}
 

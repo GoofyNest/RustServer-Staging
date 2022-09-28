@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -29,6 +30,26 @@ public class ServerBrowserTagFilters : MonoBehaviour
 		}
 	}
 
+	public void DeselectAll()
+	{
+		if (_groups == null)
+		{
+			return;
+		}
+		ServerBrowserTagGroup[] groups = _groups;
+		foreach (ServerBrowserTagGroup serverBrowserTagGroup in groups)
+		{
+			if (serverBrowserTagGroup.tags != null)
+			{
+				ServerBrowserTag[] tags = serverBrowserTagGroup.tags;
+				for (int j = 0; j < tags.Length; j++)
+				{
+					tags[j].button.SetToggleFalse();
+				}
+			}
+		}
+	}
+
 	public void GetTags(out List<HashSet<string>> searchTagGroups, out HashSet<string> excludeTags)
 	{
 		searchTagGroups = new List<HashSet<string>>();
@@ -43,7 +64,7 @@ public class ServerBrowserTagFilters : MonoBehaviour
 			ServerBrowserTag[] tags;
 			if (serverBrowserTagGroup.isExclusive)
 			{
-				HashSet<string> hashSet = new HashSet<string>();
+				HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 				tags = serverBrowserTagGroup.tags;
 				foreach (ServerBrowserTag serverBrowserTag in tags)
 				{
@@ -67,7 +88,7 @@ public class ServerBrowserTagFilters : MonoBehaviour
 			{
 				if (serverBrowserTag2.IsActive)
 				{
-					HashSet<string> hashSet2 = new HashSet<string>();
+					HashSet<string> hashSet2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 					hashSet2.Add(serverBrowserTag2.serverTag);
 					searchTagGroups.Add(hashSet2);
 				}
