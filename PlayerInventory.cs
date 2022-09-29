@@ -330,7 +330,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 
 	[BaseEntity.RPC_Server]
 	[BaseEntity.RPC_Server.FromOwner]
-	private void MoveItem(BaseEntity.RPCMessage msg)
+	public void MoveItem(BaseEntity.RPCMessage msg)
 	{
 		uint num = msg.read.UInt32();
 		uint num2 = msg.read.UInt32();

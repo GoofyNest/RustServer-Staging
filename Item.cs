@@ -612,18 +612,19 @@ public class Item
 	{
 		using (TimeWarning.New("MoveToContainer"))
 		{
+			bool flag = iTargetPos == -1;
 			ItemContainer itemContainer = parent;
 			if (iTargetPos == -1)
 			{
 				if (allowStack && info.stackable > 1)
 				{
-					foreach (Item item3 in from x in newcontainer.FindItemsByItemID(info.itemid)
-						orderby x.amount
+					foreach (Item item2 in from x in newcontainer.FindItemsByItemID(info.itemid)
+						orderby x.position
 						select x)
 					{
-						if (item3.CanStack(this) && (ignoreStackLimit || item3.amount < item3.MaxStackable()))
+						if (item2.CanStack(this) && (ignoreStackLimit || item2.amount < item2.MaxStackable()))
 						{
-							iTargetPos = item3.position;
+							iTargetPos = item2.position;
 						}
 					}
 				}
@@ -637,28 +638,31 @@ public class Item
 					{
 						return false;
 					}
-					bool flag = newcontainer.HasFlag(ItemContainer.Flag.Clothing) && info.isWearable;
+					bool flag2 = newcontainer.HasFlag(ItemContainer.Flag.Clothing) && info.isWearable;
 					ItemModWearable itemModWearable = info.ItemModWearable;
 					for (int i = 0; i < newcontainer.capacity; i++)
 					{
 						Item slot = newcontainer.GetSlot(i);
-						if (slot == null)
+						if (slot == null && CanMoveTo(newcontainer, i))
 						{
 							iTargetPos = i;
 							break;
 						}
-						if (flag && slot != null && !slot.info.ItemModWearable.CanExistWith(itemModWearable))
+						if (flag2 && slot != null && !slot.info.ItemModWearable.CanExistWith(itemModWearable))
 						{
 							iTargetPos = i;
 							break;
 						}
 					}
-					_ = -1;
+					if (flag2 && iTargetPos == -1)
+					{
+						iTargetPos = newcontainer.capacity - 1;
+					}
 				}
-				if (iTargetPos == -1)
-				{
-					return false;
-				}
+			}
+			if (iTargetPos == -1)
+			{
+				return false;
 			}
 			if (!CanMoveTo(newcontainer, iTargetPos))
 			{
@@ -684,30 +688,23 @@ public class Item
 						{
 							return false;
 						}
-						slot2.amount += amount;
+						int num2 = Mathf.Min(num - slot2.amount, amount);
+						slot2.amount += num2;
+						amount -= num2;
 						slot2.MarkDirty();
-						RemoveFromWorld();
-						RemoveFromContainer();
-						Remove();
-						int num2 = slot2.amount - num;
-						if (num2 > 0)
+						MarkDirty();
+						if (amount <= 0)
 						{
-							Item item = slot2.SplitItem(num2);
-							if (item != null && !item.MoveToContainer(newcontainer, -1, allowStack, ignoreStackLimit, sourcePlayer) && (itemContainer == null || !item.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
-							{
-								BasePlayer basePlayer = newcontainer.GetEntityOwner() as BasePlayer;
-								if (basePlayer != null)
-								{
-									basePlayer.GiveItem(item);
-								}
-								else
-								{
-									item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
-								}
-							}
-							slot2.amount = num;
+							RemoveFromWorld();
+							RemoveFromContainer();
+							Remove();
+							return true;
 						}
-						return true;
+						if (flag)
+						{
+							return MoveToContainer(newcontainer, -1, allowStack, ignoreStackLimit, sourcePlayer);
+						}
+						return false;
 					}
 				}
 				if (parent != null)
@@ -737,10 +734,10 @@ public class Item
 			}
 			if (newcontainer.maxStackSize > 0 && newcontainer.maxStackSize < amount)
 			{
-				Item item2 = SplitItem(newcontainer.maxStackSize);
-				if (item2 != null && !item2.MoveToContainer(newcontainer, iTargetPos, allowStack: false, ignoreStackLimit: false, sourcePlayer) && (itemContainer == null || !item2.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
+				Item item = SplitItem(newcontainer.maxStackSize);
+				if (item != null && !item.MoveToContainer(newcontainer, iTargetPos, allowStack: false, ignoreStackLimit: false, sourcePlayer) && (itemContainer == null || !item.MoveToContainer(itemContainer, -1, allowStack: true, ignoreStackLimit: false, sourcePlayer)))
 				{
-					item2.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
+					item.Drop(newcontainer.dropPosition, newcontainer.dropVelocity);
 				}
 				return true;
 			}

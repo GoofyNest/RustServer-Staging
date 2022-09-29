@@ -35,7 +35,7 @@ public class BaseRidableAnimal : BaseVehicle
 
 	public bool isLootable = true;
 
-	protected ItemContainer inventory;
+	public ItemContainer inventory;
 
 	public const Flags Flag_ForSale = Flags.Reserved2;
 

@@ -22,7 +22,7 @@ public class SaveRestore : SingletonComponent<SaveRestore>
 
 	private static MemoryStream SaveBuffer = new MemoryStream(33554432);
 
-	internal static void ClearMapEntities()
+	public static void ClearMapEntities()
 	{
 		BaseEntity[] array = UnityEngine.Object.FindObjectsOfType<BaseEntity>();
 		if (array.Length == 0)

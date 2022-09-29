@@ -1232,7 +1232,7 @@ public class ServerMgr : SingletonComponent<ServerMgr>, IServerCallback
 		}
 	}
 
-	internal void SpawnMapEntities()
+	public void SpawnMapEntities()
 	{
 		new PrefabPreProcess(clientside: false, serverside: true);
 		BaseEntity[] array = UnityEngine.Object.FindObjectsOfType<BaseEntity>();
