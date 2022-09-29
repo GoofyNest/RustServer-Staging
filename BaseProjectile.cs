@@ -1286,7 +1286,7 @@ public class BaseProjectile : AttackEntity
 			sensation.InitiatorPlayer = player;
 			sensation.Initiator = player;
 			Sense.Stimulate(sensation);
-			if (EACServer.Interface != null && player.net.connection != null)
+			if (EACServer.CanSendAnalytics && player.net.connection != null)
 			{
 				using (TimeWarning.New("EAC.LogPlayerShooting"))
 				{

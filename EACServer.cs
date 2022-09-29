@@ -22,6 +22,18 @@ public static class EACServer
 
 	private static uint clientHandleCounter = 0u;
 
+	public static bool CanSendAnalytics
+	{
+		get
+		{
+			if (ConVar.Server.official)
+			{
+				return Interface != null;
+			}
+			return false;
+		}
+	}
+
 	private static IntPtr GenerateCompatibilityClient()
 	{
 		return (IntPtr)(++clientHandleCounter);
@@ -210,7 +222,7 @@ public static class EACServer
 			Interface.AddNotifyMessageToClient(ref options3, null, SendToClient);
 			BeginSessionOptions beginSessionOptions = default(BeginSessionOptions);
 			beginSessionOptions.LocalUserId = null;
-			beginSessionOptions.EnableGameplayData = true;
+			beginSessionOptions.EnableGameplayData = CanSendAnalytics;
 			beginSessionOptions.RegisterTimeoutSeconds = 20u;
 			beginSessionOptions.ServerName = ConVar.Server.hostname;
 			BeginSessionOptions options4 = beginSessionOptions;

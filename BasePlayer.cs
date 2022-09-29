@@ -5203,7 +5203,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		inventory.containerMain.OnChanged();
 		inventory.containerBelt.OnChanged();
 		inventory.containerWear.OnChanged();
-		if (!(EACServer.Interface != null) || net.connection == null)
+		if (!EACServer.CanSendAnalytics || net.connection == null)
 		{
 			return;
 		}
@@ -5410,7 +5410,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		{
 			inventory.crafting.CancelAll(returnItems: true);
 		}
-		if (EACServer.Interface != null && net.connection != null)
+		if (EACServer.CanSendAnalytics && net.connection != null)
 		{
 			using (TimeWarning.New("EAC.LogPlayerDespawn"))
 			{
@@ -5714,7 +5714,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			BasePlayer instigator = info?.InitiatorPlayer;
 			BaseGameMode.GetActiveGameMode(serverside: true).OnPlayerHurt(instigator, this, info);
 		}
-		if (EACServer.Interface != null && info.Initiator != null && info.Initiator is BasePlayer)
+		if (EACServer.CanSendAnalytics && info.Initiator != null && info.Initiator is BasePlayer)
 		{
 			BasePlayer basePlayer = info.Initiator.ToPlayer();
 			if (net.connection != null && basePlayer.net.connection != null)
@@ -6621,7 +6621,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	private void EACStateUpdate()
 	{
-		if (net == null || net.connection == null || EACServer.Interface == null || IsReceivingSnapshot)
+		if (!EACServer.CanSendAnalytics || net == null || net.connection == null || IsReceivingSnapshot)
 		{
 			return;
 		}
@@ -7102,7 +7102,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		}
 		RecoverFromWounded();
 		CancelInvoke(WoundingTick);
-		if (!(EACServer.Interface != null) || net.connection == null || !(source != null) || source.net.connection == null)
+		if (!EACServer.CanSendAnalytics || net.connection == null || !(source != null) || source.net.connection == null)
 		{
 			return;
 		}
