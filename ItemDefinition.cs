@@ -96,8 +96,6 @@ public class ItemDefinition : MonoBehaviour
 	public bool spawnAsBlueprint;
 
 	[Header("Sounds")]
-	public SoundDefinition inventorySelectSound;
-
 	public SoundDefinition inventoryGrabSound;
 
 	public SoundDefinition inventoryDropSound;

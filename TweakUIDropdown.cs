@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Facepunch;
 using Rust.UI;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class TweakUIDropdown : TweakUIBase
@@ -32,6 +33,8 @@ public class TweakUIDropdown : TweakUIBase
 	public NameValue[] nameValues;
 
 	public bool assignImageColor;
+
+	public UnityEvent onValueChanged = new UnityEvent();
 
 	public int currentValue;
 
@@ -98,7 +101,9 @@ public class TweakUIDropdown : TweakUIBase
 	public void ChangeValue(int index)
 	{
 		Opener.SetToggleFalse();
-		currentValue = Mathf.Clamp(index, 0, nameValues.Length - 1);
+		int num = Mathf.Clamp(index, 0, nameValues.Length - 1);
+		bool num2 = num != currentValue;
+		currentValue = num;
 		if (ApplyImmediatelyOnChange)
 		{
 			SetConvarValue();
@@ -106,6 +111,10 @@ public class TweakUIDropdown : TweakUIBase
 		else
 		{
 			ShowValue(nameValues[currentValue].value);
+		}
+		if (num2)
+		{
+			onValueChanged?.Invoke();
 		}
 	}
 
