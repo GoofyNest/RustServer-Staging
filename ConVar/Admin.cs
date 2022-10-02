@@ -1450,10 +1450,10 @@ public class Admin : ConsoleSystem
 			}
 		}
 		TextTable textTable = new TextTable();
-		textTable.AddColumns("Prefab name", "Position");
+		textTable.AddColumns("Prefab name", "Position", "ID");
 		foreach (BaseEntity item in obj)
 		{
-			textTable.AddRow(item.ShortPrefabName, item.transform.position.ToString());
+			textTable.AddRow(item.ShortPrefabName, item.transform.position.ToString(), item.net.ID.ToString());
 		}
 		Facepunch.Pool.FreeList(ref obj);
 		if (arg.HasArg("--json"))
