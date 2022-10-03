@@ -1407,8 +1407,8 @@ public class Admin : ConsoleSystem
 		}
 	}
 
-	[ServerVar]
-	public static void entcount(Arg arg)
+	[ServerVar(Help = "Returns all entities that the provided player is authed to (TC's, locks, etc), supports --json")]
+	public static void authcount(Arg arg)
 	{
 		BasePlayer player = arg.GetPlayer(0);
 		if (player == null)
@@ -1422,33 +1422,7 @@ public class Admin : ConsoleSystem
 			text = string.Empty;
 		}
 		List<BaseEntity> obj = Facepunch.Pool.GetList<BaseEntity>();
-		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
-		{
-			if (serverEntity is BaseEntity baseEntity)
-			{
-				bool flag = false;
-				if (baseEntity.OwnerID == player.net.ID)
-				{
-					flag = true;
-				}
-				if (baseEntity is BuildingPrivlidge buildingPrivlidge && buildingPrivlidge.IsAuthed(player.userID))
-				{
-					flag = true;
-				}
-				if (baseEntity is BaseLock baseLock && baseLock.HasLockPermission(player))
-				{
-					flag = true;
-				}
-				if (flag && !string.IsNullOrEmpty(text) && !serverEntity.ShortPrefabName.Contains(text, CompareOptions.IgnoreCase))
-				{
-					flag = false;
-				}
-				if (flag)
-				{
-					obj.Add(baseEntity);
-				}
-			}
-		}
+		FindEntityAssociationsForPlayer(player, useOwnerId: false, useAuth: true, text, obj);
 		TextTable textTable = new TextTable();
 		textTable.AddColumns("Prefab name", "Position", "ID");
 		foreach (BaseEntity item in obj)
@@ -1465,5 +1439,75 @@ public class Admin : ConsoleSystem
 		stringBuilder.AppendLine("Found entities associated with " + player.displayName);
 		stringBuilder.AppendLine(textTable.ToString());
 		arg.ReplyWith(stringBuilder.ToString());
+	}
+
+	[ServerVar(Help = "Returns all entities that the provided player has placed, supports --json")]
+	public static void entcount(Arg arg)
+	{
+		BasePlayer player = arg.GetPlayer(0);
+		if (player == null)
+		{
+			arg.ReplyWith("Please provide a valid player, unable to find '" + arg.GetString(0) + "'");
+			return;
+		}
+		string text = arg.GetString(1);
+		if (text == "--json")
+		{
+			text = string.Empty;
+		}
+		List<BaseEntity> obj = Facepunch.Pool.GetList<BaseEntity>();
+		FindEntityAssociationsForPlayer(player, useOwnerId: true, useAuth: false, text, obj);
+		TextTable textTable = new TextTable();
+		textTable.AddColumns("Prefab name", "Position", "ID");
+		foreach (BaseEntity item in obj)
+		{
+			textTable.AddRow(item.ShortPrefabName, item.transform.position.ToString(), item.net.ID.ToString());
+		}
+		Facepunch.Pool.FreeList(ref obj);
+		if (arg.HasArg("--json"))
+		{
+			arg.ReplyWith(textTable.ToJson());
+			return;
+		}
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.AppendLine("Found entities associated with " + player.displayName);
+		stringBuilder.AppendLine(textTable.ToString());
+		arg.ReplyWith(stringBuilder.ToString());
+	}
+
+	private static void FindEntityAssociationsForPlayer(BasePlayer ply, bool useOwnerId, bool useAuth, string filter, List<BaseEntity> results)
+	{
+		results.Clear();
+		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
+		{
+			if (!(serverEntity is BaseEntity baseEntity))
+			{
+				continue;
+			}
+			bool flag = false;
+			if (useOwnerId && baseEntity.OwnerID == ply.userID)
+			{
+				flag = true;
+			}
+			if (useAuth)
+			{
+				if (!flag && baseEntity is BuildingPrivlidge buildingPrivlidge && buildingPrivlidge.IsAuthed(ply.userID))
+				{
+					flag = true;
+				}
+				if (!flag && baseEntity is BaseLock baseLock && baseLock.HasLockPermission(ply))
+				{
+					flag = true;
+				}
+			}
+			if (flag && !string.IsNullOrEmpty(filter) && !serverEntity.ShortPrefabName.Contains(filter, CompareOptions.IgnoreCase))
+			{
+				flag = false;
+			}
+			if (flag)
+			{
+				results.Add(baseEntity);
+			}
+		}
 	}
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[874]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[875]
 	{
 		new ConsoleSystem.Command
 		{
@@ -772,6 +772,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "authcount",
+			Parent = "global",
+			FullName = "global.authcount",
+			ServerAdmin = true,
+			Description = "Returns all entities that the provided player is authed to (TC's, locks, etc), supports --json",
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Admin.authcount(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "ban",
 			Parent = "global",
 			FullName = "global.ban",
@@ -917,6 +930,7 @@ public class ConsoleGen
 			Parent = "global",
 			FullName = "global.entcount",
 			ServerAdmin = true,
+			Description = "Returns all entities that the provided player has placed, supports --json",
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
