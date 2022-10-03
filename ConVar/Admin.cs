@@ -1436,7 +1436,7 @@ public class Admin : ConsoleSystem
 			return;
 		}
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("Found entities associated with " + player.displayName);
+		stringBuilder.AppendLine("Found entities " + player.displayName + " is authed to");
 		stringBuilder.AppendLine(textTable.ToString());
 		arg.ReplyWith(stringBuilder.ToString());
 	}
@@ -1495,7 +1495,11 @@ public class Admin : ConsoleSystem
 				{
 					flag = true;
 				}
-				if (!flag && baseEntity is BaseLock baseLock && baseLock.HasLockPermission(ply))
+				if (!flag && baseEntity is KeyLock keyLock && keyLock.HasLockPermission(ply))
+				{
+					flag = true;
+				}
+				else if (baseEntity is CodeLock codeLock && codeLock.whitelistPlayers.Contains(ply.userID))
 				{
 					flag = true;
 				}
