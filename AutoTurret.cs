@@ -1046,7 +1046,7 @@ public class AutoTurret : ContainerIOEntity, IRemoteControllable
 				{
 					if (item.info == attachedWeapon.primaryMagazine.ammoType)
 					{
-						num += item.info.stackable - item.amount;
+						num += item.MaxStackable() - item.amount;
 					}
 				}
 				flag = num >= attachedWeapon.primaryMagazine.contents;

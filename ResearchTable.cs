@@ -94,7 +94,7 @@ public class ResearchTable : StorageContainer
 			{
 				return 1;
 			}
-			if (slot.amount < item.info.stackable)
+			if (slot.amount < item.MaxStackable())
 			{
 				return 1;
 			}
@@ -123,7 +123,7 @@ public class ResearchTable : StorageContainer
 		int result = RarityMultiplier(sourceItem.info.rarity);
 		if (sourceItem.info.category == ItemCategory.Ammunition)
 		{
-			result = Mathf.FloorToInt((float)sourceItem.info.stackable / (float)sourceItem.info.Blueprint.amountToCreate) * 2;
+			result = Mathf.FloorToInt((float)sourceItem.MaxStackable() / (float)sourceItem.info.Blueprint.amountToCreate) * 2;
 		}
 		return result;
 	}

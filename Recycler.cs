@@ -149,7 +149,7 @@ public class Recycler : StorageContainer
 					num = i;
 					break;
 				}
-				int num2 = Mathf.Min(slot.info.stackable - slot.amount, newItem.amount);
+				int num2 = Mathf.Min(slot.MaxStackable() - slot.amount, newItem.amount);
 				newItem.UseItem(num2);
 				slot.amount += num2;
 				slot.MarkDirty();
@@ -199,12 +199,12 @@ public class Recycler : StorageContainer
 			int num2 = 1;
 			if (slot.amount > 1)
 			{
-				num2 = Mathf.CeilToInt(Mathf.Min(slot.amount, (float)slot.info.stackable * 0.1f));
+				num2 = Mathf.CeilToInt(Mathf.Min(slot.amount, (float)slot.MaxStackable() * 0.1f));
 			}
 			if (slot.info.Blueprint.scrapFromRecycle > 0)
 			{
 				int num3 = slot.info.Blueprint.scrapFromRecycle * num2;
-				if (slot.info.stackable == 1 && slot.hasCondition)
+				if (slot.MaxStackable() == 1 && slot.hasCondition)
 				{
 					num3 = Mathf.CeilToInt((float)num3 * slot.conditionNormalized);
 				}

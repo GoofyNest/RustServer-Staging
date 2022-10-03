@@ -941,11 +941,11 @@ public class Item
 		{
 			return false;
 		}
-		if (info.stackable <= 1)
+		if (MaxStackable() <= 1)
 		{
 			return false;
 		}
-		if (item.info.stackable <= 1)
+		if (item.MaxStackable() <= 1)
 		{
 			return false;
 		}

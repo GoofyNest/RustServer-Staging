@@ -352,7 +352,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 		{
 			num3 = item.amount;
 		}
-		num3 = Mathf.Clamp(num3, 1, item.info.stackable);
+		num3 = Mathf.Clamp(num3, 1, item.MaxStackable());
 		if (msg.player.GetActiveItem() == item)
 		{
 			msg.player.UpdateActiveItem(0u);
@@ -754,7 +754,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 
 	protected void GetIdealPickupContainer(Item item, ref ItemContainer container, ref int position)
 	{
-		if (item.info.stackable > 1)
+		if (item.MaxStackable() > 1)
 		{
 			if (containerBelt != null && containerBelt.FindItemByItemID(item.info.itemid) != null)
 			{

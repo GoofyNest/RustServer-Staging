@@ -36,7 +36,7 @@ public class DroppedItem : WorldItem
 
 	public override void OnCollision(Collision collision, BaseEntity hitEntity)
 	{
-		if (item != null && item.info.stackable > 1)
+		if (item != null && item.MaxStackable() > 1)
 		{
 			DroppedItem droppedItem = hitEntity as DroppedItem;
 			if (!(droppedItem == null) && droppedItem.item != null && !(droppedItem.item.info != item.info))
@@ -69,7 +69,7 @@ public class DroppedItem : WorldItem
 			}
 		}
 		int num3 = di.item.amount + item.amount;
-		if (num3 <= item.info.stackable && num3 != 0)
+		if (num3 <= item.MaxStackable() && num3 != 0)
 		{
 			di.DestroyItem();
 			di.Kill();
