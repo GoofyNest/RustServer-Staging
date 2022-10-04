@@ -574,6 +574,11 @@ public class ModularCarGarage : ContainerIOEntity
 		info.msg.vehicleLift.occupantLockID = OccupantLockID;
 	}
 
+	public override uint GetIdealContainer(BasePlayer player, Item item)
+	{
+		return 0u;
+	}
+
 	public override bool PlayerOpenLoot(BasePlayer player, string panelToOpen = "", bool doPositionChecks = true)
 	{
 		if (player == null)
