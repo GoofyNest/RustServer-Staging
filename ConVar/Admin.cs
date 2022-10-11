@@ -1410,8 +1410,8 @@ public class Admin : ConsoleSystem
 	[ServerVar(Help = "Returns all entities that the provided player is authed to (TC's, locks, etc), supports --json")]
 	public static void authcount(Arg arg)
 	{
-		BasePlayer player = arg.GetPlayer(0);
-		if (player == null)
+		BasePlayer playerOrSleeper = arg.GetPlayerOrSleeper(0);
+		if (playerOrSleeper == null)
 		{
 			arg.ReplyWith("Please provide a valid player, unable to find '" + arg.GetString(0) + "'");
 			return;
@@ -1422,7 +1422,7 @@ public class Admin : ConsoleSystem
 			text = string.Empty;
 		}
 		List<BaseEntity> obj = Facepunch.Pool.GetList<BaseEntity>();
-		FindEntityAssociationsForPlayer(player, useOwnerId: false, useAuth: true, text, obj);
+		FindEntityAssociationsForPlayer(playerOrSleeper, useOwnerId: false, useAuth: true, text, obj);
 		TextTable textTable = new TextTable();
 		textTable.AddColumns("Prefab name", "Position", "ID");
 		foreach (BaseEntity item in obj)
@@ -1436,7 +1436,7 @@ public class Admin : ConsoleSystem
 			return;
 		}
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("Found entities " + player.displayName + " is authed to");
+		stringBuilder.AppendLine("Found entities " + playerOrSleeper.displayName + " is authed to");
 		stringBuilder.AppendLine(textTable.ToString());
 		arg.ReplyWith(stringBuilder.ToString());
 	}
@@ -1444,8 +1444,8 @@ public class Admin : ConsoleSystem
 	[ServerVar(Help = "Returns all entities that the provided player has placed, supports --json")]
 	public static void entcount(Arg arg)
 	{
-		BasePlayer player = arg.GetPlayer(0);
-		if (player == null)
+		BasePlayer playerOrSleeper = arg.GetPlayerOrSleeper(0);
+		if (playerOrSleeper == null)
 		{
 			arg.ReplyWith("Please provide a valid player, unable to find '" + arg.GetString(0) + "'");
 			return;
@@ -1456,7 +1456,7 @@ public class Admin : ConsoleSystem
 			text = string.Empty;
 		}
 		List<BaseEntity> obj = Facepunch.Pool.GetList<BaseEntity>();
-		FindEntityAssociationsForPlayer(player, useOwnerId: true, useAuth: false, text, obj);
+		FindEntityAssociationsForPlayer(playerOrSleeper, useOwnerId: true, useAuth: false, text, obj);
 		TextTable textTable = new TextTable();
 		textTable.AddColumns("Prefab name", "Position", "ID");
 		foreach (BaseEntity item in obj)
@@ -1470,7 +1470,7 @@ public class Admin : ConsoleSystem
 			return;
 		}
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("Found entities associated with " + player.displayName);
+		stringBuilder.AppendLine("Found entities associated with " + playerOrSleeper.displayName);
 		stringBuilder.AppendLine(textTable.ToString());
 		arg.ReplyWith(stringBuilder.ToString());
 	}
