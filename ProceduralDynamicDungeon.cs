@@ -70,12 +70,6 @@ public class ProceduralDynamicDungeon : BaseEntity
 		}
 	}
 
-	public override void DestroyShared()
-	{
-		RetireAllCells();
-		base.DestroyShared();
-	}
-
 	internal override void DoServerDestroy()
 	{
 		base.DoServerDestroy();
@@ -170,6 +164,12 @@ public class ProceduralDynamicDungeon : BaseEntity
 		}
 	}
 
+	public override void DestroyShared()
+	{
+		RetireAllCells();
+		base.DestroyShared();
+	}
+
 	public override void Load(LoadInfo info)
 	{
 		base.Load(info);
@@ -183,10 +183,6 @@ public class ProceduralDynamicDungeon : BaseEntity
 	public override void InitShared()
 	{
 		base.InitShared();
-		if (base.isServer)
-		{
-			StartCoroutine(UpdateNavMesh());
-		}
 	}
 
 	[ContextMenu("Test Grid")]
