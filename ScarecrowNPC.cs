@@ -15,6 +15,8 @@ public class ScarecrowNPC : NPCPlayer, IAISenses, IAIAttack, IThinker
 
 	public static float NextBeanCanAllowedTime;
 
+	public bool RoamAroundHomePoint;
+
 	public ScarecrowBrain Brain { get; protected set; }
 
 	public override BaseNpc.AiStatistics.FamilyEnum Family => BaseNpc.AiStatistics.FamilyEnum.Murderer;

@@ -19,8 +19,8 @@ public class ScarecrowBrain : BaseAIBrain
 		{
 			entity.SetFlag(BaseEntity.Flags.Reserved3, b: true);
 			originalStoppingDistance = brain.Navigator.StoppingDistance;
-			brain.Navigator.Agent.stoppingDistance = 0f;
-			brain.Navigator.StoppingDistance = 0f;
+			brain.Navigator.Agent.stoppingDistance = 1f;
+			brain.Navigator.StoppingDistance = 1f;
 			base.StateEnter(brain, entity);
 			attack = entity as IAIAttack;
 			BaseEntity baseEntity = brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot);
@@ -74,9 +74,9 @@ public class ScarecrowBrain : BaseAIBrain
 					return StateStatus.Error;
 				}
 			}
-			Vector3 vector = Vector3Ex.Direction2D(baseEntity.transform.position, entity.transform.position);
-			Vector3 pos = baseEntity.transform.position + vector * 2f;
-			if (!brain.Navigator.SetDestination(pos, BaseNavigator.NavigationSpeed.Fast, 0.2f))
+			Vector3Ex.Direction2D(baseEntity.transform.position, entity.transform.position);
+			Vector3 position = baseEntity.transform.position;
+			if (!brain.Navigator.SetDestination(position, BaseNavigator.NavigationSpeed.Fast, 0.2f))
 			{
 				return StateStatus.Error;
 			}
@@ -108,6 +108,8 @@ public class ScarecrowBrain : BaseAIBrain
 	{
 		private float throwDelayTime;
 
+		private bool useBeanCan;
+
 		public ChaseState()
 			: base(AIState.Chase)
 		{
@@ -119,6 +121,7 @@ public class ScarecrowBrain : BaseAIBrain
 			base.StateEnter(brain, entity);
 			entity.SetFlag(BaseEntity.Flags.Reserved3, b: true);
 			throwDelayTime = UnityEngine.Time.time + Random.Range(0.2f, 0.5f);
+			useBeanCan = (float)Random.Range(0, 100) <= 20f;
 			BaseEntity baseEntity = brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot);
 			if (baseEntity != null)
 			{
@@ -147,7 +150,7 @@ public class ScarecrowBrain : BaseAIBrain
 				Stop();
 				return StateStatus.Error;
 			}
-			if (UnityEngine.Time.time >= throwDelayTime && AI.npc_use_thrown_weapons && Halloween.scarecrows_throw_beancans && UnityEngine.Time.time >= ScarecrowNPC.NextBeanCanAllowedTime && (brain.GetBrainBaseEntity() as ScarecrowNPC).TryUseThrownWeapon(baseEntity, 10f))
+			if (useBeanCan && UnityEngine.Time.time >= throwDelayTime && AI.npc_use_thrown_weapons && Halloween.scarecrows_throw_beancans && UnityEngine.Time.time >= ScarecrowNPC.NextBeanCanAllowedTime && (brain.GetBrainBaseEntity() as ScarecrowNPC).TryUseThrownWeapon(baseEntity, 10f))
 			{
 				brain.Navigator.Stop();
 				return StateStatus.Running;
@@ -187,10 +190,17 @@ public class ScarecrowBrain : BaseAIBrain
 		{
 			base.StateEnter(brain, entity);
 			status = StateStatus.Error;
-			if (brain.PathFinder != null)
+			if (brain.PathFinder == null)
 			{
-				Vector3 bestRoamPosition = brain.PathFinder.GetBestRoamPosition(brain.Navigator, brain.Events.Memory.Position.Get(4), 10f, brain.Navigator.BestRoamPointMaxDistance);
-				if (brain.Navigator.SetDestination(bestRoamPosition, BaseNavigator.NavigationSpeed.Slow))
+				return;
+			}
+			ScarecrowNPC scarecrowNPC = entity as ScarecrowNPC;
+			if (!(scarecrowNPC == null))
+			{
+				Vector3 vector = brain.Events.Memory.Position.Get(4);
+				Vector3 vector2 = vector;
+				vector2 = ((!scarecrowNPC.RoamAroundHomePoint) ? brain.PathFinder.GetBestRoamPosition(brain.Navigator, brain.Events.Memory.Position.Get(4), 10f, brain.Navigator.BestRoamPointMaxDistance) : brain.PathFinder.GetBestRoamPositionFromAnchor(brain.Navigator, vector, vector, 1f, brain.Navigator.BestRoamPointMaxDistance));
+				if (brain.Navigator.SetDestination(vector2, BaseNavigator.NavigationSpeed.Slow))
 				{
 					status = StateStatus.Running;
 				}

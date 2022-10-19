@@ -14,9 +14,9 @@ public static class EACServer
 
 	public static ReportsInterface Reports = null;
 
-	private static Dictionary<IntPtr, Connection> client2connection = new Dictionary<IntPtr, Connection>();
+	private static Dictionary<uint, Connection> client2connection = new Dictionary<uint, Connection>();
 
-	private static Dictionary<Connection, IntPtr> connection2client = new Dictionary<Connection, IntPtr>();
+	private static Dictionary<Connection, uint> connection2client = new Dictionary<Connection, uint>();
 
 	private static Dictionary<Connection, AntiCheatCommonClientAuthStatus> connection2status = new Dictionary<Connection, AntiCheatCommonClientAuthStatus>();
 
@@ -94,12 +94,12 @@ public static class EACServer
 	public static IntPtr GetClient(Connection connection)
 	{
 		connection2client.TryGetValue(connection, out var value);
-		return value;
+		return (IntPtr)value;
 	}
 
 	public static Connection GetConnection(IntPtr client)
 	{
-		client2connection.TryGetValue(client, out var value);
+		client2connection.TryGetValue((uint)(int)client, out var value);
 		return value;
 	}
 
@@ -182,7 +182,7 @@ public static class EACServer
 			unregisterClientOptions.ClientHandle = clientHandle;
 			UnregisterClientOptions options = unregisterClientOptions;
 			Interface.UnregisterClient(ref options);
-			client2connection.Remove(clientHandle);
+			client2connection.Remove((uint)(int)clientHandle);
 			connection2client.Remove(connection);
 			connection2status.Remove(connection);
 		}
@@ -283,7 +283,7 @@ public static class EACServer
 				unregisterClientOptions.ClientHandle = client;
 				UnregisterClientOptions options = unregisterClientOptions;
 				Interface.UnregisterClient(ref options);
-				client2connection.Remove(client);
+				client2connection.Remove((uint)(int)client);
 				connection2client.Remove(connection);
 				connection2status.Remove(connection);
 			}
@@ -314,8 +314,8 @@ public static class EACServer
 				setClientDetailsOptions.ClientFlags = ((connection.authLevel != 0) ? AntiCheatCommonClientFlags.Admin : AntiCheatCommonClientFlags.None);
 				SetClientDetailsOptions options2 = setClientDetailsOptions;
 				Interface.SetClientDetails(ref options2);
-				client2connection.Add(intPtr, connection);
-				connection2client.Add(connection, intPtr);
+				client2connection.Add((uint)(int)intPtr, connection);
+				connection2client.Add(connection, (uint)(int)intPtr);
 				connection2status.Add(connection, AntiCheatCommonClientAuthStatus.Invalid);
 			}
 		}
