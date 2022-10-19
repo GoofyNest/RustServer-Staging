@@ -16,13 +16,13 @@ public class HalloweenDungeon : BasePortal
 
 	private float secondsUsed;
 
-	private float timeAlive;
-
 	public AnimationCurve radiationCurve;
 
 	public Translate.Phrase collapsePhrase;
 
 	public Translate.Phrase mountPhrase;
+
+	private float timeAlive;
 
 	public override void Load(LoadInfo info)
 	{
