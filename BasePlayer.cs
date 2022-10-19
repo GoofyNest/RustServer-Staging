@@ -2738,7 +2738,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		BaseMission.PositionGenerator[] positionGenerators = fromID.positionGenerators;
 		for (int i = 0; i < positionGenerators.Length; i++)
 		{
-			if (!positionGenerators[i].Validate(this))
+			if (!positionGenerators[i].Validate(this, fromID))
 			{
 				return false;
 			}

@@ -21,4 +21,13 @@ public class NPCPlayerCorpse : PlayerCorpse
 	{
 		lootEnabled = true;
 	}
+
+	protected override bool CanLootContainer(ItemContainer c, int index)
+	{
+		if (index == 1 || index == 2)
+		{
+			return false;
+		}
+		return base.CanLootContainer(c, index);
+	}
 }

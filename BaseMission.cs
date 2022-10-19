@@ -217,7 +217,8 @@ public class BaseMission : BaseScriptableObject
 		public enum PositionType
 		{
 			MissionPoint,
-			WorldPositionGenerator
+			WorldPositionGenerator,
+			DungeonPoint
 		}
 
 		public string identifier;
@@ -229,6 +230,8 @@ public class BaseMission : BaseScriptableObject
 		public bool centerOnProvider;
 
 		public bool centerOnPlayer;
+
+		public string centerOnPositionIdentifier = "";
 
 		public PositionType positionType;
 
@@ -242,12 +245,17 @@ public class BaseMission : BaseScriptableObject
 		[Header("WorldPositionGenerator")]
 		public WorldPositionGenerator worldPositionGenerator;
 
+		public bool IsDependant()
+		{
+			return !string.IsNullOrEmpty(centerOnPositionIdentifier);
+		}
+
 		public string GetIdentifier()
 		{
 			return identifier;
 		}
 
-		public bool Validate(BasePlayer assignee)
+		public bool Validate(BasePlayer assignee, BaseMission missionDef)
 		{
 			Vector3 position;
 			if (positionType == PositionType.MissionPoint)
@@ -294,6 +302,10 @@ public class BaseMission : BaseScriptableObject
 					position = assignee.transform.position;
 				}
 			}
+			else if (positionType == PositionType.DungeonPoint)
+			{
+				position = DynamicDungeon.GetNextDungeonPoint();
+			}
 			else
 			{
 				Vector3 onUnitSphere = UnityEngine.Random.onUnitSphere;
@@ -326,6 +338,8 @@ public class BaseMission : BaseScriptableObject
 		public bool cleanupOnMissionFailed;
 
 		public bool cleanupOnMissionSuccess;
+
+		public string entityIdentifier;
 	}
 
 	public enum MissionFailReason
@@ -423,7 +437,18 @@ public class BaseMission : BaseScriptableObject
 		PositionGenerator[] array = positionGenerators;
 		foreach (PositionGenerator positionGenerator in array)
 		{
-			instance.missionPoints.Add(positionGenerator.GetIdentifier(), positionGenerator.GetPosition(assignee));
+			if (!positionGenerator.IsDependant())
+			{
+				instance.missionPoints.Add(positionGenerator.GetIdentifier(), positionGenerator.GetPosition(assignee));
+			}
+		}
+		array = positionGenerators;
+		foreach (PositionGenerator positionGenerator2 in array)
+		{
+			if (positionGenerator2.IsDependant())
+			{
+				instance.missionPoints.Add(positionGenerator2.GetIdentifier(), positionGenerator2.GetPosition(assignee));
+			}
 		}
 	}
 
@@ -478,7 +503,10 @@ public class BaseMission : BaseScriptableObject
 		{
 			objectives[i].Get().MissionStarted(i, instance);
 		}
-		DoMissionEffect(acceptEffect.resourcePath, assignee);
+		if (acceptEffect.isValid)
+		{
+			DoMissionEffect(acceptEffect.resourcePath, assignee);
+		}
 		MissionEntityEntry[] array = missionEntities;
 		foreach (MissionEntityEntry missionEntityEntry in array)
 		{

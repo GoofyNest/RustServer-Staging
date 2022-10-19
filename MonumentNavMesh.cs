@@ -41,6 +41,8 @@ public class MonumentNavMesh : FacepunchBehaviour, IServerComponent
 
 	public bool forceCollectTerrain;
 
+	public bool shouldNotifyAIZones = true;
+
 	public Transform CustomNavMeshRoot;
 
 	[ServerVar]
@@ -107,7 +109,10 @@ public class MonumentNavMesh : FacepunchBehaviour, IServerComponent
 			{
 				UnityEngine.Debug.LogWarning("Calling UpdateNavMesh took " + num);
 			}
-			NotifyInformationZonesOfCompletion();
+			if (shouldNotifyAIZones)
+			{
+				NotifyInformationZonesOfCompletion();
+			}
 		}
 	}
 

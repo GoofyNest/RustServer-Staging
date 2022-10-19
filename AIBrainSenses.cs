@@ -236,7 +236,7 @@ public class AIBrainSenses
 				}
 			}
 		}
-		if (hostileTargetsOnly && baseCombatEntity != null && !baseCombatEntity.IsHostile())
+		if (hostileTargetsOnly && baseCombatEntity != null && !baseCombatEntity.IsHostile() && !(baseCombatEntity is ScarecrowNPC))
 		{
 			return false;
 		}
@@ -260,6 +260,10 @@ public class AIBrainSenses
 			if (basePlayer.IsNpc)
 			{
 				if (ent is BasePet)
+				{
+					return true;
+				}
+				if (ent is ScarecrowNPC)
 				{
 					return true;
 				}
