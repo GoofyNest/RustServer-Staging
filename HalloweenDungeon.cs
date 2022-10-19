@@ -9,21 +9,60 @@ public class HalloweenDungeon : BasePortal
 
 	public EntityRef<ProceduralDynamicDungeon> dungeonInstance;
 
+	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
+	public static float population = 1f;
+
+	public float lifetime = 600f;
+
+	private float secondsUsed;
+
+	private float timeAlive;
+
+	public AnimationCurve radiationCurve;
+
+	public Translate.Phrase collapsePhrase;
+
+	public Translate.Phrase mountPhrase;
+
 	public override void Load(LoadInfo info)
 	{
 		base.Load(info);
 		if (info.fromDisk && info.msg.ioEntity != null)
 		{
 			dungeonInstance.uid = info.msg.ioEntity.genericEntRef3;
+			secondsUsed = info.msg.ioEntity.genericFloat1;
 		}
 	}
 
-	public override void Spawn()
+	public float GetLifeFraction()
 	{
-		base.Spawn();
-		if (!Rust.Application.isLoadingSave)
+		return Mathf.Clamp01(secondsUsed / lifetime);
+	}
+
+	public void Update()
+	{
+		if (!base.isClient)
 		{
-			SpawnSubEntities();
+			if (secondsUsed > 0f)
+			{
+				secondsUsed += Time.deltaTime;
+			}
+			timeAlive += Time.deltaTime;
+			float lifeFraction = GetLifeFraction();
+			if (dungeonInstance.IsValid(serverside: true))
+			{
+				ProceduralDynamicDungeon proceduralDynamicDungeon = dungeonInstance.Get(serverside: true);
+				float value = radiationCurve.Evaluate(lifeFraction) * 100f;
+				proceduralDynamicDungeon.exitRadiation.RadiationAmountOverride = Mathf.Clamp(value, 0f, float.PositiveInfinity);
+			}
+			if (lifeFraction >= 1f)
+			{
+				Kill();
+			}
+			else if (timeAlive > 3600f && secondsUsed == 0f)
+			{
+				Kill();
+			}
 		}
 	}
 
@@ -35,6 +74,61 @@ public class HalloweenDungeon : BasePortal
 			info.msg.ioEntity = Pool.Get<ProtoBuf.IOEntity>();
 		}
 		info.msg.ioEntity.genericEntRef3 = dungeonInstance.uid;
+		info.msg.ioEntity.genericFloat1 = secondsUsed;
+	}
+
+	public override void PostServerLoad()
+	{
+		base.PostServerLoad();
+	}
+
+	public override void UsePortal(BasePlayer player)
+	{
+		if (GetLifeFraction() > 0.8f)
+		{
+			player.ShowToast(GameTip.Styles.Blue_Normal, collapsePhrase);
+			return;
+		}
+		if (player.isMounted)
+		{
+			player.ShowToast(GameTip.Styles.Blue_Normal, mountPhrase);
+			return;
+		}
+		if (secondsUsed == 0f)
+		{
+			secondsUsed = 1f;
+		}
+		base.UsePortal(player);
+	}
+
+	public override void Spawn()
+	{
+		base.Spawn();
+	}
+
+	public override void ServerInit()
+	{
+		base.ServerInit();
+		if (!Rust.Application.isLoadingSave)
+		{
+			SpawnSubEntities();
+		}
+		localEntryExitPos.DropToGround(alignToNormal: false, 10f);
+		localEntryExitPos.transform.position += Vector3.up * 0.05f;
+		Invoke(CheckBlocked, 0.25f);
+	}
+
+	public void CheckBlocked()
+	{
+		float num = 0.5f;
+		float num2 = 1.8f;
+		Vector3 position = localEntryExitPos.position;
+		Vector3 start = position + new Vector3(0f, num, 0f);
+		Vector3 end = position + new Vector3(0f, num2 - num, 0f);
+		if (Physics.CheckCapsule(start, end, num, 1537286401))
+		{
+			Kill();
+		}
 	}
 
 	public static Vector3 GetDungeonSpawnPoint()

@@ -141,7 +141,7 @@ public class BasePortal : BaseCombatEntity
 		return targetPortal;
 	}
 
-	public void UsePortal(BasePlayer player)
+	public virtual void UsePortal(BasePlayer player)
 	{
 		LinkPortal();
 		if (targetPortal != null)
@@ -159,7 +159,7 @@ public class BasePortal : BaseCombatEntity
 			}
 			else
 			{
-				vector2 = GetLocalEntryExitRotation() * Vector3.forward;
+				vector2 = targetPortal.GetLocalEntryExitRotation() * Vector3.forward;
 			}
 			player.SetParent(null, worldPositionStays: true);
 			player.Teleport(position);

@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[875]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[876]
 	{
 		new ConsoleSystem.Command
 		{
@@ -10415,6 +10415,21 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				HackableLockedCrate.requiredHackSeconds = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "population",
+			Parent = "halloweendungeon",
+			FullName = "halloweendungeon.population",
+			ServerAdmin = true,
+			Description = "Population active on the server",
+			ShowInAdminUI = true,
+			Variable = true,
+			GetOveride = () => HalloweenDungeon.population.ToString(),
+			SetOveride = delegate(string str)
+			{
+				HalloweenDungeon.population = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command

@@ -27,6 +27,8 @@ public class ProceduralDynamicDungeon : BaseEntity
 
 	private EntityRef<BasePortal> exitPortal;
 
+	public TriggerRadiation exitRadiation;
+
 	public uint seed;
 
 	public uint baseseed;
@@ -47,6 +49,28 @@ public class ProceduralDynamicDungeon : BaseEntity
 		{
 			dungeons.Remove(dungeon);
 		}
+	}
+
+	public bool ContainsAnyPlayers()
+	{
+		Bounds bounds = new Bounds(base.transform.position, new Vector3((float)gridResolution * gridSpacing, 20f, (float)gridResolution * gridSpacing));
+		for (int i = 0; i < BasePlayer.activePlayerList.Count; i++)
+		{
+			BasePlayer basePlayer = BasePlayer.activePlayerList[i];
+			if (bounds.Contains(basePlayer.transform.position))
+			{
+				return true;
+			}
+		}
+		for (int j = 0; j < BasePlayer.sleepingPlayerList.Count; j++)
+		{
+			BasePlayer basePlayer2 = BasePlayer.sleepingPlayerList[j];
+			if (bounds.Contains(basePlayer2.transform.position))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void KillPlayers()
@@ -72,22 +96,21 @@ public class ProceduralDynamicDungeon : BaseEntity
 
 	internal override void DoServerDestroy()
 	{
-		base.DoServerDestroy();
-		CleanupSpawnGroups();
 		KillPlayers();
 		RemoveDungeon(this);
 		if (exitPortal.IsValid(serverside: true))
 		{
 			exitPortal.Get(serverside: true).Kill();
 		}
+		base.DoServerDestroy();
 	}
 
 	public override void ServerInit()
 	{
 		if (!Rust.Application.isLoadingSave)
 		{
-			Debug.Log("Spawning dungeon with seed :" + (int)seed);
 			baseseed = (seed = (uint)Random.Range(0, 12345567));
+			Debug.Log("Spawning dungeon with seed :" + (int)seed);
 		}
 		base.ServerInit();
 		AddDungeon(this);
@@ -105,6 +128,7 @@ public class ProceduralDynamicDungeon : BaseEntity
 		GenerateGrid();
 		if (base.isServer)
 		{
+			Debug.Log("Server DoGeneration,calling routine update nav mesh");
 			StartCoroutine(UpdateNavMesh());
 		}
 		Invoke(InitSpawnGroups, 1f);
@@ -118,7 +142,9 @@ public class ProceduralDynamicDungeon : BaseEntity
 
 	public IEnumerator UpdateNavMesh()
 	{
+		Debug.Log("Dungeon Building navmesh");
 		yield return StartCoroutine(monumentNavMesh.UpdateNavMeshAndWait());
+		Debug.Log("Dungeon done!");
 	}
 
 	public override void Save(SaveInfo info)
@@ -269,6 +295,10 @@ public class ProceduralDynamicDungeon : BaseEntity
 
 	public void RetireAllCells()
 	{
+		if (base.isServer)
+		{
+			CleanupSpawnGroups();
+		}
 		for (int num = spawnedCells.Count - 1; num >= 0; num--)
 		{
 			ProceduralDungeonCell proceduralDungeonCell = spawnedCells[num];
