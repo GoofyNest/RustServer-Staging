@@ -560,7 +560,7 @@ public class BaseMelee : AttackEntity
 		return true;
 	}
 
-	public string GetStrikeEffectPath(string materialName)
+	public virtual string GetStrikeEffectPath(string materialName)
 	{
 		for (int i = 0; i < materialStrikeFX.Count; i++)
 		{

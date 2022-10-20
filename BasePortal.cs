@@ -25,6 +25,10 @@ public class BasePortal : BaseCombatEntity
 
 	public bool isMirrored = true;
 
+	public GameObjectRef appearEffect;
+
+	public GameObjectRef disappearEffect;
+
 	public GameObjectRef transitionSoundEffect;
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
@@ -148,23 +152,32 @@ public class BasePortal : BaseCombatEntity
 		{
 			player.PauseFlyHackDetection();
 			player.PauseSpeedHackDetection();
-			Vector3 position = targetPortal.GetLocalEntryExitPosition();
-			Vector3 vector = base.transform.InverseTransformDirection(player.eyes.BodyForward());
-			Vector3 vector2 = vector;
+			Vector3 position = player.transform.position;
+			Vector3 vector = targetPortal.GetLocalEntryExitPosition();
+			Vector3 vector2 = base.transform.InverseTransformDirection(player.eyes.BodyForward());
+			Vector3 vector3 = vector2;
 			if (isMirrored)
 			{
 				Vector3 position2 = base.transform.InverseTransformPoint(player.transform.position);
-				position = targetPortal.relativeAnchor.transform.TransformPoint(position2);
-				vector2 = targetPortal.relativeAnchor.transform.TransformDirection(vector);
+				vector = targetPortal.relativeAnchor.transform.TransformPoint(position2);
+				vector3 = targetPortal.relativeAnchor.transform.TransformDirection(vector2);
 			}
 			else
 			{
-				vector2 = targetPortal.GetLocalEntryExitRotation() * Vector3.forward;
+				vector3 = targetPortal.GetLocalEntryExitRotation() * Vector3.forward;
+			}
+			if (disappearEffect.isValid)
+			{
+				Effect.server.Run(disappearEffect.resourcePath, position, Vector3.up);
+			}
+			if (appearEffect.isValid)
+			{
+				Effect.server.Run(appearEffect.resourcePath, vector, Vector3.up);
 			}
 			player.SetParent(null, worldPositionStays: true);
-			player.Teleport(position);
+			player.Teleport(vector);
 			player.ForceUpdateTriggers();
-			player.ClientRPCPlayer(null, player, "ForceViewAnglesTo", vector2);
+			player.ClientRPCPlayer(null, player, "ForceViewAnglesTo", vector3);
 			if (transitionSoundEffect.isValid)
 			{
 				Effect.server.Run(transitionSoundEffect.resourcePath, targetPortal.relativeAnchor.transform.position, Vector3.up);
