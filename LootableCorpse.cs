@@ -88,6 +88,7 @@ public class LootableCorpse : BaseCorpse, LootPanel.IHasLootPanel
 	internal override void DoServerDestroy()
 	{
 		base.DoServerDestroy();
+		PreDropItems();
 		DropItems();
 		if (containers != null)
 		{
@@ -168,6 +169,10 @@ public class LootableCorpse : BaseCorpse, LootPanel.IHasLootPanel
 		ResetRemovalTime();
 		SetFlag(Flags.Open, b: false);
 		SendNetworkUpdate();
+	}
+
+	protected virtual void PreDropItems()
+	{
 	}
 
 	public void DropItems()

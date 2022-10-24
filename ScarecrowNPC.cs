@@ -1,4 +1,5 @@
 using ConVar;
+using ProtoBuf;
 using Rust;
 using UnityEngine;
 
@@ -289,5 +290,12 @@ public class ScarecrowNPC : NPCPlayer, IAISenses, IAIAttack, IThinker
 			}
 		}
 		base.Hurt(info);
+	}
+
+	public override void AttackerInfo(PlayerLifeStory.DeathInfo info)
+	{
+		base.AttackerInfo(info);
+		info.inflictorName = inventory.containerBelt.GetSlot(0).info.shortname;
+		info.attackerName = base.ShortPrefabName;
 	}
 }

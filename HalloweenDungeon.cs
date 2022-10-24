@@ -16,13 +16,13 @@ public class HalloweenDungeon : BasePortal
 
 	private float secondsUsed;
 
+	private float timeAlive;
+
 	public AnimationCurve radiationCurve;
 
 	public Translate.Phrase collapsePhrase;
 
 	public Translate.Phrase mountPhrase;
-
-	private float timeAlive;
 
 	public override void Load(LoadInfo info)
 	{
@@ -31,6 +31,7 @@ public class HalloweenDungeon : BasePortal
 		{
 			dungeonInstance.uid = info.msg.ioEntity.genericEntRef3;
 			secondsUsed = info.msg.ioEntity.genericFloat1;
+			timeAlive = info.msg.ioEntity.genericFloat2;
 		}
 	}
 
@@ -75,11 +76,13 @@ public class HalloweenDungeon : BasePortal
 		}
 		info.msg.ioEntity.genericEntRef3 = dungeonInstance.uid;
 		info.msg.ioEntity.genericFloat1 = secondsUsed;
+		info.msg.ioEntity.genericFloat2 = timeAlive;
 	}
 
 	public override void PostServerLoad()
 	{
 		base.PostServerLoad();
+		timeAlive += Random.Range(0f, 60f);
 	}
 
 	public override void UsePortal(BasePlayer player)
@@ -111,6 +114,7 @@ public class HalloweenDungeon : BasePortal
 		base.ServerInit();
 		if (!Rust.Application.isLoadingSave)
 		{
+			timeAlive = Random.Range(0f, 60f);
 			SpawnSubEntities();
 		}
 		localEntryExitPos.DropToGround(alignToNormal: false, 10f);

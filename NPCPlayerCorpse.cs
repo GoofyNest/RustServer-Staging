@@ -30,4 +30,13 @@ public class NPCPlayerCorpse : PlayerCorpse
 		}
 		return base.CanLootContainer(c, index);
 	}
+
+	protected override void PreDropItems()
+	{
+		base.PreDropItems();
+		if (containers.Length >= 2)
+		{
+			containers[1].Clear();
+		}
+	}
 }
