@@ -4958,6 +4958,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			UserIDString = userID.ToString();
 			displayName = c.username;
 			c.player = this;
+			secondsConnected = 0;
 			currentTeam = RelationshipManager.ServerInstance.FindPlayersTeam(userID)?.teamID ?? 0;
 			SingletonComponent<ServerMgr>.Instance.persistance.SetPlayerName(userID, displayName);
 			tickInterpolator.Reset(base.transform.position);
