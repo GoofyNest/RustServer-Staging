@@ -50,7 +50,7 @@ public class IOEntity : DecayEntity
 		{
 			if (ioEnt == null && entityRef.IsValid(isServer))
 			{
-				ioEnt = entityRef.Get(isServer).GetComponent<IOEntity>();
+				ioEnt = entityRef.Get(isServer) as IOEntity;
 			}
 			return ioEnt;
 		}
@@ -561,7 +561,8 @@ public class IOEntity : DecayEntity
 		IOSlot[] array = outputs;
 		for (int i = 0; i < array.Length; i++)
 		{
-			if (array[i].connectedTo.Get() != null)
+			IOEntity iOEntity = array[i].connectedTo.Get();
+			if (iOEntity != null && !iOEntity.IsDestroyed)
 			{
 				cachedOutputsUsed++;
 			}
@@ -598,7 +599,8 @@ public class IOEntity : DecayEntity
 		{
 			return 0;
 		}
-		if (outputs[outputSlot].connectedTo.Get() == null)
+		IOEntity iOEntity = outputs[outputSlot].connectedTo.Get();
+		if (iOEntity == null || iOEntity.IsDestroyed)
 		{
 			return 0;
 		}
