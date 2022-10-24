@@ -861,4 +861,9 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 			}
 		}
 	}
+
+	protected bool PlayerIsOnPlatform(BasePlayer player)
+	{
+		return player.GetParentEntity() == this;
+	}
 }

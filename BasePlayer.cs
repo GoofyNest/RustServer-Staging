@@ -2977,7 +2977,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			int num2 = Epoch.FromDateTime(SaveRestore.SaveCreatedTime);
 			if (229 != protocol || World.Seed != seed || num2 != saveCreatedTime)
 			{
-				Debug.Log("Missions were from old protocol or different seed, or not from a loaded save clearing");
+				Debug.Log("Missions were from old protocol or different seed, or not from a loaded save. Clearing");
 				loadedMissions.activeMission = -1;
 				SetActiveMission(-1);
 				State.missions = SaveMissions();

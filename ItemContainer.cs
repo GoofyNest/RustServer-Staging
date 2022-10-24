@@ -31,6 +31,13 @@ public sealed class ItemContainer
 		Liquid = 2
 	}
 
+	public enum LimitStack
+	{
+		None,
+		Existing,
+		All
+	}
+
 	public enum CanAcceptResult
 	{
 		CanAccept,
@@ -770,7 +777,7 @@ public sealed class ItemContainer
 		return num;
 	}
 
-	public void AddItem(ItemDefinition itemToCreate, int amount, ulong skin = 0uL, bool respectMaxStack = false)
+	public void AddItem(ItemDefinition itemToCreate, int amount, ulong skin = 0uL, LimitStack limitStack = LimitStack.Existing)
 	{
 		for (int i = 0; i < itemList.Count; i++)
 		{
@@ -783,14 +790,14 @@ public sealed class ItemContainer
 				continue;
 			}
 			int num = itemList[i].MaxStackable();
-			if (num <= itemList[i].amount)
+			if (num <= itemList[i].amount && limitStack != 0)
 			{
 				continue;
 			}
 			MarkDirty();
 			itemList[i].amount += amount;
 			amount -= amount;
-			if (itemList[i].amount > num)
+			if (itemList[i].amount > num && limitStack != 0)
 			{
 				amount = itemList[i].amount - num;
 				if (amount > 0)
@@ -803,7 +810,7 @@ public sealed class ItemContainer
 		{
 			return;
 		}
-		int num2 = (respectMaxStack ? Mathf.Min(itemToCreate.stackable, ContainerMaxStackSize()) : int.MaxValue);
+		int num2 = ((limitStack == LimitStack.All) ? Mathf.Min(itemToCreate.stackable, ContainerMaxStackSize()) : int.MaxValue);
 		if (num2 <= 0)
 		{
 			return;

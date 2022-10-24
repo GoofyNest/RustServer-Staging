@@ -188,6 +188,8 @@ public class BaseVehicle : BaseMountable
 
 	private float nextCollisionFXTime;
 
+	protected bool hasSpawnedSubEnts;
+
 	private CollisionDetectionMode savedCollisionDetectionMode;
 
 	private ProtoBuf.BaseVehicle pendingLoad;
@@ -561,6 +563,7 @@ public class BaseVehicle : BaseMountable
 	public virtual void SpawnSubEntities()
 	{
 		CheckAndSpawnMountPoints();
+		hasSpawnedSubEnts = true;
 	}
 
 	public virtual bool AdminFixUp(int tier)
