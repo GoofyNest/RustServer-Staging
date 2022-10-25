@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using ConVar;
 using Rust;
 using Rust.Ai;
@@ -145,8 +144,7 @@ public class MonumentNavMesh : FacepunchBehaviour, IServerComponent
 		int lastPct = 0;
 		while (!HasBuildOperationStarted)
 		{
-			Thread.Sleep(250);
-			yield return null;
+			yield return CoroutineEx.waitForSecondsRealtime(0.25f);
 		}
 		while (BuildingOperation != null)
 		{
@@ -156,9 +154,8 @@ public class MonumentNavMesh : FacepunchBehaviour, IServerComponent
 				UnityEngine.Debug.LogFormat("{0}%", num);
 				lastPct = num;
 			}
-			Thread.Sleep(250);
+			yield return CoroutineEx.waitForSecondsRealtime(0.25f);
 			FinishBuildingNavmesh();
-			yield return null;
 		}
 	}
 
