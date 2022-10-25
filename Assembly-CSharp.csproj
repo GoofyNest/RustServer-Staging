@@ -102,6 +102,9 @@
     <Reference Include="Facepunch.Input">
       <HintPath>Facepunch.Input.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.UnwrapBaker.Settings">
+      <HintPath>Facepunch.UnwrapBaker.Settings.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
