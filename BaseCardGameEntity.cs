@@ -54,6 +54,8 @@ public abstract class BaseCardGameEntity : BaseVehicle
 
 	public EntityRef PotInstance;
 
+	private bool storageLinked;
+
 	public int ScrapItemID => scrapItemDef.itemid;
 
 	public CardGameController GameController
@@ -326,7 +328,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 		base.Save(info);
 		info.msg.cardGame = Facepunch.Pool.Get<CardGame>();
 		info.msg.cardGame.potRef = PotInstance.uid;
-		if (!info.forDisk && hasSpawnedSubEnts)
+		if (!info.forDisk && storageLinked)
 		{
 			GameController.Save(info.msg.cardGame);
 		}
@@ -344,6 +346,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 				num++;
 			}
 		}
+		storageLinked = true;
 		StorageContainer pot = GetPot();
 		if (pot != null)
 		{
@@ -476,6 +479,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 				cardGamePlayerStorage.SetParent(this);
 				cardGamePlayerStorage.Spawn();
 				playerStorageInfo.storageInstance.Set(baseEntity);
+				storageLinked = true;
 			}
 			else
 			{
