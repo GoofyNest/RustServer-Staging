@@ -6350,29 +6350,29 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		return -1;
 	}
 
-	public uint GetIdealContainer(BasePlayer player, Item item)
+	public uint GetIdealContainer(BasePlayer looter, Item item)
 	{
-		bool flag = player.inventory.loot.containers.Count > 0;
+		bool flag = inventory.loot.containers.Count > 0;
 		ItemContainer parent = item.parent;
-		if (item.info.isWearable && (item.parent == player.inventory.containerBelt || item.parent == player.inventory.containerMain) && !flag)
+		if (item.info.isWearable && (item.parent == inventory.containerBelt || item.parent == inventory.containerMain) && !flag)
 		{
-			return player.inventory.containerWear.uid;
+			return inventory.containerWear.uid;
 		}
-		if (parent == player.inventory.containerMain)
+		if (parent == inventory.containerMain)
 		{
 			if (flag)
 			{
 				return 0u;
 			}
-			return player.inventory.containerBelt.uid;
+			return inventory.containerBelt.uid;
 		}
-		if (parent == player.inventory.containerWear)
+		if (parent == inventory.containerWear)
 		{
-			return player.inventory.containerMain.uid;
+			return inventory.containerMain.uid;
 		}
-		if (parent == player.inventory.containerBelt)
+		if (parent == inventory.containerBelt)
 		{
-			return player.inventory.containerMain.uid;
+			return inventory.containerMain.uid;
 		}
 		return 0u;
 	}
