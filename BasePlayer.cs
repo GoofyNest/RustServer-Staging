@@ -6149,6 +6149,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	{
 		string text = msg.read.String();
 		string text2 = msg.read.StringRaw();
+		ClientPerformanceReport clientPerformanceReport = JsonConvert.DeserializeObject<ClientPerformanceReport>(text2);
+		if (clientPerformanceReport.user_id != UserIDString)
+		{
+			DebugEx.Log($"Client performance report from {this} has incorrect user_id ({UserIDString})");
+			return;
+		}
 		switch (text)
 		{
 		case "json":
@@ -6156,7 +6162,6 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			break;
 		case "legacy":
 		{
-			ClientPerformanceReport clientPerformanceReport = JsonConvert.DeserializeObject<ClientPerformanceReport>(text2);
 			string text3 = (clientPerformanceReport.memory_managed_heap + "MB").PadRight(9);
 			string text4 = (clientPerformanceReport.memory_system + "MB").PadRight(9);
 			string text5 = (clientPerformanceReport.fps.ToString("0") + "FPS").PadRight(8);
@@ -6166,6 +6171,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			DebugEx.Log(text3 + text4 + text5 + text6 + text8 + text7 + displayName);
 			break;
 		}
+		case "rcon":
+			RCon.Broadcast(RCon.LogType.ClientPerf, text2);
+			break;
 		default:
 			Debug.LogError("Unknown PerformanceReport format '" + text + "'");
 			break;

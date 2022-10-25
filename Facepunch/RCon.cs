@@ -34,7 +34,8 @@ public class RCon
 		Error,
 		Warning,
 		Chat,
-		Report
+		Report,
+		ClientPerf
 	}
 
 	public struct Response
@@ -444,9 +445,18 @@ public class RCon
 	{
 		if (listenerNew != null)
 		{
+			string message = JsonConvert.SerializeObject(obj, Formatting.Indented);
+			Broadcast(type, message);
+		}
+	}
+
+	public static void Broadcast(LogType type, string message)
+	{
+		if (listenerNew != null && !string.IsNullOrWhiteSpace(message))
+		{
 			Response response = default(Response);
 			response.Identifier = -1;
-			response.Message = JsonConvert.SerializeObject(obj, Formatting.Indented);
+			response.Message = message;
 			response.Type = type;
 			if (responseConnection < 0)
 			{
