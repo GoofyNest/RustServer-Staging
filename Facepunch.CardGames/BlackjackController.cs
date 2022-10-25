@@ -228,12 +228,11 @@ public class BlackjackController : CardGameController
 
 	private bool CanDoubleDown(CardPlayerData pData)
 	{
-		if (HasSplit(pData))
+		if (pData.Cards.Count != 2)
 		{
 			return false;
 		}
-		int cardsValue = GetCardsValue(pData.Cards, CardsValueMode.Low);
-		if (cardsValue < 9 || cardsValue > 11)
+		if (HasSplit(pData))
 		{
 			return false;
 		}
@@ -350,7 +349,10 @@ public class BlackjackController : CardGameController
 			blackjackInputOption |= BlackjackInputOption.Stand;
 			blackjackInputOption |= BlackjackInputOption.Hit;
 			CanSplit(playerData);
-			CanDoubleDown(playerData);
+			if (CanDoubleDown(playerData))
+			{
+				blackjackInputOption |= BlackjackInputOption.DoubleDown;
+			}
 			if (CanTakeInsurance(playerData))
 			{
 				blackjackInputOption |= BlackjackInputOption.Insurance;

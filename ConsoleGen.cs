@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[876]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[881]
 	{
 		new ConsoleSystem.Command
 		{
@@ -9237,6 +9237,66 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				vehicle.fixcars(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "killboats",
+			Parent = "vehicle",
+			FullName = "vehicle.killboats",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				vehicle.killboats(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "killcars",
+			Parent = "vehicle",
+			FullName = "vehicle.killcars",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				vehicle.killcars(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "killminis",
+			Parent = "vehicle",
+			FullName = "vehicle.killminis",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				vehicle.killminis(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "killscraphelis",
+			Parent = "vehicle",
+			FullName = "vehicle.killscraphelis",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				vehicle.killscraphelis(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "killtrains",
+			Parent = "vehicle",
+			FullName = "vehicle.killtrains",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				vehicle.killtrains(arg);
 			}
 		},
 		new ConsoleSystem.Command
