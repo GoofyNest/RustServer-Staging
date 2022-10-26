@@ -25,7 +25,4 @@ public class HLODBounds : MonoBehaviour, IEditorComponent
 	public RendererLOD DebugComponent;
 
 	public bool ShowTrimSettings;
-
-	[Tooltip("Set to true to skip HLOD generation, useful when iterating on scenes during dev")]
-	public bool SkipGeneration;
 }
