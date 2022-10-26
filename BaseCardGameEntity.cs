@@ -5,6 +5,7 @@ using Facepunch;
 using Facepunch.CardGames;
 using Network;
 using ProtoBuf;
+using Rust;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -81,7 +82,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 2395020190u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_Editor_MakeRandomMove "));
 				}
@@ -117,7 +118,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 1608700874 && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_Editor_SpawnTestPlayer "));
 				}
@@ -153,7 +154,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 1499640189 && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_LeaveTable "));
 				}
@@ -189,7 +190,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 331989034 && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_OpenLoot "));
 				}
@@ -225,7 +226,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 2847205856u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_Play "));
 				}
@@ -261,7 +262,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			if (rpc == 2495306863u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
-				if (Global.developer > 2)
+				if (ConVar.Global.developer > 2)
 				{
 					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_PlayerInput "));
 				}
@@ -347,10 +348,39 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			}
 		}
 		storageLinked = true;
+		bool flag = true;
 		StorageContainer pot = GetPot();
-		if (pot != null)
+		if (pot == null)
+		{
+			flag = false;
+		}
+		else
 		{
 			pot.DropItems();
+		}
+		if (flag)
+		{
+			PlayerStorageInfo[] array = playerStoragePoints;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (!array[i].storageInstance.IsValid(base.isServer))
+				{
+					flag = false;
+					break;
+				}
+			}
+		}
+		if (!flag)
+		{
+			BaseEntity baseEntity = GetParentEntity();
+			if (baseEntity != null)
+			{
+				baseEntity.Invoke(baseEntity.KillMessage, 0f);
+			}
+			else
+			{
+				Invoke(base.KillMessage, 0f);
+			}
 		}
 	}
 
@@ -377,10 +407,13 @@ public abstract class BaseCardGameEntity : BaseVehicle
 	public override void PrePlayerDismount(BasePlayer player, BaseMountable seat)
 	{
 		base.PrePlayerDismount(player, seat);
-		CardGamePlayerStorage playerStorage = GetPlayerStorage(player.userID);
-		if (playerStorage != null)
+		if (!Rust.Application.isLoadingSave)
 		{
-			playerStorage.inventory.GetSlot(0)?.MoveToContainer(player.inventory.containerMain, -1, allowStack: true, ignoreStackLimit: true);
+			CardGamePlayerStorage playerStorage = GetPlayerStorage(player.userID);
+			if (playerStorage != null)
+			{
+				playerStorage.inventory.GetSlot(0)?.MoveToContainer(player.inventory.containerMain, -1, allowStack: true, ignoreStackLimit: true);
+			}
 		}
 	}
 
