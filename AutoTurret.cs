@@ -540,6 +540,7 @@ public class AutoTurret : ContainerIOEntity, IRemoteControllable
 		{
 			SetFlag(Flags.On, online);
 			booting = false;
+			GetAttachedWeapon()?.SetLightsOn(online);
 			SendNetworkUpdate();
 			if (IsOffline())
 			{
