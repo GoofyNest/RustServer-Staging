@@ -6360,8 +6360,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public uint GetIdealContainer(BasePlayer looter, Item item)
 	{
-		bool flag = inventory.loot.containers.Count > 0;
+		bool flag = looter.inventory.loot.containers.Count > 0;
 		ItemContainer parent = item.parent;
+		Item activeItem = looter.GetActiveItem();
+		if (activeItem != null && !flag && activeItem.contents != null && activeItem.contents != item.parent && activeItem.contents.capacity > 0 && activeItem.contents.CanAcceptItem(item, -1) == ItemContainer.CanAcceptResult.CanAccept)
+		{
+			return activeItem.contents.uid;
+		}
 		if (item.info.isWearable && (item.parent == inventory.containerBelt || item.parent == inventory.containerMain) && !flag)
 		{
 			return inventory.containerWear.uid;

@@ -885,6 +885,17 @@ public sealed class ItemContainer
 		{
 			return CanAcceptResult.CannotAccept;
 		}
+		if (isServer && availableSlots != null && availableSlots.Count > 0)
+		{
+			if (item.info.occupySlots == (ItemSlot)0)
+			{
+				return CanAcceptResult.CannotAccept;
+			}
+			if (item.isBroken)
+			{
+				return CanAcceptResult.CannotAccept;
+			}
+		}
 		if ((allowedContents & item.info.itemType) != item.info.itemType)
 		{
 			return CanAcceptResult.CannotAccept;
@@ -903,35 +914,6 @@ public sealed class ItemContainer
 			if (!flag)
 			{
 				return CanAcceptResult.CannotAccept;
-			}
-		}
-		if (availableSlots != null && availableSlots.Count > 0)
-		{
-			if (item.info.occupySlots == (ItemSlot)0 || item.info.occupySlots == ItemSlot.None)
-			{
-				return CanAcceptResult.CannotAccept;
-			}
-			int[] array = new int[32];
-			foreach (ItemSlot availableSlot in availableSlots)
-			{
-				array[(int)Mathf.Log((float)availableSlot, 2f)]++;
-			}
-			foreach (Item item2 in itemList)
-			{
-				for (int j = 0; j < 32; j++)
-				{
-					if (((uint)item2.info.occupySlots & (uint)(1 << j)) != 0)
-					{
-						array[j]--;
-					}
-				}
-			}
-			for (int k = 0; k < 32; k++)
-			{
-				if (((uint)item.info.occupySlots & (uint)(1 << k)) != 0 && array[k] <= 0)
-				{
-					return CanAcceptResult.CannotAcceptRightNow;
-				}
 			}
 		}
 		return CanAcceptResult.CanAccept;
