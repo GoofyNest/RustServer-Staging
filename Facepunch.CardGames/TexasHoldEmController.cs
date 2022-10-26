@@ -446,7 +446,7 @@ public class TexasHoldEmController : CardGameController
 			case 2:
 			{
 				int currentBet = GetCurrentBet();
-				int num = (LastActionValue = AddToPot(playerData, currentBet - playerData.betThisTurn));
+				int num = (LastActionValue = TryAddBet(playerData, currentBet - playerData.betThisTurn));
 				break;
 			}
 			case 16:
@@ -458,7 +458,7 @@ public class TexasHoldEmController : CardGameController
 				{
 					value = currentBet + biggestRaiseThisTurn - playerData.betThisTurn;
 				}
-				int num = AddToPot(playerData, value);
+				int num = TryAddBet(playerData, value);
 				BiggestRaiseThisTurn = Mathf.Max(BiggestRaiseThisTurn, num - currentBet);
 				LastActionValue = num;
 				break;
@@ -466,7 +466,7 @@ public class TexasHoldEmController : CardGameController
 			case 4:
 			{
 				int currentBet = GetCurrentBet();
-				int num = AddAllToPot(playerData);
+				int num = GoAllIn(playerData);
 				BiggestRaiseThisTurn = Mathf.Max(BiggestRaiseThisTurn, num - currentBet);
 				LastActionValue = num;
 				break;

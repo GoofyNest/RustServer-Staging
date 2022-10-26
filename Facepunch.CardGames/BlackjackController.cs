@@ -457,6 +457,7 @@ public class BlackjackController : CardGameController
 				}
 			}
 		}
+		ClearPot();
 		base.Owner.ClientRPC(null, "OnResultsDeclared", base.resultInfo);
 	}
 
@@ -549,8 +550,8 @@ public class BlackjackController : CardGameController
 		}
 		case BlackjackInputOption.Insurance:
 		{
-			int betAmount = Mathf.FloorToInt((float)pData.betThisRound / 2f);
-			selectedMoveValue = TryMakeBet(pData, betAmount, BetType.Insurance);
+			int maxAmount = Mathf.FloorToInt((float)pData.betThisRound / 2f);
+			selectedMoveValue = TryMakeBet(pData, maxAmount, BetType.Insurance);
 			break;
 		}
 		case BlackjackInputOption.Abandon:
@@ -598,11 +599,9 @@ public class BlackjackController : CardGameController
 		}
 	}
 
-	private int TryMakeBet(CardPlayerData pData, int betAmount, BetType betType)
+	private int TryMakeBet(CardPlayerData pData, int maxAmount, BetType betType)
 	{
-		StorageContainer storage = pData.GetStorage();
-		List<Item> obj = Pool.GetList<Item>();
-		int num = storage.inventory.Take(obj, base.ScrapItemID, betAmount);
+		int num = TryMoveToPotStorage(pData, maxAmount);
 		switch (betType)
 		{
 		case BetType.Main:
@@ -616,11 +615,6 @@ public class BlackjackController : CardGameController
 			pData.sideBetBThisRound += num;
 			break;
 		}
-		foreach (Item item in obj)
-		{
-			item.Remove();
-		}
-		Pool.FreeList(ref obj);
 		return num;
 	}
 

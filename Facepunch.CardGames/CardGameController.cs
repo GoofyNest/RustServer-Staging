@@ -475,7 +475,23 @@ public abstract class CardGameController : IDisposable
 		Owner.SendNetworkUpdate();
 	}
 
-	protected int AddToPot(CardPlayerData playerData, int maxAmount)
+	protected int TryAddBet(CardPlayerData playerData, int maxAmount)
+	{
+		int num = TryMoveToPotStorage(playerData, maxAmount);
+		playerData.betThisRound += num;
+		playerData.betThisTurn += num;
+		return num;
+	}
+
+	protected int GoAllIn(CardPlayerData playerData)
+	{
+		int num = TryMoveToPotStorage(playerData, 999999);
+		playerData.betThisRound += num;
+		playerData.betThisTurn += num;
+		return num;
+	}
+
+	protected int TryMoveToPotStorage(CardPlayerData playerData, int maxAmount)
 	{
 		int num = 0;
 		StorageContainer storage = playerData.GetStorage();
@@ -500,14 +516,7 @@ public abstract class CardGameController : IDisposable
 		{
 			Debug.LogError(GetType().Name + ": TryAddToPot: Null storage.");
 		}
-		playerData.betThisRound += num;
-		playerData.betThisTurn += num;
 		return num;
-	}
-
-	protected int AddAllToPot(CardPlayerData playerData)
-	{
-		return AddToPot(playerData, 999999);
 	}
 
 	protected int PayOutFromPot(CardPlayerData playerData, int maxAmount)
@@ -541,6 +550,15 @@ public abstract class CardGameController : IDisposable
 	protected int PayOutAllFromPot(CardPlayerData playerData)
 	{
 		return PayOutFromPot(playerData, int.MaxValue);
+	}
+
+	protected void ClearPot()
+	{
+		StorageContainer pot = Owner.GetPot();
+		if (pot != null)
+		{
+			pot.inventory.Clear();
+		}
 	}
 
 	protected int RemoveScrapFromStorage(CardPlayerData data)
@@ -750,21 +768,36 @@ public abstract class CardGameController : IDisposable
 		{
 			SingletonComponent<InvokeHandler>.Instance.CancelInvoke(TimeoutTurn);
 		}
-		if (!HasGameInProgress)
+		CardPlayerData[] playerData;
+		if (HasGameInProgress)
 		{
-			return;
-		}
-		int maxAmount = GetScrapInPot() / NumPlayersInGame();
-		CardPlayerData[] playerData = PlayerData;
-		foreach (CardPlayerData cardPlayerData in playerData)
-		{
-			if (cardPlayerData.HasUserInGame)
+			playerData = PlayerData;
+			foreach (CardPlayerData cardPlayerData in playerData)
 			{
-				PayOutFromPot(cardPlayerData, maxAmount);
+				if (cardPlayerData.HasUserInGame)
+				{
+					PayOutFromPot(cardPlayerData, cardPlayerData.GetTotalBetThisRound());
+				}
 			}
-			if (cardPlayerData.HasUser)
+			if (GetScrapInPot() > 0)
 			{
-				RemoveScrapFromStorage(cardPlayerData);
+				int maxAmount = GetScrapInPot() / NumPlayersInGame();
+				playerData = PlayerData;
+				foreach (CardPlayerData cardPlayerData2 in playerData)
+				{
+					if (cardPlayerData2.HasUserInGame)
+					{
+						PayOutFromPot(cardPlayerData2, maxAmount);
+					}
+				}
+			}
+		}
+		playerData = PlayerData;
+		foreach (CardPlayerData cardPlayerData3 in playerData)
+		{
+			if (cardPlayerData3.HasUser)
+			{
+				RemoveScrapFromStorage(cardPlayerData3);
 			}
 		}
 	}

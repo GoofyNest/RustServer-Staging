@@ -350,7 +350,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 		StorageContainer pot = GetPot();
 		if (pot != null)
 		{
-			pot.inventory.Clear();
+			pot.DropItems();
 		}
 	}
 

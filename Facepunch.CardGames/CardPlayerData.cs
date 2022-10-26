@@ -98,6 +98,11 @@ public class CardPlayerData : IDisposable
 		return 0;
 	}
 
+	public int GetTotalBetThisRound()
+	{
+		return betThisRound + sideBetAThisRound + sideBetBThisRound;
+	}
+
 	public void SetHasCompletedTurn(bool hasActed)
 	{
 		hasCompletedTurn = hasActed;
