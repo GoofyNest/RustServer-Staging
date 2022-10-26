@@ -372,6 +372,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 		}
 		if (!flag)
 		{
+			Debug.LogWarning(GetType().Name + ": Card game storage didn't load in. Destroying the card game (and parent entity if there is one).");
 			BaseEntity baseEntity = GetParentEntity();
 			if (baseEntity != null)
 			{
