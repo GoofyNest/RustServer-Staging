@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[881]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[883]
 	{
 		new ConsoleSystem.Command
 		{
@@ -8303,6 +8303,40 @@ public class ConsoleGen
 				string rval3 = Server.readcfg(arg);
 				arg.ReplyWithObject(rval3);
 			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "replicatedworldseed",
+			Parent = "server",
+			FullName = "server.replicatedworldseed",
+			ServerAdmin = true,
+			ClientAdmin = true,
+			Client = true,
+			Replicated = true,
+			Variable = true,
+			GetOveride = () => Server.ReplicatedWorldSeed.ToString(),
+			SetOveride = delegate(string str)
+			{
+				Server.ReplicatedWorldSeed = str.ToInt();
+			},
+			Default = "0"
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "replicatedworldsize",
+			Parent = "server",
+			FullName = "server.replicatedworldsize",
+			ServerAdmin = true,
+			ClientAdmin = true,
+			Client = true,
+			Replicated = true,
+			Variable = true,
+			GetOveride = () => Server.ReplicatedWorldSize.ToString(),
+			SetOveride = delegate(string str)
+			{
+				Server.ReplicatedWorldSize = str.ToInt();
+			},
+			Default = "0"
 		},
 		new ConsoleSystem.Command
 		{
