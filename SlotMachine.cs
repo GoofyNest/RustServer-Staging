@@ -386,6 +386,10 @@ public class SlotMachine : BaseMountable
 				Analytics.Server.SlotMachineTransaction((int)PayoutSettings.SpinCost.amount * CurrentMultiplier, 0);
 			}
 		}
+		else
+		{
+			Debug.LogError($"Failed to process spin results: PayoutSettings != null {PayoutSettings != null} CurrentSpinPlayer.IsValid {CurrentSpinPlayer.IsValid()} CurrentSpinPlayer == mounted {CurrentSpinPlayer == _mounted}");
+		}
 		if (!flag)
 		{
 			SetFlag(Flags.Reserved2, b: false);

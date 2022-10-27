@@ -283,6 +283,11 @@ public class IOEntity : DecayEntity
 		return 1;
 	}
 
+	public virtual bool ShouldDrainBattery(IOEntity battery)
+	{
+		return ioType == battery.ioType;
+	}
+
 	public virtual int MaximalPowerOutput()
 	{
 		return 0;
