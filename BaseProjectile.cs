@@ -241,6 +241,8 @@ public class BaseProjectile : AttackEntity
 	[NonSerialized]
 	public bool aiming;
 
+	public bool isBurstWeapon;
+
 	public float resetDuration = 0.3f;
 
 	public int numShotsFired;
