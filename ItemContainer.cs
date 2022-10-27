@@ -887,7 +887,7 @@ public sealed class ItemContainer
 		}
 		if (isServer && availableSlots != null && availableSlots.Count > 0)
 		{
-			if (item.info.occupySlots == (ItemSlot)0)
+			if (item.info.occupySlots == (ItemSlot)0 || item.info.occupySlots == ItemSlot.None)
 			{
 				return CanAcceptResult.CannotAccept;
 			}
