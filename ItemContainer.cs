@@ -895,6 +895,15 @@ public sealed class ItemContainer
 			{
 				return CanAcceptResult.CannotAccept;
 			}
+			int num = 0;
+			foreach (ItemSlot availableSlot in availableSlots)
+			{
+				num |= (int)availableSlot;
+			}
+			if (((uint)num & (uint)item.info.occupySlots) != (uint)item.info.occupySlots)
+			{
+				return CanAcceptResult.CannotAcceptRightNow;
+			}
 		}
 		if ((allowedContents & item.info.itemType) != item.info.itemType)
 		{
