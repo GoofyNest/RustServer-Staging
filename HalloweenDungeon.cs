@@ -10,7 +10,7 @@ public class HalloweenDungeon : BasePortal
 	public EntityRef<ProceduralDynamicDungeon> dungeonInstance;
 
 	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
-	public static float population = 1f;
+	public static float population;
 
 	public float lifetime = 600f;
 
