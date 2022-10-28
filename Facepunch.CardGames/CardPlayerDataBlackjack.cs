@@ -53,11 +53,14 @@ public class CardPlayerDataBlackjack : CardPlayerData
 
 	public override void LeaveCurrentRound(bool clearBets, bool leftRoundEarly)
 	{
-		base.LeaveCurrentRound(clearBets, leftRoundEarly);
-		if (base.HasUserInCurrentRound && clearBets)
+		if (base.HasUserInCurrentRound)
 		{
-			splitBetThisRound = 0;
-			insuranceBetThisRound = 0;
+			if (clearBets)
+			{
+				splitBetThisRound = 0;
+				insuranceBetThisRound = 0;
+			}
+			base.LeaveCurrentRound(clearBets, leftRoundEarly);
 		}
 	}
 
