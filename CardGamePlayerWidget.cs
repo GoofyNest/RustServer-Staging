@@ -4,17 +4,8 @@ using UnityEngine.UI;
 
 public class CardGamePlayerWidget : MonoBehaviour
 {
-	private enum BetDisplayType
-	{
-		BetThisTurn,
-		BetThisRound
-	}
-
 	[SerializeField]
 	private GameObjectRef cardImageSmallPrefab;
-
-	[SerializeField]
-	private GameObjectRef cardImageSmallerPrefab;
 
 	[SerializeField]
 	private RawImage avatar;
@@ -26,7 +17,7 @@ public class CardGamePlayerWidget : MonoBehaviour
 	private RustText scrapTotal;
 
 	[SerializeField]
-	private RustText betTotal;
+	private RustText betText;
 
 	[SerializeField]
 	private Image background;
@@ -65,7 +56,7 @@ public class CardGamePlayerWidget : MonoBehaviour
 	private Transform cardDisplayParent;
 
 	[SerializeField]
-	private BetDisplayType betDisplayType;
+	private GridLayoutGroup cardDisplayGridLayout;
 
 	[SerializeField]
 	private GameObject circle;

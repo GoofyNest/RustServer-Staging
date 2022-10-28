@@ -29,6 +29,9 @@ public class BlackjackSmallScreenUI : FacepunchBehaviour
 	private RustText bankText;
 
 	[SerializeField]
+	private RustText splitText;
+
+	[SerializeField]
 	private Canvas infoTextCanvas;
 
 	[SerializeField]
@@ -72,4 +75,13 @@ public class BlackjackSmallScreenUI : FacepunchBehaviour
 
 	[SerializeField]
 	private Translate.Phrase phraseWaitingForPlayer;
+
+	[SerializeField]
+	private Translate.Phrase phraseSplitStored;
+
+	[SerializeField]
+	private Translate.Phrase phraseSplitActive;
+
+	[SerializeField]
+	private Translate.Phrase phraseHand;
 }

@@ -47,6 +47,9 @@ public class BlackjackUI : MonoBehaviour
 	private Translate.Phrase phraseDouble;
 
 	[SerializeField]
+	private Translate.Phrase phraseInsurance;
+
+	[SerializeField]
 	private Translate.Phrase phraseBust;
 
 	[SerializeField]
@@ -63,6 +66,9 @@ public class BlackjackUI : MonoBehaviour
 
 	[SerializeField]
 	private Translate.Phrase phraseWaitingForOtherPlayers;
+
+	[SerializeField]
+	private Translate.Phrase phraseHand;
 
 	[SerializeField]
 	private Sprite insuranceIcon;

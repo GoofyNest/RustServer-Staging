@@ -144,6 +144,15 @@ public class TexasHoldEmController : CardGameController
 		}
 	}
 
+	protected override CardPlayerData GetNewCardPlayerData(int mountIndex)
+	{
+		if (base.IsServer)
+		{
+			return new CardPlayerData(base.ScrapItemID, base.Owner.GetPlayerStorage, mountIndex, base.IsServer);
+		}
+		return new CardPlayerData(mountIndex, base.IsServer);
+	}
+
 	public override void Save(CardGame syncData)
 	{
 		base.Save(syncData);

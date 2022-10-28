@@ -413,7 +413,7 @@ public abstract class BaseCardGameEntity : BaseVehicle
 			CardGamePlayerStorage playerStorage = GetPlayerStorage(player.userID);
 			if (playerStorage != null)
 			{
-				playerStorage.inventory.GetSlot(0)?.MoveToContainer(player.inventory.containerMain, -1, allowStack: true, ignoreStackLimit: true);
+				playerStorage.inventory.GetSlot(0)?.MoveToContainer(player.inventory.containerMain);
 			}
 		}
 	}

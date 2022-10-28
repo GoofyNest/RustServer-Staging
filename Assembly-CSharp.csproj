@@ -141,6 +141,9 @@
     <Reference Include="UnityEngine.DirectorModule">
       <HintPath>UnityEngine.DirectorModule.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>Unity.Timeline.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VideoModule">
       <HintPath>UnityEngine.VideoModule.dll</HintPath>
     </Reference>

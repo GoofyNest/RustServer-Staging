@@ -23,7 +23,7 @@ public class BlackjackController : CardGameController
 
 	public enum BlackjackRoundResult
 	{
-		NotInRound,
+		None,
 		Bust,
 		Loss,
 		Standoff,
@@ -196,7 +196,7 @@ public class BlackjackController : CardGameController
 		return GetCardsValue(cards, CardsValueMode.Low) > 21;
 	}
 
-	private bool CanSplit(CardPlayerData pData)
+	private bool CanSplit(CardPlayerDataBlackjack pData)
 	{
 		if (pData.Cards.Count != 2)
 		{
@@ -226,7 +226,7 @@ public class BlackjackController : CardGameController
 		return false;
 	}
 
-	private bool CanDoubleDown(CardPlayerData pData)
+	private bool CanDoubleDown(CardPlayerDataBlackjack pData)
 	{
 		if (pData.Cards.Count != 2)
 		{
@@ -244,7 +244,7 @@ public class BlackjackController : CardGameController
 		return pData.GetScrapAmount() >= betThisRound;
 	}
 
-	private bool CanTakeInsurance(CardPlayerData pData)
+	private bool CanTakeInsurance(CardPlayerDataBlackjack pData)
 	{
 		if (dealerCards.Count != 2)
 		{
@@ -254,7 +254,7 @@ public class BlackjackController : CardGameController
 		{
 			return false;
 		}
-		if (pData.sideBetBThisRound > 0)
+		if (pData.insuranceBetThisRound > 0)
 		{
 			return false;
 		}
@@ -262,14 +262,41 @@ public class BlackjackController : CardGameController
 		return pData.GetScrapAmount() >= num;
 	}
 
-	private bool HasSplit(CardPlayerData pData)
+	private bool HasSplit(CardPlayerDataBlackjack pData)
 	{
-		return pData.PocketCards.Count > 0;
+		return pData.SplitCards.Count > 0;
+	}
+
+	protected override CardPlayerData GetNewCardPlayerData(int mountIndex)
+	{
+		if (base.IsServer)
+		{
+			return new CardPlayerDataBlackjack(base.ScrapItemID, base.Owner.GetPlayerStorage, mountIndex, base.IsServer);
+		}
+		return new CardPlayerDataBlackjack(mountIndex, base.IsServer);
+	}
+
+	public bool TryGetCardPlayerDataBlackjack(int index, out CardPlayerDataBlackjack cpBlackjack)
+	{
+		CardPlayerData cardPlayer;
+		bool result = TryGetCardPlayerData(index, out cardPlayer);
+		cpBlackjack = (CardPlayerDataBlackjack)cardPlayer;
+		return result;
+	}
+
+	public int ResultsToInt(BlackjackRoundResult mainResult, BlackjackRoundResult splitResult)
+	{
+		return (int)(mainResult + 10 * (int)splitResult);
+	}
+
+	public void ResultsFromInt(int result, out BlackjackRoundResult mainResult, out BlackjackRoundResult splitResult)
+	{
+		mainResult = (BlackjackRoundResult)(result % 10);
+		splitResult = (BlackjackRoundResult)(result / 10 % 10);
 	}
 
 	public override void Save(CardGame syncData)
 	{
-		base.Save(syncData);
 		syncData.blackjack = Pool.Get<CardGame.Blackjack>();
 		syncData.blackjack.dealerCards = Pool.GetList<int>();
 		syncData.lastActionId = (int)LastAction;
@@ -287,13 +314,14 @@ public class BlackjackController : CardGameController
 				syncData.blackjack.dealerCards.Add(playingCard.GetIndex());
 			}
 		}
+		base.Save(syncData);
 		ClearLastAction();
 	}
 
-	private void EditorMakeRandomMove(CardPlayerData data)
+	private void EditorMakeRandomMove(CardPlayerDataBlackjack pdBlackjack)
 	{
 		List<BlackjackInputOption> obj = Pool.GetList<BlackjackInputOption>();
-		InputsToList(data.availableInputs, obj);
+		InputsToList(pdBlackjack.availableInputs, obj);
 		if (obj.Count == 0)
 		{
 			Debug.Log("No moves currently available.");
@@ -303,7 +331,7 @@ public class BlackjackController : CardGameController
 		BlackjackInputOption blackjackInputOption = obj[UnityEngine.Random.Range(0, obj.Count)];
 		if (AllBetsPlaced)
 		{
-			if (GetOptimalCardsValue(data.Cards) < 17 && obj.Contains(BlackjackInputOption.Hit))
+			if (GetOptimalCardsValue(pdBlackjack.Cards) < 17 && obj.Contains(BlackjackInputOption.Hit))
 			{
 				blackjackInputOption = BlackjackInputOption.Hit;
 			}
@@ -323,8 +351,8 @@ public class BlackjackController : CardGameController
 			{
 				num = MinBuyIn;
 			}
-			Debug.Log(string.Concat(data.UserID, " Taking random action: ", blackjackInputOption, " with value ", num));
-			ReceivedInputFromPlayer(data, (int)blackjackInputOption, countAsAction: true, num);
+			Debug.Log(string.Concat(pdBlackjack.UserID, " Taking random action: ", blackjackInputOption, " with value ", num));
+			ReceivedInputFromPlayer(pdBlackjack, (int)blackjackInputOption, countAsAction: true, num);
 		}
 		else
 		{
@@ -333,10 +361,11 @@ public class BlackjackController : CardGameController
 		Pool.FreeList(ref obj);
 	}
 
-	protected override int GetAvailableInputsForPlayer(CardPlayerData playerData)
+	protected override int GetAvailableInputsForPlayer(CardPlayerData pData)
 	{
 		BlackjackInputOption blackjackInputOption = BlackjackInputOption.None;
-		if (playerData == null || isWaitingBetweenTurns || playerData.hasCompletedTurn || !playerData.HasUserInGame)
+		CardPlayerDataBlackjack cardPlayerDataBlackjack = (CardPlayerDataBlackjack)pData;
+		if (cardPlayerDataBlackjack == null || isWaitingBetweenTurns || cardPlayerDataBlackjack.hasCompletedTurn || !cardPlayerDataBlackjack.HasUserInGame)
 		{
 			return (int)blackjackInputOption;
 		}
@@ -348,12 +377,15 @@ public class BlackjackController : CardGameController
 		{
 			blackjackInputOption |= BlackjackInputOption.Stand;
 			blackjackInputOption |= BlackjackInputOption.Hit;
-			CanSplit(playerData);
-			if (CanDoubleDown(playerData))
+			if (CanSplit(cardPlayerDataBlackjack))
+			{
+				blackjackInputOption |= BlackjackInputOption.Split;
+			}
+			if (CanDoubleDown(cardPlayerDataBlackjack))
 			{
 				blackjackInputOption |= BlackjackInputOption.DoubleDown;
 			}
-			if (CanTakeInsurance(playerData))
+			if (CanTakeInsurance(cardPlayerDataBlackjack))
 			{
 				blackjackInputOption |= BlackjackInputOption.Insurance;
 			}
@@ -385,84 +417,86 @@ public class BlackjackController : CardGameController
 			return;
 		}
 		bool dealerHasBlackjack = HasBlackjack(dealerCards);
-		if (dealerHasBlackjack)
+		foreach (CardPlayerDataBlackjack item in PlayersInRound())
 		{
-			foreach (CardPlayerData item in PlayersInRound())
+			int num = 0;
+			int winnings2;
+			BlackjackRoundResult mainResult = CheckResult(item.Cards, item.betThisRound, out winnings2);
+			num += winnings2;
+			BlackjackRoundResult splitResult = CheckResult(item.SplitCards, item.splitBetThisRound, out winnings2);
+			num += winnings2;
+			int resultCode = ResultsToInt(mainResult, splitResult);
+			int num2 = item.betThisRound + item.splitBetThisRound + item.insuranceBetThisRound;
+			AddRoundResult(item, num - num2, resultCode);
+			if (dealerHasBlackjack && item.insuranceBetThisRound > 0)
 			{
-				if (item.sideBetBThisRound > 0)
-				{
-					int amount = Mathf.FloorToInt((float)item.sideBetBThisRound * 2f);
-					item.GetStorage().inventory.AddItem(base.Owner.scrapItemDef, amount, 0uL);
-				}
+				int num3 = Mathf.FloorToInt((float)item.insuranceBetThisRound * 2f);
+				num += num3;
 			}
-		}
-		foreach (CardPlayerData item2 in PlayersInRound())
-		{
-			CardPlayerData pData = item2;
-			CheckResult(pData.Cards, pData.betThisRound);
-			CheckResult(pData.PocketCards, pData.sideBetAThisRound);
-			void CheckResult(List<PlayingCard> cards, int betAmount)
-			{
-				int optimalCardsValue = GetOptimalCardsValue(cards);
-				if (optimalCardsValue > 21)
-				{
-					AddRoundResult(pData, 0, 1);
-				}
-				else
-				{
-					if (optimalCardsValue > base.resultInfo.winningScore)
-					{
-						base.resultInfo.winningScore = optimalCardsValue;
-					}
-					BlackjackRoundResult blackjackRoundResult = BlackjackRoundResult.Loss;
-					bool flag = HasBlackjack(cards);
-					if (dealerHasBlackjack)
-					{
-						if (flag)
-						{
-							blackjackRoundResult = BlackjackRoundResult.Standoff;
-						}
-					}
-					else if (optimalCardsValue > dealerCardsVal)
-					{
-						blackjackRoundResult = (flag ? BlackjackRoundResult.BlackjackWin : BlackjackRoundResult.Win);
-					}
-					else if (optimalCardsValue == dealerCardsVal)
-					{
-						blackjackRoundResult = ((!flag) ? BlackjackRoundResult.Standoff : BlackjackRoundResult.BlackjackWin);
-					}
-					if (blackjackRoundResult == BlackjackRoundResult.BlackjackWin)
-					{
-						int winnings = Mathf.FloorToInt((float)betAmount * 2.5f);
-						PayOut(pData, winnings);
-						AddRoundResult(pData, winnings, (int)blackjackRoundResult);
-					}
-					switch (blackjackRoundResult)
-					{
-					case BlackjackRoundResult.Win:
-					{
-						int winnings2 = Mathf.FloorToInt((float)betAmount * 2f);
-						PayOut(pData, winnings2);
-						AddRoundResult(pData, winnings2, (int)blackjackRoundResult);
-						break;
-					}
-					case BlackjackRoundResult.Standoff:
-						PayOut(pData, betAmount);
-						AddRoundResult(pData, betAmount, (int)blackjackRoundResult);
-						break;
-					default:
-						AddRoundResult(pData, 0, (int)blackjackRoundResult);
-						break;
-					}
-				}
-			}
+			PayOut(item, num);
 		}
 		ClearPot();
 		base.Owner.ClientRPC(null, "OnResultsDeclared", base.resultInfo);
+		BlackjackRoundResult CheckResult(List<PlayingCard> cards, int betAmount, out int winnings)
+		{
+			if (cards.Count == 0)
+			{
+				winnings = 0;
+				return BlackjackRoundResult.None;
+			}
+			int optimalCardsValue = GetOptimalCardsValue(cards);
+			if (optimalCardsValue > 21)
+			{
+				winnings = 0;
+				return BlackjackRoundResult.Bust;
+			}
+			if (optimalCardsValue > base.resultInfo.winningScore)
+			{
+				base.resultInfo.winningScore = optimalCardsValue;
+			}
+			BlackjackRoundResult blackjackRoundResult = BlackjackRoundResult.Loss;
+			bool flag = HasBlackjack(cards);
+			if (dealerHasBlackjack)
+			{
+				if (flag)
+				{
+					blackjackRoundResult = BlackjackRoundResult.Standoff;
+				}
+			}
+			else if (optimalCardsValue > dealerCardsVal)
+			{
+				blackjackRoundResult = (flag ? BlackjackRoundResult.BlackjackWin : BlackjackRoundResult.Win);
+			}
+			else if (optimalCardsValue == dealerCardsVal)
+			{
+				blackjackRoundResult = ((!flag) ? BlackjackRoundResult.Standoff : BlackjackRoundResult.BlackjackWin);
+			}
+			if (blackjackRoundResult == BlackjackRoundResult.BlackjackWin)
+			{
+				winnings = Mathf.FloorToInt((float)betAmount * 2.5f);
+			}
+			switch (blackjackRoundResult)
+			{
+			case BlackjackRoundResult.Win:
+				winnings = Mathf.FloorToInt((float)betAmount * 2f);
+				break;
+			case BlackjackRoundResult.Standoff:
+				winnings = betAmount;
+				break;
+			default:
+				winnings = 0;
+				break;
+			}
+			return blackjackRoundResult;
+		}
 	}
 
 	private int PayOut(CardPlayerData pData, int winnings)
 	{
+		if (winnings == 0)
+		{
+			return 0;
+		}
 		StorageContainer storage = pData.GetStorage();
 		if (storage == null)
 		{
@@ -472,21 +506,22 @@ public class BlackjackController : CardGameController
 		return winnings;
 	}
 
-	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData playerData, CardPlayerData activePlayer)
+	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData pData, CardPlayerData activePlayer)
 	{
 		ReceivedInputFromPlayer(activePlayer, 128, countAsAction: true, 0, playerInitiated: false);
 	}
 
-	protected override void SubReceivedInputFromPlayer(CardPlayerData playerData, int input, int value, bool countAsAction)
+	protected override void SubReceivedInputFromPlayer(CardPlayerData pData, int input, int value, bool countAsAction)
 	{
 		if (!Enum.IsDefined(typeof(BlackjackInputOption), input))
 		{
 			return;
 		}
 		BlackjackInputOption selectedMove = (BlackjackInputOption)input;
+		CardPlayerDataBlackjack pdBlackjack = (CardPlayerDataBlackjack)pData;
 		if (!base.HasRoundInProgress)
 		{
-			LastActionTarget = playerData.UserID;
+			LastActionTarget = pData.UserID;
 			LastAction = selectedMove;
 			LastActionValue = 0;
 			return;
@@ -494,13 +529,13 @@ public class BlackjackController : CardGameController
 		int selectedMoveValue = 0;
 		if (AllBetsPlaced)
 		{
-			DoInRoundPlayerInput(playerData, ref selectedMove, ref selectedMoveValue);
+			DoInRoundPlayerInput(pdBlackjack, ref selectedMove, ref selectedMoveValue);
 		}
 		else
 		{
-			DoBettingPhasePlayerInput(playerData, value, countAsAction, ref selectedMove, ref selectedMoveValue);
+			DoBettingPhasePlayerInput(pdBlackjack, value, countAsAction, ref selectedMove, ref selectedMoveValue);
 		}
-		LastActionTarget = playerData.UserID;
+		LastActionTarget = pData.UserID;
 		LastAction = selectedMove;
 		LastActionValue = selectedMoveValue;
 		if (ShouldEndCycle())
@@ -512,9 +547,9 @@ public class BlackjackController : CardGameController
 		base.Owner.SendNetworkUpdate();
 	}
 
-	private void DoInRoundPlayerInput(CardPlayerData pData, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
+	private void DoInRoundPlayerInput(CardPlayerDataBlackjack pdBlackjack, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (((uint)pData.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
 		{
 			return;
 		}
@@ -523,96 +558,102 @@ public class BlackjackController : CardGameController
 		case BlackjackInputOption.Hit:
 		{
 			cardStack.TryTakeCard(out var card3);
-			pData.Cards.Add(card3);
+			pdBlackjack.Cards.Add(card3);
 			break;
 		}
 		case BlackjackInputOption.Stand:
-			pData.SetHasCompletedTurn(hasActed: true);
+			if (!pdBlackjack.TrySwitchToSplitHand())
+			{
+				pdBlackjack.SetHasCompletedTurn(hasActed: true);
+			}
 			break;
 		case BlackjackInputOption.Split:
 		{
-			PlayingCard item = pData.Cards[1];
-			pData.PocketCards.Add(item);
-			pData.Cards.Remove(item);
+			PlayingCard playingCard = pdBlackjack.Cards[1];
+			bool num = playingCard.Rank == Rank.Ace;
+			pdBlackjack.SplitCards.Add(playingCard);
+			pdBlackjack.Cards.Remove(playingCard);
 			cardStack.TryTakeCard(out var card2);
-			pData.Cards.Add(card2);
+			pdBlackjack.Cards.Add(card2);
 			cardStack.TryTakeCard(out card2);
-			pData.PocketCards.Add(card2);
-			selectedMoveValue = TryMakeBet(pData, pData.betThisRound, BetType.Split);
+			pdBlackjack.SplitCards.Add(card2);
+			selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Split);
+			if (num)
+			{
+				pdBlackjack.SetHasCompletedTurn(hasActed: true);
+			}
 			break;
 		}
 		case BlackjackInputOption.DoubleDown:
 		{
-			selectedMoveValue = TryMakeBet(pData, pData.betThisRound, BetType.Main);
+			selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Main);
 			cardStack.TryTakeCard(out var card);
-			pData.Cards.Add(card);
+			pdBlackjack.Cards.Add(card);
 			break;
 		}
 		case BlackjackInputOption.Insurance:
 		{
-			int maxAmount = Mathf.FloorToInt((float)pData.betThisRound / 2f);
-			selectedMoveValue = TryMakeBet(pData, maxAmount, BetType.Insurance);
+			int maxAmount = Mathf.FloorToInt((float)pdBlackjack.betThisRound / 2f);
+			selectedMoveValue = TryMakeBet(pdBlackjack, maxAmount, BetType.Insurance);
 			break;
 		}
 		case BlackjackInputOption.Abandon:
-			pData.LeaveCurrentRound(clearBets: false, leftRoundEarly: true);
+			pdBlackjack.LeaveCurrentRound(clearBets: false, leftRoundEarly: true);
 			break;
 		}
 		if (NumPlayersInCurrentRound() == 0)
 		{
 			EndRound();
+			return;
 		}
-		else if (HasBusted(pData.Cards))
+		if (HasBusted(pdBlackjack.Cards) && !pdBlackjack.TrySwitchToSplitHand())
 		{
-			if (HasSplitCards(pData))
-			{
-				pData.MovePocketCardsToMain();
-			}
-			else
-			{
-				pData.SetHasCompletedTurn(hasActed: true);
-			}
+			pdBlackjack.SetHasCompletedTurn(hasActed: true);
+		}
+		if (Has21(pdBlackjack.Cards) && !CanTakeInsurance(pdBlackjack) && !CanDoubleDown(pdBlackjack) && !CanSplit(pdBlackjack))
+		{
+			pdBlackjack.SetHasCompletedTurn(hasActed: true);
 		}
 	}
 
-	private void DoBettingPhasePlayerInput(CardPlayerData pData, int value, bool countAsAction, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
+	private void DoBettingPhasePlayerInput(CardPlayerDataBlackjack pdBlackjack, int value, bool countAsAction, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (((uint)pData.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
 		{
 			return;
 		}
 		if (selectedMove == BlackjackInputOption.SubmitBet)
 		{
-			selectedMoveValue = TryMakeBet(pData, value, BetType.Main);
+			selectedMoveValue = TryMakeBet(pdBlackjack, value, BetType.Main);
 			if (countAsAction)
 			{
-				pData.SetHasCompletedTurn(hasActed: true);
+				pdBlackjack.SetHasCompletedTurn(hasActed: true);
 			}
 		}
 		else if (selectedMove == BlackjackInputOption.AllIn)
 		{
-			selectedMoveValue = TryMakeBet(pData, 999999, BetType.Main);
+			selectedMoveValue = TryMakeBet(pdBlackjack, 999999, BetType.Main);
 			if (countAsAction)
 			{
-				pData.SetHasCompletedTurn(hasActed: true);
+				pdBlackjack.SetHasCompletedTurn(hasActed: true);
 			}
 		}
 	}
 
-	private int TryMakeBet(CardPlayerData pData, int maxAmount, BetType betType)
+	private int TryMakeBet(CardPlayerDataBlackjack pdBlackjack, int maxAmount, BetType betType)
 	{
-		int num = TryMoveToPotStorage(pData, maxAmount);
+		int num = TryMoveToPotStorage(pdBlackjack, maxAmount);
 		switch (betType)
 		{
 		case BetType.Main:
-			pData.betThisTurn += num;
-			pData.betThisRound += num;
+			pdBlackjack.betThisTurn += num;
+			pdBlackjack.betThisRound += num;
 			break;
 		case BetType.Split:
-			pData.sideBetAThisRound += num;
+			pdBlackjack.splitBetThisRound += num;
 			break;
 		case BetType.Insurance:
-			pData.sideBetBThisRound += num;
+			pdBlackjack.insuranceBetThisRound += num;
 			break;
 		}
 		return num;
@@ -624,7 +665,7 @@ public class BlackjackController : CardGameController
 		cardStack = new StackOfCards(6);
 		ClearLastAction();
 		ServerPlaySound(CardGameSounds.SoundType.Shuffle);
-		foreach (CardPlayerData item in PlayersInRound())
+		foreach (CardPlayerDataBlackjack item in PlayersInRound())
 		{
 			item.EnableSendingCards();
 			item.availableInputs = GetAvailableInputsForPlayer(item);
@@ -636,7 +677,7 @@ public class BlackjackController : CardGameController
 	{
 		if (AllBetsPlaced)
 		{
-			foreach (CardPlayerData item in PlayersInRound())
+			foreach (CardPlayerDataBlackjack item in PlayersInRound())
 			{
 				if (!item.hasCompletedTurn)
 				{
@@ -686,7 +727,7 @@ public class BlackjackController : CardGameController
 		}
 		bool flag = true;
 		bool flag2 = true;
-		foreach (CardPlayerData item in PlayersInRound())
+		foreach (CardPlayerDataBlackjack item in PlayersInRound())
 		{
 			if (!HasBusted(item.Cards))
 			{
@@ -696,13 +737,13 @@ public class BlackjackController : CardGameController
 			{
 				flag2 = false;
 			}
-			if (item.PocketCards.Count > 0)
+			if (item.SplitCards.Count > 0)
 			{
-				if (!HasBusted(item.PocketCards))
+				if (!HasBusted(item.SplitCards))
 				{
 					flag = false;
 				}
-				if (!HasBlackjack(item.PocketCards))
+				if (!HasBlackjack(item.SplitCards))
 				{
 					flag2 = false;
 				}
@@ -722,11 +763,6 @@ public class BlackjackController : CardGameController
 		}
 		ServerPlaySound(CardGameSounds.SoundType.Draw);
 		EndRound();
-	}
-
-	private bool HasSplitCards(CardPlayerData playerData)
-	{
-		return playerData.PocketCards.Count > 0;
 	}
 
 	private void DealInitialCards()

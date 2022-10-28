@@ -102,9 +102,11 @@ public class CardGameUI : UIDialog
 
 	public Translate.Phrase phraseChangeBetAmount;
 
-	public Translate.Phrase betPhrase;
+	public Translate.Phrase phraseBet;
 
-	public Translate.Phrase allInPhrase;
+	public Translate.Phrase phraseBetAdd;
+
+	public Translate.Phrase phraseAllIn;
 
 	public GameObject amountChangeRoot;
 

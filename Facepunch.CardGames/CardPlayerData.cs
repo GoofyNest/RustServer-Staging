@@ -17,8 +17,6 @@ public class CardPlayerData : IDisposable
 
 	public List<PlayingCard> Cards;
 
-	public List<PlayingCard> PocketCards;
-
 	public readonly int mountIndex;
 
 	private readonly bool isServer;
@@ -28,10 +26,6 @@ public class CardPlayerData : IDisposable
 	public int betThisRound;
 
 	public int betThisTurn;
-
-	public int sideBetAThisRound;
-
-	public int sideBetBThisRound;
 
 	public int finalScore;
 
@@ -68,7 +62,6 @@ public class CardPlayerData : IDisposable
 		this.isServer = isServer;
 		this.mountIndex = mountIndex;
 		Cards = Pool.GetList<PlayingCard>();
-		PocketCards = Pool.GetList<PlayingCard>();
 	}
 
 	public CardPlayerData(int scrapItemID, Func<int, StorageContainer> getStorage, int mountIndex, bool isServer)
@@ -78,10 +71,9 @@ public class CardPlayerData : IDisposable
 		this.getStorage = getStorage;
 	}
 
-	public void Dispose()
+	public virtual void Dispose()
 	{
 		Pool.FreeList(ref Cards);
-		Pool.FreeList(ref PocketCards);
 	}
 
 	public int GetScrapAmount()
@@ -98,9 +90,19 @@ public class CardPlayerData : IDisposable
 		return 0;
 	}
 
-	public int GetTotalBetThisRound()
+	public virtual int GetTotalBetThisRound()
 	{
-		return betThisRound + sideBetAThisRound + sideBetBThisRound;
+		return betThisRound;
+	}
+
+	public virtual List<PlayingCard> GetMainCards()
+	{
+		return Cards;
+	}
+
+	public virtual List<PlayingCard> GetSecondaryCards()
+	{
+		return null;
 	}
 
 	public void SetHasCompletedTurn(bool hasActed)
@@ -151,21 +153,18 @@ public class CardPlayerData : IDisposable
 		}
 	}
 
-	private void ClearPerRoundData()
+	protected virtual void ClearPerRoundData()
 	{
 		Cards.Clear();
-		PocketCards.Clear();
 		betThisRound = 0;
 		betThisTurn = 0;
-		sideBetAThisRound = 0;
-		sideBetBThisRound = 0;
 		finalScore = 0;
 		LeftRoundEarly = false;
 		hasCompletedTurn = false;
 		SendCardDetails = false;
 	}
 
-	public void LeaveCurrentRound(bool clearBets, bool leftRoundEarly)
+	public virtual void LeaveCurrentRound(bool clearBets, bool leftRoundEarly)
 	{
 		if (HasUserInCurrentRound)
 		{
@@ -176,20 +175,17 @@ public class CardPlayerData : IDisposable
 			{
 				betThisRound = 0;
 				betThisTurn = 0;
-				sideBetAThisRound = 0;
-				sideBetBThisRound = 0;
 			}
 			State = CardPlayerState.InGame;
 			LeftRoundEarly = leftRoundEarly;
 		}
 	}
 
-	public void LeaveGame()
+	public virtual void LeaveGame()
 	{
 		if (HasUserInGame)
 		{
 			Cards.Clear();
-			PocketCards.Clear();
 			availableInputs = 0;
 			finalScore = 0;
 			SendCardDetails = false;
@@ -208,13 +204,6 @@ public class CardPlayerData : IDisposable
 		return HandToString(Cards);
 	}
 
-	public void MovePocketCardsToMain()
-	{
-		Cards.Clear();
-		Cards.AddRange(PocketCards);
-		PocketCards.Clear();
-	}
-
 	public static string HandToString(List<PlayingCard> cards)
 	{
 		string text = string.Empty;
@@ -225,7 +214,7 @@ public class CardPlayerData : IDisposable
 		return text;
 	}
 
-	public void Save(List<CardGame.CardPlayer> playersMsg)
+	public virtual void Save(CardGame syncData)
 	{
 		CardGame.CardPlayer cardPlayer = Pool.Get<CardGame.CardPlayer>();
 		cardPlayer.userid = UserID;
@@ -234,20 +223,13 @@ public class CardPlayerData : IDisposable
 		{
 			cardPlayer.cards.Add(SendCardDetails ? card.GetIndex() : (-1));
 		}
-		cardPlayer.pocketCards = Pool.GetList<int>();
-		foreach (PlayingCard pocketCard in PocketCards)
-		{
-			cardPlayer.pocketCards.Add(SendCardDetails ? pocketCard.GetIndex() : (-1));
-		}
 		cardPlayer.scrap = GetScrapAmount();
 		cardPlayer.state = (int)State;
 		cardPlayer.availableInputs = availableInputs;
 		cardPlayer.betThisRound = betThisRound;
 		cardPlayer.betThisTurn = betThisTurn;
-		cardPlayer.sideBetAThisRound = sideBetAThisRound;
-		cardPlayer.sideBetBThisRound = sideBetBThisRound;
 		cardPlayer.leftRoundEarly = LeftRoundEarly;
 		cardPlayer.sendCardDetails = SendCardDetails;
-		playersMsg.Add(cardPlayer);
+		syncData.players.Add(cardPlayer);
 	}
 }

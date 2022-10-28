@@ -30,8 +30,6 @@ public abstract class CardGameController : IDisposable
 
 	private CardGame.CardList localPlayerCards;
 
-	private CardGame.CardList localPlayerPocketCards;
-
 	protected int activePlayerIndex;
 
 	public const int STD_RAISE_INCREMENTS = 5;
@@ -78,14 +76,9 @@ public abstract class CardGameController : IDisposable
 		resultInfo.results = Pool.GetList<CardGame.RoundResults.Result>();
 		localPlayerCards = Pool.Get<CardGame.CardList>();
 		localPlayerCards.cards = Pool.GetList<int>();
-		localPlayerPocketCards = Pool.Get<CardGame.CardList>();
-		localPlayerPocketCards.cards = Pool.GetList<int>();
-		if (IsServer)
+		for (int i = 0; i < PlayerData.Length; i++)
 		{
-			for (int i = 0; i < PlayerData.Length; i++)
-			{
-				PlayerData[i] = new CardPlayerData(ScrapItemID, owner.GetPlayerStorage, i, IsServer);
-			}
+			PlayerData[i] = GetNewCardPlayerData(i);
 		}
 	}
 
@@ -110,7 +103,6 @@ public abstract class CardGameController : IDisposable
 			PlayerData[i].Dispose();
 		}
 		localPlayerCards.Dispose();
-		localPlayerPocketCards.Dispose();
 		resultInfo.Dispose();
 	}
 
@@ -365,6 +357,8 @@ public abstract class CardGameController : IDisposable
 		resultInfo.results.Clear();
 	}
 
+	protected abstract CardPlayerData GetNewCardPlayerData(int mountIndex);
+
 	protected abstract void TimeoutTurn();
 
 	protected abstract void SubStartRound();
@@ -413,12 +407,7 @@ public abstract class CardGameController : IDisposable
 		{
 			localPlayerCards.cards.Add(card.GetIndex());
 		}
-		localPlayerPocketCards.cards.Clear();
-		foreach (PlayingCard pocketCard in pData.PocketCards)
-		{
-			localPlayerPocketCards.cards.Add(pocketCard.GetIndex());
-		}
-		Owner.ClientRPCPlayer(null, basePlayer, "ReceiveCardsForPlayer", localPlayerCards, localPlayerPocketCards);
+		Owner.ClientRPCPlayer(null, basePlayer, "ReceiveCardsForPlayer", localPlayerCards);
 	}
 
 	private void JoinTable(ulong userID)
@@ -593,7 +582,7 @@ public abstract class CardGameController : IDisposable
 		CardPlayerData[] playerData = PlayerData;
 		for (int i = 0; i < playerData.Length; i++)
 		{
-			playerData[i].Save(syncData.players);
+			playerData[i].Save(syncData);
 		}
 		syncData.pot = GetScrapInPot();
 	}
