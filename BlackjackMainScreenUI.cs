@@ -5,9 +5,6 @@ using UnityEngine.UI;
 public class BlackjackMainScreenUI : FacepunchBehaviour
 {
 	[SerializeField]
-	private BlackjackMachine blackjack;
-
-	[SerializeField]
 	private Canvas inGameDisplay;
 
 	[SerializeField]
