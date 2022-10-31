@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[883]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[884]
 	{
 		new ConsoleSystem.Command
 		{
@@ -10205,6 +10205,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				SteamNetworking.steamconnectiontimeout = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "steamnagleflush",
+			Parent = "global",
+			FullName = "global.steamnagleflush",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => SteamNetworking.steamnagleflush.ToString(),
+			SetOveride = delegate(string str)
+			{
+				SteamNetworking.steamnagleflush = str.ToBool();
 			}
 		},
 		new ConsoleSystem.Command

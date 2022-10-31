@@ -3645,7 +3645,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			}
 			goto IL_0d2f;
 		}
-		goto IL_1158;
+		goto IL_114c;
 		IL_0b2a:
 		if (num22 == 0)
 		{
@@ -3723,7 +3723,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				}
 			}
 			float magnitude3 = velocity.magnitude;
-			float num27 = hitInfo.ProjectilePrefab.initialDistance + num13 * magnitude3;
+			float num27 = num13 * magnitude3;
 			if (num14 < num27)
 			{
 				string text27 = hitInfo.ProjectilePrefab.name;
@@ -3740,8 +3740,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			playerProjectileAttack = null;
 			return;
 		}
-		goto IL_1158;
-		IL_1158:
+		goto IL_114c;
+		IL_114c:
 		value.position = hitInfo.HitPositionWorld;
 		value.velocity = playerProjectileAttack.hitVelocity;
 		value.travelTime = num;
