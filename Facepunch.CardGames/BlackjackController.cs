@@ -471,12 +471,11 @@ public class BlackjackController : CardGameController
 			{
 				blackjackRoundResult = ((!flag) ? BlackjackRoundResult.Standoff : BlackjackRoundResult.BlackjackWin);
 			}
-			if (blackjackRoundResult == BlackjackRoundResult.BlackjackWin)
-			{
-				winnings = Mathf.FloorToInt((float)betAmount * 2.5f);
-			}
 			switch (blackjackRoundResult)
 			{
+			case BlackjackRoundResult.BlackjackWin:
+				winnings = Mathf.FloorToInt((float)betAmount * 2.5f);
+				break;
 			case BlackjackRoundResult.Win:
 				winnings = Mathf.FloorToInt((float)betAmount * 2f);
 				break;
