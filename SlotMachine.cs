@@ -87,6 +87,8 @@ public class SlotMachine : BaseMountable
 
 	public Material PayoutIconMaterial;
 
+	public bool UseTimeOfDayAdjustedSprite = true;
+
 	public MeshRenderer[] PulseRenderers;
 
 	public float PulseSpeed = 5f;
