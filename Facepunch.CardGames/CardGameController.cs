@@ -270,13 +270,12 @@ public abstract class CardGameController : IDisposable
 		return null;
 	}
 
-	public void StartTurnTimer(float turnTime)
+	public void StartTurnTimer(CardPlayerData pData, float turnTime)
 	{
 		if (IsServer)
 		{
-			SingletonComponent<InvokeHandler>.Instance.CancelInvoke(TimeoutTurn);
-			SingletonComponent<InvokeHandler>.Instance.Invoke(TimeoutTurn, MaxTurnTime);
-			Owner.ClientRPC(null, "ClientStartTurnTimer", turnTime);
+			pData.StartTurnTimer(OnTurnTimeout, turnTime);
+			Owner.ClientRPC(null, "ClientStartTurnTimer", pData.mountIndex, turnTime);
 		}
 	}
 
@@ -359,7 +358,7 @@ public abstract class CardGameController : IDisposable
 
 	protected abstract CardPlayerData GetNewCardPlayerData(int mountIndex);
 
-	protected abstract void TimeoutTurn();
+	protected abstract void OnTurnTimeout(CardPlayerData playerData);
 
 	protected abstract void SubStartRound();
 
@@ -639,7 +638,6 @@ public abstract class CardGameController : IDisposable
 		State = CardGameState.InGameBetweenRounds;
 		CancelNextCycleInvoke();
 		ClearResultsInfo();
-		SingletonComponent<InvokeHandler>.Instance.CancelInvoke(TimeoutTurn);
 		SubEndRound();
 		foreach (CardPlayerData item in PlayersInRound())
 		{
@@ -753,10 +751,6 @@ public abstract class CardGameController : IDisposable
 
 	public virtual void OnTableDestroyed()
 	{
-		if (SingletonComponent<InvokeHandler>.Instance.IsInvoking(TimeoutTurn))
-		{
-			SingletonComponent<InvokeHandler>.Instance.CancelInvoke(TimeoutTurn);
-		}
 		CardPlayerData[] playerData;
 		if (HasGameInProgress)
 		{
@@ -791,13 +785,13 @@ public abstract class CardGameController : IDisposable
 		}
 	}
 
-	protected bool TryMoveToNextPlayerWithInputs(int startIndex)
+	protected bool TryMoveToNextPlayerWithInputs(int startIndex, out CardPlayerData newActivePlayer)
 	{
 		activePlayerIndex = startIndex;
-		TryGetActivePlayer(out var activePlayer);
+		TryGetActivePlayer(out newActivePlayer);
 		int num = 0;
 		bool flag = false;
-		while (GetAvailableInputsForPlayer(activePlayer) == 0)
+		while (GetAvailableInputsForPlayer(newActivePlayer) == 0)
 		{
 			if (num == NumPlayersInCurrentRound())
 			{
@@ -805,7 +799,7 @@ public abstract class CardGameController : IDisposable
 				break;
 			}
 			activePlayerIndex = (activePlayerIndex + 1) % NumPlayersInCurrentRound();
-			TryGetActivePlayer(out activePlayer);
+			TryGetActivePlayer(out newActivePlayer);
 			num++;
 		}
 		return !flag;
@@ -850,13 +844,14 @@ public abstract class CardGameController : IDisposable
 			num4 = Mathf.Clamp(num4, 0, NumPlayersInCurrentRound());
 		}
 		int startIndex = num4;
+		CardPlayerData newActivePlayer;
 		if (ShouldEndCycle())
 		{
 			EndCycle();
 		}
-		else if (TryMoveToNextPlayerWithInputs(startIndex))
+		else if (TryMoveToNextPlayerWithInputs(startIndex, out newActivePlayer))
 		{
-			StartTurnTimer(MaxTurnTime);
+			StartTurnTimer(newActivePlayer, MaxTurnTime);
 			UpdateAllAvailableInputs();
 			Owner.SendNetworkUpdate();
 		}

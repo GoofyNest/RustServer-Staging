@@ -37,6 +37,8 @@ public class CardPlayerData : IDisposable
 
 	private readonly int scrapItemID;
 
+	private Action<CardPlayerData> turnTimerCallback;
+
 	public ulong UserID { get; private set; }
 
 	public CardPlayerState State { get; private set; }
@@ -74,6 +76,10 @@ public class CardPlayerData : IDisposable
 	public virtual void Dispose()
 	{
 		Pool.FreeList(ref Cards);
+		if (isServer)
+		{
+			CancelTurnTimer();
+		}
 	}
 
 	public int GetScrapAmount()
@@ -178,6 +184,7 @@ public class CardPlayerData : IDisposable
 			}
 			State = CardPlayerState.InGame;
 			LeftRoundEarly = leftRoundEarly;
+			CancelTurnTimer();
 		}
 	}
 
@@ -231,5 +238,24 @@ public class CardPlayerData : IDisposable
 		cardPlayer.leftRoundEarly = LeftRoundEarly;
 		cardPlayer.sendCardDetails = SendCardDetails;
 		syncData.players.Add(cardPlayer);
+	}
+
+	public void StartTurnTimer(Action<CardPlayerData> callback, float maxTurnTime)
+	{
+		turnTimerCallback = callback;
+		SingletonComponent<InvokeHandler>.Instance.Invoke(TimeoutTurn, maxTurnTime);
+	}
+
+	public void CancelTurnTimer()
+	{
+		SingletonComponent<InvokeHandler>.Instance.CancelInvoke(TimeoutTurn);
+	}
+
+	public void TimeoutTurn()
+	{
+		if (turnTimerCallback != null)
+		{
+			turnTimerCallback(this);
+		}
 	}
 }

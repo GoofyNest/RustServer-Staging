@@ -410,9 +410,9 @@ public class TexasHoldEmController : CardGameController
 		LastActionValue = 0;
 	}
 
-	protected override void TimeoutTurn()
+	protected override void OnTurnTimeout(CardPlayerData pData)
 	{
-		if (TryGetActivePlayer(out var activePlayer))
+		if (TryGetActivePlayer(out var activePlayer) && activePlayer == pData)
 		{
 			ReceivedInputFromPlayer(activePlayer, 1, countAsAction: true, 0, playerInitiated: false);
 		}
@@ -507,14 +507,14 @@ public class TexasHoldEmController : CardGameController
 			{
 				startIndex = (activePlayerIndex + 1) % NumPlayersInCurrentRound();
 			}
+			CardPlayerData newActivePlayer;
 			if (ShouldEndCycle())
 			{
 				EndCycle();
 			}
-			else if (TryMoveToNextPlayerWithInputs(startIndex))
+			else if (TryMoveToNextPlayerWithInputs(startIndex, out newActivePlayer))
 			{
-				TryMoveToNextPlayerWithInputs(startIndex);
-				StartTurnTimer(MaxTurnTime);
+				StartTurnTimer(newActivePlayer, MaxTurnTime);
 				base.Owner.SendNetworkUpdate();
 			}
 			else

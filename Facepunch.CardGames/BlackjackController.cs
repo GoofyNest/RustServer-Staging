@@ -543,7 +543,7 @@ public class BlackjackController : CardGameController
 			EndCycle();
 			return;
 		}
-		StartTurnTimer(MaxTurnTime);
+		StartTurnTimer(pData, MaxTurnTime);
 		base.Owner.SendNetworkUpdate();
 	}
 
@@ -669,29 +669,24 @@ public class BlackjackController : CardGameController
 		{
 			item.EnableSendingCards();
 			item.availableInputs = GetAvailableInputsForPlayer(item);
+			StartTurnTimer(item, MaxTurnTime);
 		}
-		StartTurnTimer(MaxTurnTime);
 	}
 
-	protected override void TimeoutTurn()
+	protected override void OnTurnTimeout(CardPlayerData pData)
 	{
-		if (AllBetsPlaced)
+		if (!pData.HasUserInCurrentRound || pData.hasCompletedTurn)
 		{
-			foreach (CardPlayerDataBlackjack item in PlayersInRound())
-			{
-				if (!item.hasCompletedTurn)
-				{
-					ReceivedInputFromPlayer(item, 128, countAsAction: true, 0, playerInitiated: false);
-				}
-			}
 			return;
 		}
-		foreach (CardPlayerData item2 in PlayersInRound())
+		if (AllBetsPlaced)
 		{
-			if (item2.betThisRound == 0)
-			{
-				item2.LeaveCurrentRound(clearBets: true, leftRoundEarly: true);
-			}
+			ReceivedInputFromPlayer(pData, 128, countAsAction: true, 0, playerInitiated: false);
+			return;
+		}
+		if (pData.betThisRound == 0)
+		{
+			pData.LeaveCurrentRound(clearBets: true, leftRoundEarly: true);
 		}
 		if (NumPlayersInCurrentRound() < MinPlayers)
 		{
