@@ -34,6 +34,8 @@ public class Performance : SingletonComponent<Performance>
 		public int ping;
 
 		public bool gcTriggered;
+
+		public PerformanceSamplePoint performanceSample;
 	}
 
 	private struct LagSpike
