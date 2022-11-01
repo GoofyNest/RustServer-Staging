@@ -17,7 +17,7 @@ public class BlackjackController : CardGameController
 		Split = 8,
 		DoubleDown = 0x10,
 		Insurance = 0x20,
-		AllIn = 0x40,
+		MaxBet = 0x40,
 		Abandon = 0x80
 	}
 
@@ -43,6 +43,8 @@ public class BlackjackController : CardGameController
 		Split,
 		Insurance
 	}
+
+	public const int MAX_BET = 500;
 
 	public List<PlayingCard> dealerCards = new List<PlayingCard>();
 
@@ -389,7 +391,7 @@ public class BlackjackController : CardGameController
 		else
 		{
 			blackjackInputOption |= BlackjackInputOption.SubmitBet;
-			blackjackInputOption |= BlackjackInputOption.AllIn;
+			blackjackInputOption |= BlackjackInputOption.MaxBet;
 		}
 		return (int)blackjackInputOption;
 	}
@@ -588,7 +590,7 @@ public class BlackjackController : CardGameController
 		{
 			if (pdBlackjack.playingSplitCards)
 			{
-				selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Split);
+				selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.splitBetThisRound, BetType.Split);
 			}
 			else
 			{
@@ -636,9 +638,9 @@ public class BlackjackController : CardGameController
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
 			}
 		}
-		else if (selectedMove == BlackjackInputOption.AllIn)
+		else if (selectedMove == BlackjackInputOption.MaxBet)
 		{
-			selectedMoveValue = TryMakeBet(pdBlackjack, 999999, BetType.Main);
+			selectedMoveValue = TryMakeBet(pdBlackjack, 500, BetType.Main);
 			if (countAsAction)
 			{
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
