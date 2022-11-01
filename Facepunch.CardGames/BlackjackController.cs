@@ -116,7 +116,7 @@ public class BlackjackController : CardGameController
 		}
 	}
 
-	public bool WaitingForOtherPlayer(CardPlayerData pData)
+	public bool WaitingForOtherPlayers(CardPlayerData pData)
 	{
 		if (!pData.HasUserInCurrentRound)
 		{
@@ -365,7 +365,7 @@ public class BlackjackController : CardGameController
 	{
 		BlackjackInputOption blackjackInputOption = BlackjackInputOption.None;
 		CardPlayerDataBlackjack cardPlayerDataBlackjack = (CardPlayerDataBlackjack)pData;
-		if (cardPlayerDataBlackjack == null || isWaitingBetweenTurns || cardPlayerDataBlackjack.hasCompletedTurn || !cardPlayerDataBlackjack.HasUserInGame)
+		if (cardPlayerDataBlackjack == null || isWaitingBetweenTurns || cardPlayerDataBlackjack.hasCompletedTurn || !cardPlayerDataBlackjack.HasUserInCurrentRound)
 		{
 			return (int)blackjackInputOption;
 		}
@@ -537,6 +537,11 @@ public class BlackjackController : CardGameController
 		LastActionTarget = pData.UserID;
 		LastAction = selectedMove;
 		LastActionValue = selectedMoveValue;
+		if (NumPlayersInCurrentRound() == 0)
+		{
+			EndGameplay();
+			return;
+		}
 		if (ShouldEndCycle())
 		{
 			EndCycle();
@@ -548,7 +553,7 @@ public class BlackjackController : CardGameController
 
 	private void DoInRoundPlayerInput(CardPlayerDataBlackjack pdBlackjack, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (selectedMove != BlackjackInputOption.Abandon && ((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
 		{
 			return;
 		}
@@ -600,11 +605,6 @@ public class BlackjackController : CardGameController
 			pdBlackjack.LeaveCurrentRound(clearBets: false, leftRoundEarly: true);
 			break;
 		}
-		if (NumPlayersInCurrentRound() == 0)
-		{
-			EndRound();
-			return;
-		}
 		if (HasBusted(pdBlackjack.Cards) && !pdBlackjack.TrySwitchToSplitHand())
 		{
 			pdBlackjack.SetHasCompletedTurn(hasActed: true);
@@ -617,7 +617,7 @@ public class BlackjackController : CardGameController
 
 	private void DoBettingPhasePlayerInput(CardPlayerDataBlackjack pdBlackjack, int value, bool countAsAction, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (selectedMove != BlackjackInputOption.Abandon && ((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
 		{
 			return;
 		}
@@ -636,6 +636,10 @@ public class BlackjackController : CardGameController
 			{
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
 			}
+		}
+		else if (selectedMove == BlackjackInputOption.Abandon)
+		{
+			pdBlackjack.LeaveCurrentRound(clearBets: false, leftRoundEarly: true);
 		}
 	}
 
@@ -674,22 +678,9 @@ public class BlackjackController : CardGameController
 
 	protected override void OnTurnTimeout(CardPlayerData pData)
 	{
-		if (!pData.HasUserInCurrentRound || pData.hasCompletedTurn)
-		{
-			return;
-		}
-		if (AllBetsPlaced)
+		if (pData.HasUserInCurrentRound && !pData.hasCompletedTurn)
 		{
 			ReceivedInputFromPlayer(pData, 128, countAsAction: true, 0, playerInitiated: false);
-			return;
-		}
-		if (pData.betThisRound == 0)
-		{
-			pData.LeaveCurrentRound(clearBets: true, leftRoundEarly: true);
-		}
-		if (NumPlayersInCurrentRound() < MinPlayers)
-		{
-			EndRound();
 		}
 	}
 

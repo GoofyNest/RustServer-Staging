@@ -671,10 +671,11 @@ public abstract class CardGameController : IDisposable
 		resultInfo.results.Add(result);
 	}
 
-	private void EndGameplay()
+	protected void EndGameplay()
 	{
 		if (HasGameInProgress)
 		{
+			CancelNextCycleInvoke();
 			SubEndGameplay();
 			State = CardGameState.NotPlaying;
 			CardPlayerData[] playerData = PlayerData;
@@ -807,7 +808,6 @@ public abstract class CardGameController : IDisposable
 
 	protected void QueueNextCycleInvoke()
 	{
-		SingletonComponent<InvokeHandler>.Instance.CancelInvoke(StartNextCycle);
 		SingletonComponent<InvokeHandler>.Instance.Invoke(StartNextCycle, TimeBetweenTurns);
 		isWaitingBetweenTurns = true;
 		Owner.SendNetworkUpdate();
