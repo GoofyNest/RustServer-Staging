@@ -366,7 +366,7 @@ public abstract class CardGameController : IDisposable
 
 	protected abstract int GetAvailableInputsForPlayer(CardPlayerData playerData);
 
-	protected abstract void HandlePlayerLeavingDuringTheirTurn(CardPlayerData playerData, CardPlayerData activePlayer);
+	protected abstract void HandlePlayerLeavingDuringTheirTurn(CardPlayerData pData);
 
 	protected abstract void SubEndRound();
 
@@ -436,29 +436,33 @@ public abstract class CardGameController : IDisposable
 
 	public void LeaveTable(ulong userID)
 	{
-		if (!TryGetCardPlayerData(userID, out var cardPlayer))
+		if (TryGetCardPlayerData(userID, out var cardPlayer))
 		{
-			return;
+			LeaveTable(cardPlayer);
 		}
+	}
+
+	public void LeaveTable(CardPlayerData pData)
+	{
 		if (HasRoundInProgress && TryGetActivePlayer(out var activePlayer))
 		{
-			if (cardPlayer == activePlayer)
+			if (pData == activePlayer)
 			{
-				HandlePlayerLeavingDuringTheirTurn(cardPlayer, activePlayer);
+				HandlePlayerLeavingDuringTheirTurn(activePlayer);
 			}
-			else if (cardPlayer.HasUserInCurrentRound && cardPlayer.mountIndex < activePlayer.mountIndex && activePlayerIndex > 0)
+			else if (pData.HasUserInCurrentRound && pData.mountIndex < activePlayer.mountIndex && activePlayerIndex > 0)
 			{
 				activePlayerIndex--;
 			}
 		}
-		cardPlayer.ClearAllData();
+		pData.ClearAllData();
 		if (HasRoundInProgress && NumPlayersInCurrentRound() < MinPlayers)
 		{
 			EndRound();
 		}
-		if (cardPlayer.HasUserInGame)
+		if (pData.HasUserInGame)
 		{
-			Owner.ClientRPC(null, "ClientOnPlayerLeft", cardPlayer.UserID);
+			Owner.ClientRPC(null, "ClientOnPlayerLeft", pData.UserID);
 		}
 		Owner.SendNetworkUpdate();
 	}
@@ -806,6 +810,11 @@ public abstract class CardGameController : IDisposable
 		return !flag;
 	}
 
+	protected virtual void StartNextCycle()
+	{
+		isWaitingBetweenTurns = false;
+	}
+
 	protected void QueueNextCycleInvoke()
 	{
 		SingletonComponent<InvokeHandler>.Instance.Invoke(StartNextCycle, TimeBetweenTurns);
@@ -817,47 +826,5 @@ public abstract class CardGameController : IDisposable
 	{
 		SingletonComponent<InvokeHandler>.Instance.CancelInvoke(StartNextCycle);
 		isWaitingBetweenTurns = false;
-	}
-
-	private void StartNextCycle()
-	{
-		isWaitingBetweenTurns = false;
-		int num = GetFirstPlayerRelIndex(startOfRound: false);
-		int num2 = NumPlayersInGame();
-		int num3 = 0;
-		CardPlayerData result;
-		while (!ToCardPlayerData(num, includeOutOfRound: true, out result) || !result.HasUserInCurrentRound)
-		{
-			num = ++num % num2;
-			num3++;
-			if (num3 > num2)
-			{
-				Debug.LogError(GetType().Name + ": This should never happen. Ended turn with no players in game?.");
-				EndRound();
-				return;
-			}
-		}
-		int num4 = GameToRoundIndex(num);
-		if (num4 < 0 || num4 > NumPlayersInCurrentRound())
-		{
-			Debug.LogError($"StartNextCycle NewActiveIndex is out of range: {num4}. Clamping it to between 0 and {NumPlayersInCurrentRound()}.");
-			num4 = Mathf.Clamp(num4, 0, NumPlayersInCurrentRound());
-		}
-		int startIndex = num4;
-		CardPlayerData newActivePlayer;
-		if (ShouldEndCycle())
-		{
-			EndCycle();
-		}
-		else if (TryMoveToNextPlayerWithInputs(startIndex, out newActivePlayer))
-		{
-			StartTurnTimer(newActivePlayer, MaxTurnTime);
-			UpdateAllAvailableInputs();
-			Owner.SendNetworkUpdate();
-		}
-		else
-		{
-			EndCycle();
-		}
 	}
 }

@@ -232,10 +232,6 @@ public class BlackjackController : CardGameController
 		{
 			return false;
 		}
-		if (HasSplit(pData))
-		{
-			return false;
-		}
 		if (HasAnyAces(pData.Cards))
 		{
 			return false;
@@ -505,9 +501,9 @@ public class BlackjackController : CardGameController
 		return winnings;
 	}
 
-	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData pData, CardPlayerData activePlayer)
+	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData pData)
 	{
-		ReceivedInputFromPlayer(activePlayer, 128, countAsAction: true, 0, playerInitiated: false);
+		ReceivedInputFromPlayer(pData, 128, countAsAction: true, 0, playerInitiated: false);
 	}
 
 	protected override void SubReceivedInputFromPlayer(CardPlayerData pData, int input, int value, bool countAsAction)
@@ -590,9 +586,20 @@ public class BlackjackController : CardGameController
 		}
 		case BlackjackInputOption.DoubleDown:
 		{
-			selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Main);
+			if (pdBlackjack.playingSplitCards)
+			{
+				selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Split);
+			}
+			else
+			{
+				selectedMoveValue = TryMakeBet(pdBlackjack, pdBlackjack.betThisRound, BetType.Main);
+			}
 			cardStack.TryTakeCard(out var card);
 			pdBlackjack.Cards.Add(card);
+			if (!pdBlackjack.TrySwitchToSplitHand())
+			{
+				pdBlackjack.SetHasCompletedTurn(hasActed: true);
+			}
 			break;
 		}
 		case BlackjackInputOption.Insurance:
@@ -680,8 +687,34 @@ public class BlackjackController : CardGameController
 	{
 		if (pData.HasUserInCurrentRound && !pData.hasCompletedTurn)
 		{
-			ReceivedInputFromPlayer(pData, 128, countAsAction: true, 0, playerInitiated: false);
+			HandlePlayerLeavingDuringTheirTurn(pData);
 		}
+		pData.ClearAllData();
+		if (base.HasRoundInProgress && NumPlayersInCurrentRound() < MinPlayers)
+		{
+			EndRound();
+		}
+		if (pData.HasUserInGame)
+		{
+			base.Owner.ClientRPC(null, "ClientOnPlayerLeft", pData.UserID);
+		}
+		base.Owner.SendNetworkUpdate();
+	}
+
+	protected override void StartNextCycle()
+	{
+		base.StartNextCycle();
+		if (ShouldEndCycle())
+		{
+			EndCycle();
+			return;
+		}
+		foreach (CardPlayerDataBlackjack item in PlayersInRound())
+		{
+			StartTurnTimer(item, MaxTurnTime);
+		}
+		UpdateAllAvailableInputs();
+		base.Owner.SendNetworkUpdate();
 	}
 
 	protected override bool ShouldEndCycle()

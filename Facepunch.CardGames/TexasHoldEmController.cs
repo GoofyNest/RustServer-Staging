@@ -524,6 +524,48 @@ public class TexasHoldEmController : CardGameController
 		}
 	}
 
+	protected override void StartNextCycle()
+	{
+		base.StartNextCycle();
+		int num = GetFirstPlayerRelIndex(startOfRound: false);
+		int num2 = NumPlayersInGame();
+		int num3 = 0;
+		CardPlayerData result;
+		while (!ToCardPlayerData(num, includeOutOfRound: true, out result) || !result.HasUserInCurrentRound)
+		{
+			num = ++num % num2;
+			num3++;
+			if (num3 > num2)
+			{
+				Debug.LogError(GetType().Name + ": This should never happen. Ended turn with no players in game?.");
+				EndRound();
+				return;
+			}
+		}
+		int num4 = GameToRoundIndex(num);
+		if (num4 < 0 || num4 > NumPlayersInCurrentRound())
+		{
+			Debug.LogError($"StartNextCycle NewActiveIndex is out of range: {num4}. Clamping it to between 0 and {NumPlayersInCurrentRound()}.");
+			num4 = Mathf.Clamp(num4, 0, NumPlayersInCurrentRound());
+		}
+		int startIndex = num4;
+		CardPlayerData newActivePlayer;
+		if (ShouldEndCycle())
+		{
+			EndCycle();
+		}
+		else if (TryMoveToNextPlayerWithInputs(startIndex, out newActivePlayer))
+		{
+			StartTurnTimer(newActivePlayer, MaxTurnTime);
+			UpdateAllAvailableInputs();
+			base.Owner.SendNetworkUpdate();
+		}
+		else
+		{
+			EndCycle();
+		}
+	}
+
 	protected override bool ShouldEndCycle()
 	{
 		int num = 0;
@@ -614,8 +656,8 @@ public class TexasHoldEmController : CardGameController
 		return (int)pokerInputOption;
 	}
 
-	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData playerData, CardPlayerData activePlayer)
+	protected override void HandlePlayerLeavingDuringTheirTurn(CardPlayerData pData)
 	{
-		ReceivedInputFromPlayer(activePlayer, 1, countAsAction: true, 0, playerInitiated: false);
+		ReceivedInputFromPlayer(pData, 1, countAsAction: true, 0, playerInitiated: false);
 	}
 }
