@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[884]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[885]
 	{
 		new ConsoleSystem.Command
 		{
@@ -394,6 +394,20 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				BigWheelGame.spinFrequencySeconds = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "maxbet",
+			Parent = "blackjackmachine",
+			FullName = "blackjackmachine.maxbet",
+			ServerAdmin = true,
+			Description = "Maximum initial bet per round",
+			Variable = true,
+			GetOveride = () => BlackjackMachine.maxbet.ToString(),
+			SetOveride = delegate(string str)
+			{
+				BlackjackMachine.maxbet = str.ToInt();
 			}
 		},
 		new ConsoleSystem.Command

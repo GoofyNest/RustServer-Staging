@@ -16,11 +16,26 @@ public class BlackjackMachine : BaseCardGameEntity
 	[SerializeField]
 	private Transform[] smallScreenParents;
 
+	private static int _maxbet = 500;
+
 	private BlackjackController controller;
 
 	private BlackjackMainScreenUI mainScreenUI;
 
 	private BlackjackSmallScreenUI[] smallScreenUIs = new BlackjackSmallScreenUI[3];
+
+	[ServerVar(Help = "Maximum initial bet per round")]
+	public static int maxbet
+	{
+		get
+		{
+			return _maxbet;
+		}
+		set
+		{
+			_maxbet = Mathf.Clamp(value, 25, 1000000);
+		}
+	}
 
 	protected override float MaxStorageInteractionDist => 1f;
 

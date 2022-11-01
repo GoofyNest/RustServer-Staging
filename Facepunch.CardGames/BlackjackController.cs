@@ -44,8 +44,6 @@ public class BlackjackController : CardGameController
 		Insurance
 	}
 
-	public const int MAX_BET = 500;
-
 	public List<PlayingCard> dealerCards = new List<PlayingCard>();
 
 	public const float BLACKJACK_PAYOUT_RATIO = 1.5f;
@@ -640,7 +638,7 @@ public class BlackjackController : CardGameController
 		}
 		else if (selectedMove == BlackjackInputOption.MaxBet)
 		{
-			selectedMoveValue = TryMakeBet(pdBlackjack, 500, BetType.Main);
+			selectedMoveValue = TryMakeBet(pdBlackjack, BlackjackMachine.maxbet, BetType.Main);
 			if (countAsAction)
 			{
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
