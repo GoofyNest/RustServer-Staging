@@ -280,15 +280,16 @@ public class BlackjackController : CardGameController
 		return result;
 	}
 
-	public int ResultsToInt(BlackjackRoundResult mainResult, BlackjackRoundResult splitResult)
+	public int ResultsToInt(BlackjackRoundResult mainResult, BlackjackRoundResult splitResult, int insurancePayout)
 	{
-		return (int)(mainResult + 10 * (int)splitResult);
+		return (int)(mainResult + 10 * (int)splitResult + 100 * insurancePayout);
 	}
 
-	public void ResultsFromInt(int result, out BlackjackRoundResult mainResult, out BlackjackRoundResult splitResult)
+	public void ResultsFromInt(int result, out BlackjackRoundResult mainResult, out BlackjackRoundResult splitResult, out int insurancePayout)
 	{
 		mainResult = (BlackjackRoundResult)(result % 10);
 		splitResult = (BlackjackRoundResult)(result / 10 % 10);
+		insurancePayout = (result - mainResult - splitResult) / 100;
 	}
 
 	public override void Save(CardGame syncData)
@@ -421,14 +422,16 @@ public class BlackjackController : CardGameController
 			num += winnings2;
 			BlackjackRoundResult splitResult = CheckResult(item.SplitCards, item.splitBetThisRound, out winnings2);
 			num += winnings2;
-			int resultCode = ResultsToInt(mainResult, splitResult);
 			int num2 = item.betThisRound + item.splitBetThisRound + item.insuranceBetThisRound;
-			AddRoundResult(item, num - num2, resultCode);
+			int insurancePayout = 0;
 			if (dealerHasBlackjack && item.insuranceBetThisRound > 0)
 			{
 				int num3 = Mathf.FloorToInt((float)item.insuranceBetThisRound * 2f);
 				num += num3;
+				insurancePayout = num3;
 			}
+			int resultCode = ResultsToInt(mainResult, splitResult, insurancePayout);
+			AddRoundResult(item, num - num2, resultCode);
 			PayOut(item, num);
 		}
 		ClearPot();

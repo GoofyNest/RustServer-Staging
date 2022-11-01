@@ -815,11 +815,6 @@ public class BaseGameMode : BaseEntity
 				Debug.Log("Failed to create gamemode : " + text);
 			}
 		}
-		if (GetActiveGameMode(serverside: true) == null || !GetActiveGameMode(serverside: true).ingameMap)
-		{
-			ConVar.Server.ReplicatedWorldSeed = ConVar.Server.seed;
-			ConVar.Server.ReplicatedWorldSize = ConVar.Server.worldsize;
-		}
 	}
 
 	public static void SetActiveGameMode(BaseGameMode newActive, bool serverside)

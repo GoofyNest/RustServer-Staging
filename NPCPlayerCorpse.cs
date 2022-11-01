@@ -37,6 +37,7 @@ public class NPCPlayerCorpse : PlayerCorpse
 		if (containers.Length >= 2)
 		{
 			containers[1].Clear();
+			ItemManager.DoRemoves();
 		}
 	}
 }

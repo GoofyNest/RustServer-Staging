@@ -351,12 +351,6 @@ public class Server : ConsoleSystem
 	[ServerVar]
 	public static bool rpclog_enabled = false;
 
-	[ReplicatedVar]
-	public static int ReplicatedWorldSeed;
-
-	[ReplicatedVar]
-	public static int ReplicatedWorldSize;
-
 	[ServerVar]
 	public static int anticheatlog
 	{
