@@ -41,7 +41,7 @@ public static class PerformanceMetrics
 		Stopwatch watch = new Stopwatch();
 		int lastFrame = 0;
 		TimeSpan lastTime = default(TimeSpan);
-		PreUpdateHook.OnFixedUpdate = (Action)Delegate.Combine(PreUpdateHook.OnFixedUpdate, (Action)delegate
+		StartOfFrameHook.OnStartOfFrame = (Action)Delegate.Combine(StartOfFrameHook.OnStartOfFrame, (Action)delegate
 		{
 			current.TotalCPU += lastTime;
 			current.CpuUpdateCount++;
