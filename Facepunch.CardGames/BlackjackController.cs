@@ -143,6 +143,10 @@ public class BlackjackController : CardGameController
 			if (!card.IsUnknownCard)
 			{
 				num += GetCardValue(card, mode);
+				if (card.Rank == Rank.Ace)
+				{
+					mode = CardsValueMode.Low;
+				}
 			}
 		}
 		return num;
