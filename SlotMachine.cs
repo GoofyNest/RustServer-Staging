@@ -283,6 +283,16 @@ public class SlotMachine : BaseMountable
 		}
 	}
 
+	internal override void DoServerDestroy()
+	{
+		SlotMachineStorage slotMachineStorage = StorageInstance.Get(base.isServer) as SlotMachineStorage;
+		if (slotMachineStorage.IsValid())
+		{
+			slotMachineStorage.DropItems();
+		}
+		base.DoServerDestroy();
+	}
+
 	private int GetBettingAmount()
 	{
 		SlotMachineStorage component = StorageInstance.Get(base.isServer).GetComponent<SlotMachineStorage>();

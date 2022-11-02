@@ -135,6 +135,9 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 	private ParticleSystem newCouplingFX;
 
 	[SerializeField]
+	private float decayTimeMultiplier = 1f;
+
+	[SerializeField]
 	[ReadOnly]
 	private Vector3 frontBogieLocalOffset;
 
@@ -764,7 +767,7 @@ public class TrainCar : BaseVehicle, TriggerHurtNotChild.IHurtTriggerUser, Train
 		{
 			return float.PositiveInfinity;
 		}
-		return decayminutes;
+		return decayminutes * decayTimeMultiplier;
 	}
 
 	protected virtual bool CanDieFromDecayNow()
