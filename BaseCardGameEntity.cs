@@ -1,5 +1,6 @@
 #define UNITY_ASSERTIONS
 using System;
+using System.Collections.Generic;
 using ConVar;
 using Facepunch;
 using Facepunch.CardGames;
@@ -339,11 +340,16 @@ public abstract class BaseCardGameEntity : BaseVehicle
 	{
 		base.PostServerLoad();
 		int num = 0;
+		int num2 = 0;
 		foreach (BaseEntity child in children)
 		{
-			if (child is CardGamePlayerStorage ent)
+			if (child is CardGamePlayerStorage cardGamePlayerStorage)
 			{
-				playerStoragePoints[num].storageInstance.Set(ent);
+				playerStoragePoints[num].storageInstance.Set(cardGamePlayerStorage);
+				if (!cardGamePlayerStorage.inventory.IsEmpty())
+				{
+					num2++;
+				}
 				num++;
 			}
 		}
@@ -356,7 +362,29 @@ public abstract class BaseCardGameEntity : BaseVehicle
 		}
 		else
 		{
-			pot.DropItems();
+			int num3 = ((num2 > 0) ? num2 : playerStoragePoints.Length);
+			int iAmount = Mathf.CeilToInt(pot.inventory.GetAmount(ScrapItemID, onlyUsableAmounts: true) / num3);
+			PlayerStorageInfo[] array = playerStoragePoints;
+			for (int i = 0; i < array.Length; i++)
+			{
+				CardGamePlayerStorage cardGamePlayerStorage2 = array[i].storageInstance.Get(base.isServer) as CardGamePlayerStorage;
+				if (!cardGamePlayerStorage2.IsValid() || (cardGamePlayerStorage2.inventory.IsEmpty() && num2 != 0))
+				{
+					continue;
+				}
+				List<Item> obj = Facepunch.Pool.GetList<Item>();
+				if (pot.inventory.Take(obj, ScrapItemID, iAmount) > 0)
+				{
+					foreach (Item item in obj)
+					{
+						if (!item.MoveToContainer(cardGamePlayerStorage2.inventory, -1, allowStack: true, ignoreStackLimit: true))
+						{
+							item.Remove();
+						}
+					}
+				}
+				Facepunch.Pool.FreeList(ref obj);
+			}
 		}
 		if (flag)
 		{
