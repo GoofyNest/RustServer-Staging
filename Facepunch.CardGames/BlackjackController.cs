@@ -623,7 +623,7 @@ public class BlackjackController : CardGameController
 		{
 			pdBlackjack.SetHasCompletedTurn(hasActed: true);
 		}
-		if (Has21(pdBlackjack.Cards) && !CanTakeInsurance(pdBlackjack) && !CanDoubleDown(pdBlackjack) && !CanSplit(pdBlackjack))
+		if (Has21(pdBlackjack.Cards) && !CanTakeInsurance(pdBlackjack) && !CanDoubleDown(pdBlackjack) && !CanSplit(pdBlackjack) && !pdBlackjack.TrySwitchToSplitHand())
 		{
 			pdBlackjack.SetHasCompletedTurn(hasActed: true);
 		}
