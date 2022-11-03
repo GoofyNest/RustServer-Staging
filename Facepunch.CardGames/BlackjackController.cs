@@ -377,7 +377,10 @@ public class BlackjackController : CardGameController
 		if (AllBetsPlaced)
 		{
 			blackjackInputOption |= BlackjackInputOption.Stand;
-			blackjackInputOption |= BlackjackInputOption.Hit;
+			if (!Has21(cardPlayerDataBlackjack.Cards))
+			{
+				blackjackInputOption |= BlackjackInputOption.Hit;
+			}
 			if (CanSplit(cardPlayerDataBlackjack))
 			{
 				blackjackInputOption |= BlackjackInputOption.Split;
@@ -430,7 +433,7 @@ public class BlackjackController : CardGameController
 			int insurancePayout = 0;
 			if (dealerHasBlackjack && item.insuranceBetThisRound > 0)
 			{
-				int num3 = Mathf.FloorToInt((float)item.insuranceBetThisRound * 2f);
+				int num3 = Mathf.FloorToInt((float)item.insuranceBetThisRound * 3f);
 				num += num3;
 				insurancePayout = num3;
 			}
@@ -778,7 +781,7 @@ public class BlackjackController : CardGameController
 				break;
 			}
 		}
-		if (NumPlayersInCurrentRound() > 0 && (!flag || !flag2))
+		if (NumPlayersInCurrentRound() > 0 && !flag && !flag2)
 		{
 			for (int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High); cardsValue < 17; cardsValue = GetCardsValue(dealerCards, CardsValueMode.High))
 			{
