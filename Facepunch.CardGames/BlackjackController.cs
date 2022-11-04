@@ -783,10 +783,14 @@ public class BlackjackController : CardGameController
 		}
 		if (NumPlayersInCurrentRound() > 0 && !flag && !flag2)
 		{
-			for (int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High); cardsValue < 17; cardsValue = GetCardsValue(dealerCards, CardsValueMode.High))
+			int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
+			int cardsValue2 = GetCardsValue(dealerCards, CardsValueMode.Low);
+			while (cardsValue < 18 || (cardsValue > 21 && cardsValue2 < 17))
 			{
 				cardStack.TryTakeCard(out var card);
 				dealerCards.Add(card);
+				cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
+				cardsValue2 = GetCardsValue(dealerCards, CardsValueMode.Low);
 			}
 		}
 		ServerPlaySound(CardGameSounds.SoundType.Draw);
