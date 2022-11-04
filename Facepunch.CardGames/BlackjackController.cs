@@ -785,7 +785,7 @@ public class BlackjackController : CardGameController
 		{
 			int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
 			int cardsValue2 = GetCardsValue(dealerCards, CardsValueMode.Low);
-			while (cardsValue < 18 || (cardsValue > 21 && cardsValue2 < 17))
+			while (cardsValue2 < 17 && (cardsValue < 18 || cardsValue > 21))
 			{
 				cardStack.TryTakeCard(out var card);
 				dealerCards.Add(card);
