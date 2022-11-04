@@ -3772,7 +3772,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		}
 		if (value.integrity <= 0f)
 		{
-			if (value.hits <= 1)
+			if (value.hits <= ConVar.AntiHack.projectile_impactspawndepth)
 			{
 				value.itemMod.ServerProjectileHit(hitInfo);
 			}
@@ -3784,7 +3784,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		firedProjectiles[playerAttack.projectileID] = value;
 		if (flag6)
 		{
-			if (value.hits <= 2)
+			if (value.hits <= ConVar.AntiHack.projectile_damagedepth)
 			{
 				hitEntity.OnAttacked(hitInfo);
 			}
