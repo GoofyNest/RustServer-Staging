@@ -633,7 +633,7 @@ public class Item
 						}
 					}
 				}
-				if (iTargetPos == -1 && newcontainer.GetEntityOwner() is IItemContainerEntity itemContainerEntity)
+				if (iTargetPos == -1 && newcontainer.GetEntityOwner(returnHeldEntity: true) is IItemContainerEntity itemContainerEntity)
 				{
 					iTargetPos = itemContainerEntity.GetIdealSlot(sourcePlayer, this);
 				}

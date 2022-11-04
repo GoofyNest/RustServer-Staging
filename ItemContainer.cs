@@ -258,7 +258,7 @@ public sealed class ItemContainer
 		return droppedItemContainer;
 	}
 
-	public BaseEntity GetEntityOwner()
+	public BaseEntity GetEntityOwner(bool returnHeldEntity = false)
 	{
 		ItemContainer itemContainer = this;
 		for (int i = 0; i < 10; i++)
@@ -270,6 +270,14 @@ public sealed class ItemContainer
 			if (itemContainer.playerOwner != null)
 			{
 				return itemContainer.playerOwner;
+			}
+			if (returnHeldEntity)
+			{
+				BaseEntity baseEntity = itemContainer.parent?.GetHeldEntity();
+				if (baseEntity != null)
+				{
+					return baseEntity;
+				}
 			}
 			ItemContainer itemContainer2 = itemContainer.parent?.parent;
 			if (itemContainer2 == null || itemContainer2 == itemContainer)
