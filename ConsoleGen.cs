@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[885]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[886]
 	{
 		new ConsoleSystem.Command
 		{
@@ -4078,6 +4078,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Debugging.eat(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "enable_player_movement",
+			Parent = "debug",
+			FullName = "debug.enable_player_movement",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Debugging.enable_player_movement(arg);
 			}
 		},
 		new ConsoleSystem.Command
