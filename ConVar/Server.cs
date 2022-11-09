@@ -644,6 +644,16 @@ public class Server : ConsoleSystem
 		return "Server Config Loaded";
 	}
 
+	[ServerVar]
+	public static string netprotocol(Arg arg)
+	{
+		if (Network.Net.sv == null)
+		{
+			return string.Empty;
+		}
+		return Network.Net.sv.ProtocolId;
+	}
+
 	[ServerUserVar]
 	public static void cheatreport(Arg arg)
 	{

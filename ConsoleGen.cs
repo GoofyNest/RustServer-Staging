@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[886]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[887]
 	{
 		new ConsoleSystem.Command
 		{
@@ -859,8 +859,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				ServerUsers.User[] rval23 = Admin.Bans();
-				arg.ReplyWithObject(rval23);
+				ServerUsers.User[] rval24 = Admin.Bans();
+				arg.ReplyWithObject(rval24);
 			}
 		},
 		new ConsoleSystem.Command
@@ -873,8 +873,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				BuildInfo rval22 = Admin.BuildInfo();
-				arg.ReplyWithObject(rval22);
+				BuildInfo rval23 = Admin.BuildInfo();
+				arg.ReplyWithObject(rval23);
 			}
 		},
 		new ConsoleSystem.Command
@@ -1095,8 +1095,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				Admin.PlayerInfo[] rval21 = Admin.playerlist();
-				arg.ReplyWithObject(rval21);
+				Admin.PlayerInfo[] rval22 = Admin.playerlist();
+				arg.ReplyWithObject(rval22);
 			}
 		},
 		new ConsoleSystem.Command
@@ -1274,8 +1274,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval20 = Admin.teaminfo(arg);
-				arg.ReplyWithObject(rval20);
+				string rval21 = Admin.teaminfo(arg);
+				arg.ReplyWithObject(rval21);
 			}
 		},
 		new ConsoleSystem.Command
@@ -3809,8 +3809,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Chat.ChatEntry> rval19 = Chat.search(arg);
-				arg.ReplyWithObject(rval19);
+				IEnumerable<Chat.ChatEntry> rval20 = Chat.search(arg);
+				arg.ReplyWithObject(rval20);
 			}
 		},
 		new ConsoleSystem.Command
@@ -3835,8 +3835,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Chat.ChatEntry> rval18 = Chat.tail(arg);
-				arg.ReplyWithObject(rval18);
+				IEnumerable<Chat.ChatEntry> rval19 = Chat.tail(arg);
+				arg.ReplyWithObject(rval19);
 			}
 		},
 		new ConsoleSystem.Command
@@ -3860,8 +3860,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Output.Entry> rval17 = Console.search(arg);
-				arg.ReplyWithObject(rval17);
+				IEnumerable<Output.Entry> rval18 = Console.search(arg);
+				arg.ReplyWithObject(rval18);
 			}
 		},
 		new ConsoleSystem.Command
@@ -3873,8 +3873,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Output.Entry> rval16 = Console.tail(arg);
-				arg.ReplyWithObject(rval16);
+				IEnumerable<Output.Entry> rval17 = Console.tail(arg);
+				arg.ReplyWithObject(rval17);
 			}
 		},
 		new ConsoleSystem.Command
@@ -4615,8 +4615,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval15 = Demo.record(arg);
-				arg.ReplyWithObject(rval15);
+				string rval16 = Demo.record(arg);
+				arg.ReplyWithObject(rval16);
 			}
 		},
 		new ConsoleSystem.Command
@@ -4683,8 +4683,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval14 = Demo.stop(arg);
-				arg.ReplyWithObject(rval14);
+				string rval15 = Demo.stop(arg);
+				arg.ReplyWithObject(rval15);
 			}
 		},
 		new ConsoleSystem.Command
@@ -4843,8 +4843,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval13 = Entity.svspawn(arg.GetString(0), arg.GetVector3(1, Vector3.zero), arg.GetVector3(2, Vector3.zero));
-				arg.ReplyWithObject(rval13);
+				string rval14 = Entity.svspawn(arg.GetString(0), arg.GetVector3(1, Vector3.zero), arg.GetVector3(2, Vector3.zero));
+				arg.ReplyWithObject(rval14);
 			}
 		},
 		new ConsoleSystem.Command
@@ -4856,8 +4856,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval12 = Entity.svspawnitem(arg.GetString(0), arg.GetVector3(1, Vector3.zero));
-				arg.ReplyWithObject(rval12);
+				string rval13 = Entity.svspawnitem(arg.GetString(0), arg.GetVector3(1, Vector3.zero));
+				arg.ReplyWithObject(rval13);
 			}
 		},
 		new ConsoleSystem.Command
@@ -6106,8 +6106,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				object rval11 = ConVar.Manifest.PrintManifest();
-				arg.ReplyWithObject(rval11);
+				object rval12 = ConVar.Manifest.PrintManifest();
+				arg.ReplyWithObject(rval12);
 			}
 		},
 		new ConsoleSystem.Command
@@ -6119,8 +6119,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				object rval10 = ConVar.Manifest.PrintManifestRaw();
-				arg.ReplyWithObject(rval10);
+				object rval11 = ConVar.Manifest.PrintManifestRaw();
+				arg.ReplyWithObject(rval11);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7240,8 +7240,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval9 = Server.combatlog(arg);
-				arg.ReplyWithObject(rval9);
+				string rval10 = Server.combatlog(arg);
+				arg.ReplyWithObject(rval10);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7255,8 +7255,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval8 = Server.combatlog_outgoing(arg);
-				arg.ReplyWithObject(rval8);
+				string rval9 = Server.combatlog_outgoing(arg);
+				arg.ReplyWithObject(rval9);
 			}
 		},
 		new ConsoleSystem.Command
@@ -8068,6 +8068,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				Server.netlog = str.ToBool();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "netprotocol",
+			Parent = "server",
+			FullName = "server.netprotocol",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				string rval8 = Server.netprotocol(arg);
+				arg.ReplyWithObject(rval8);
 			}
 		},
 		new ConsoleSystem.Command
