@@ -25,7 +25,12 @@ public class RustPlatformHooks : IPlatformHooks
 			{
 				address = IPAddress.Parse(ConVar.Server.ip);
 			}
-			bool flag = !Network.Net.sv.AllowPassthroughMessages || (ConVar.Server.queryport > 0 && ConVar.Server.queryport != ConVar.Server.port);
+			bool flag = ConVar.Server.queryport > 0 && ConVar.Server.queryport != ConVar.Server.port;
+			if (!flag && !Network.Net.sv.AllowPassthroughMessages)
+			{
+				ConVar.Server.queryport = Math.Max(ConVar.Server.port, RCon.Port) + 1;
+				flag = true;
+			}
 			if (flag && (ConVar.Server.queryport <= 0 || ConVar.Server.queryport == ConVar.Server.port))
 			{
 				throw new Exception("Query port isn't set up properly");
