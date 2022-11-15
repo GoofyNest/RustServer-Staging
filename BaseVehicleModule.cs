@@ -587,10 +587,6 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 	public override void Load(LoadInfo info)
 	{
 		base.Load(info);
-		if (base.isClient && info.msg.vehicleModule != null && FirstSocketIndex < 0 && info.msg.vehicleModule.socketIndex >= 0)
-		{
-			FirstSocketIndex = info.msg.vehicleModule.socketIndex;
-		}
 	}
 
 	public override bool IsVehicleRoot()
