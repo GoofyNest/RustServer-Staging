@@ -60,6 +60,8 @@ public class AIBrainSenses
 
 	private IAIAttack ownerAttack;
 
+	private BaseAIBrain brain;
+
 	public float TimeSinceThreat => UnityEngine.Time.realtimeSinceStartup - LastThreatTimestamp;
 
 	public SimpleAIMemory Memory { get; private set; } = new SimpleAIMemory();
@@ -71,9 +73,10 @@ public class AIBrainSenses
 
 	public List<BaseEntity> Players => Memory.Players;
 
-	public void Init(BaseEntity owner, float memoryDuration, float range, float targetLostRange, float visionCone, bool checkVision, bool checkLOS, bool ignoreNonVisionSneakers, float listenRange, bool hostileTargetsOnly, bool senseFriendlies, bool ignoreSafeZonePlayers, EntityType senseTypes, bool refreshKnownLOS)
+	public void Init(BaseEntity owner, BaseAIBrain brain, float memoryDuration, float range, float targetLostRange, float visionCone, bool checkVision, bool checkLOS, bool ignoreNonVisionSneakers, float listenRange, bool hostileTargetsOnly, bool senseFriendlies, bool ignoreSafeZonePlayers, EntityType senseTypes, bool refreshKnownLOS)
 	{
 		this.owner = owner;
+		this.brain = brain;
 		MemoryDuration = memoryDuration;
 		ownerAttack = owner as IAIAttack;
 		playerOwner = owner as BasePlayer;
@@ -230,7 +233,7 @@ public class AIBrainSenses
 				{
 					num = Vector3.Distance(owner.transform.position, basePlayer.transform.position);
 				}
-				if ((basePlayer.IsDucked() && num >= 4f) || num >= 15f)
+				if ((basePlayer.IsDucked() && num >= brain.IgnoreSneakersMaxDistance) || num >= brain.IgnoreNonVisionMaxDistance)
 				{
 					return false;
 				}
