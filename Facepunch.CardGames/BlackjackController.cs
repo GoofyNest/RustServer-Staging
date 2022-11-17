@@ -62,6 +62,8 @@ public class BlackjackController : CardGameController
 
 	public override int MinToPlay => MinBuyIn;
 
+	public override int EndRoundDelay => 1;
+
 	public override int TimeBetweenRounds => 4;
 
 	public BlackjackInputOption LastAction { get; private set; }
@@ -74,7 +76,7 @@ public class BlackjackController : CardGameController
 	{
 		get
 		{
-			if (!base.HasRoundInProgress)
+			if (!base.HasRoundInProgressOrEnding)
 			{
 				return false;
 			}
@@ -306,7 +308,7 @@ public class BlackjackController : CardGameController
 		for (int i = 0; i < dealerCards.Count; i++)
 		{
 			PlayingCard playingCard = dealerCards[i];
-			if (base.HasRoundInProgress && i == 0)
+			if (base.HasRoundInProgressOrEnding && i == 0)
 			{
 				syncData.blackjack.dealerCards.Add(-1);
 			}
@@ -370,7 +372,7 @@ public class BlackjackController : CardGameController
 		{
 			return (int)blackjackInputOption;
 		}
-		if (!base.HasRoundInProgress)
+		if (!base.HasActiveRound)
 		{
 			return (int)blackjackInputOption;
 		}
@@ -524,7 +526,7 @@ public class BlackjackController : CardGameController
 		}
 		BlackjackInputOption selectedMove = (BlackjackInputOption)input;
 		CardPlayerDataBlackjack pdBlackjack = (CardPlayerDataBlackjack)pData;
-		if (!base.HasRoundInProgress)
+		if (!base.HasActiveRound)
 		{
 			LastActionTarget = pData.UserID;
 			LastAction = selectedMove;
@@ -700,9 +702,9 @@ public class BlackjackController : CardGameController
 			HandlePlayerLeavingDuringTheirTurn(pData);
 		}
 		pData.ClearAllData();
-		if (base.HasRoundInProgress && NumPlayersInCurrentRound() < MinPlayers)
+		if (base.HasActiveRound && NumPlayersInCurrentRound() < MinPlayers)
 		{
-			EndRound();
+			EndRoundWithDelay();
 		}
 		if (pData.HasUserInGame)
 		{
@@ -794,12 +796,12 @@ public class BlackjackController : CardGameController
 			}
 		}
 		ServerPlaySound(CardGameSounds.SoundType.Draw);
-		EndRound();
+		EndRoundWithDelay();
 	}
 
 	private void DealInitialCards()
 	{
-		if (!base.HasRoundInProgress)
+		if (!base.HasActiveRound)
 		{
 			return;
 		}

@@ -867,11 +867,20 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 	public override void Load(LoadInfo info)
 	{
 		base.Load(info);
-		if (info.msg.modularCar != null)
+		if (info.msg.modularCar == null)
 		{
-			carLock.LockID = info.msg.modularCar.lockID;
-			engineController.FuelSystem.fuelStorageInstance.uid = info.msg.modularCar.fuelStorageID;
-			cachedFuelFraction = info.msg.modularCar.fuelFraction;
+			return;
+		}
+		bool hasALock = carLock.HasALock;
+		carLock.LockID = info.msg.modularCar.lockID;
+		engineController.FuelSystem.fuelStorageInstance.uid = info.msg.modularCar.fuelStorageID;
+		cachedFuelFraction = info.msg.modularCar.fuelFraction;
+		if (carLock.HasALock != hasALock)
+		{
+			for (int i = 0; i < base.AttachedModuleEntities.Count; i++)
+			{
+				base.AttachedModuleEntities[i].RefreshConditionals(canGib: true);
+			}
 		}
 	}
 

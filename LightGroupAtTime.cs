@@ -25,4 +25,6 @@ public class LightGroupAtTime : FacepunchBehaviour
 	public Transform powerOverrideTransform;
 
 	public LayerMask checkLayers = 1235288065;
+
+	public GameObject enableWhenLightsOn;
 }
