@@ -50,6 +50,8 @@ public class BlackjackController : CardGameController
 
 	public const float INSURANCE_PAYOUT_RATIO = 2f;
 
+	private const float DEALER_MOVE_TIME = 1f;
+
 	private const int NUM_DECKS = 6;
 
 	private StackOfCards cardStack = new StackOfCards(6);
@@ -308,7 +310,7 @@ public class BlackjackController : CardGameController
 		for (int i = 0; i < dealerCards.Count; i++)
 		{
 			PlayingCard playingCard = dealerCards[i];
-			if (base.HasRoundInProgressOrEnding && i == 0)
+			if (base.HasActiveRound && i == 0)
 			{
 				syncData.blackjack.dealerCards.Add(-1);
 			}
@@ -704,7 +706,7 @@ public class BlackjackController : CardGameController
 		pData.ClearAllData();
 		if (base.HasActiveRound && NumPlayersInCurrentRound() < MinPlayers)
 		{
-			EndRoundWithDelay();
+			BeginRoundEnd();
 		}
 		if (pData.HasUserInGame)
 		{
@@ -783,20 +785,33 @@ public class BlackjackController : CardGameController
 				break;
 			}
 		}
+		ServerPlaySound(CardGameSounds.SoundType.Draw);
 		if (NumPlayersInCurrentRound() > 0 && !flag && !flag2)
 		{
-			int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
-			int cardsValue2 = GetCardsValue(dealerCards, CardsValueMode.Low);
-			while (cardsValue2 < 17 && (cardsValue < 17 || cardsValue > 21))
-			{
-				cardStack.TryTakeCard(out var card);
-				dealerCards.Add(card);
-				cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
-				cardsValue2 = GetCardsValue(dealerCards, CardsValueMode.Low);
-			}
+			base.Owner.Invoke(DealerPlayInvoke, 1f);
+			BeginRoundEnd();
 		}
-		ServerPlaySound(CardGameSounds.SoundType.Draw);
-		EndRoundWithDelay();
+		else
+		{
+			EndRoundWithDelay();
+		}
+	}
+
+	private void DealerPlayInvoke()
+	{
+		int cardsValue = GetCardsValue(dealerCards, CardsValueMode.High);
+		if (GetCardsValue(dealerCards, CardsValueMode.Low) < 17 && (cardsValue < 17 || cardsValue > 21))
+		{
+			cardStack.TryTakeCard(out var card);
+			dealerCards.Add(card);
+			ServerPlaySound(CardGameSounds.SoundType.Draw);
+			base.Owner.Invoke(DealerPlayInvoke, 1f);
+			base.Owner.SendNetworkUpdate();
+		}
+		else
+		{
+			EndRoundWithDelay();
+		}
 	}
 
 	private void DealInitialCards()

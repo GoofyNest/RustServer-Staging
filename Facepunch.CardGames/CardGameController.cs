@@ -652,6 +652,13 @@ public abstract class CardGameController : IDisposable
 		return true;
 	}
 
+	protected void BeginRoundEnd()
+	{
+		State = CardGameState.InGameRoundEnding;
+		CancelNextCycleInvoke();
+		Owner.SendNetworkUpdate();
+	}
+
 	protected void EndRoundWithDelay()
 	{
 		State = CardGameState.InGameRoundEnding;
