@@ -4,6 +4,8 @@ public class FlameExplosive : TimedExplosive
 {
 	public GameObjectRef createOnExplode;
 
+	public bool blockCreateUnderwater;
+
 	public float numToCreate = 10f;
 
 	public float minVelocity = 2f;
@@ -29,6 +31,12 @@ public class FlameExplosive : TimedExplosive
 		{
 			return;
 		}
+		Vector3 position = base.transform.position;
+		if (blockCreateUnderwater && WaterLevel.Test(position))
+		{
+			base.Explode();
+			return;
+		}
 		Collider component = GetComponent<Collider>();
 		if ((bool)component)
 		{
@@ -36,7 +44,6 @@ public class FlameExplosive : TimedExplosive
 		}
 		for (int i = 0; (float)i < numToCreate; i++)
 		{
-			Vector3 position = base.transform.position;
 			BaseEntity baseEntity = GameManager.server.CreateEntity(createOnExplode.resourcePath, position);
 			if ((bool)baseEntity)
 			{
