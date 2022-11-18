@@ -80,6 +80,11 @@ public class DudTimedExplosive : TimedExplosive, IIgniteable, ISplashable
 	{
 		if (becomeDudInWater && WaterFactor() >= 0.5f)
 		{
+			if (creatorEntity != null && creatorEntity.IsNpc)
+			{
+				base.Explode();
+				return;
+			}
 			BecomeDud();
 			if (IsInvoking(WaterCheck))
 			{
