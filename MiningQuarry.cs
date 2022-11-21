@@ -193,7 +193,7 @@ public class MiningQuarry : BaseResourceExtractor
 
 	public bool FuelCheck()
 	{
-		Item item = fuelStoragePrefab.instance.GetComponent<StorageContainer>().inventory.FindItemsByItemName("lowgradefuel");
+		Item item = fuelStoragePrefab.instance.GetComponent<StorageContainer>().inventory.FindItemsByItemName("diesel_barrel");
 		if (item != null && item.amount >= 1)
 		{
 			item.UseItem();

@@ -149,11 +149,16 @@ public class Item
 	{
 		get
 		{
+			Rarity rarity = info.despawnRarity;
+			if (rarity == Rarity.None)
+			{
+				rarity = info.rarity;
+			}
 			if (!(info != null))
 			{
 				return 1;
 			}
-			return Mathf.Clamp((int)(info.rarity - 1) * 4, 1, 100);
+			return Mathf.Clamp((int)(rarity - 1) * 4, 1, 100);
 		}
 	}
 

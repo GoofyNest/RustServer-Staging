@@ -3,6 +3,14 @@ using UnityEngine;
 
 public class Socket_Base : PrefabAttribute
 {
+	[Serializable]
+	public class OccupiedSocketCheck
+	{
+		public Socket_Base Socket;
+
+		public bool FemaleDummy;
+	}
+
 	public bool male = true;
 
 	public bool maleDummy;
@@ -28,6 +36,8 @@ public class Socket_Base : PrefabAttribute
 
 	[NonSerialized]
 	public SocketMod[] socketMods;
+
+	public OccupiedSocketCheck[] checkOccupiedSockets;
 
 	public Vector3 GetSelectPivot(Vector3 position, Quaternion rotation)
 	{

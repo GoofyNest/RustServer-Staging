@@ -275,6 +275,11 @@ public class RepairBench : StorageContainer
 		RepairAnItem(slot, player, this, maxConditionLostOnRepair, mustKnowBlueprint: true);
 	}
 
+	public override int GetIdealSlot(BasePlayer player, Item item)
+	{
+		return 0;
+	}
+
 	public static void RepairAnItem(Item itemToRepair, BasePlayer player, BaseEntity repairBenchEntity, float maxConditionLostOnRepair, bool mustKnowBlueprint)
 	{
 		if (itemToRepair == null)

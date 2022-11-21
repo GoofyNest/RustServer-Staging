@@ -9,6 +9,8 @@ public class DirectionProperties : PrefabAttribute
 
 	public ProtectionProperties extraProtection;
 
+	public Transform[] weakspots;
+
 	protected override Type GetIndexedType()
 	{
 		return typeof(DirectionProperties);
@@ -36,8 +38,18 @@ public class DirectionProperties : PrefabAttribute
 		Vector3 target = worldToLocalMatrix.MultiplyPoint3x4(info.HitPositionWorld);
 		OBB oBB = new OBB(worldPosition, worldRotation, bounds);
 		Vector3 position = initiatorPlayer.eyes.position;
-		Vector3 target2 = tx.TransformPoint(oBB.position);
-		if (!hitEntity.IsVisible(position, target2))
+		if (weakspots != null && weakspots.Length != 0)
+		{
+			Transform[] array = weakspots;
+			foreach (Transform transform in array)
+			{
+				if (IsWeakspotVisible(hitEntity, position, tx.TransformPoint(transform.position)))
+				{
+					break;
+				}
+			}
+		}
+		else if (!IsWeakspotVisible(hitEntity, position, tx.TransformPoint(oBB.position)))
 		{
 			return false;
 		}
@@ -46,5 +58,14 @@ public class DirectionProperties : PrefabAttribute
 			return oBB.Contains(target);
 		}
 		return false;
+	}
+
+	private bool IsWeakspotVisible(BaseEntity hitEntity, Vector3 playerEyes, Vector3 weakspotPos)
+	{
+		if (!hitEntity.IsVisible(playerEyes, weakspotPos))
+		{
+			return false;
+		}
+		return true;
 	}
 }
