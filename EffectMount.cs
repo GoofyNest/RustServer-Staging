@@ -13,4 +13,6 @@ public class EffectMount : EntityComponent<BaseEntity>, IClientComponent
 	public SoundDefinition onSoundDef;
 
 	public SoundDefinition offSoundDef;
+
+	public bool blockOffSoundWhenGettingDisabled;
 }

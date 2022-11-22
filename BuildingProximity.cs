@@ -72,7 +72,14 @@ public class BuildingProximity : PrefabAttribute
 						}
 						else if (num != building.ID)
 						{
-							Construction.lastPlacementError = "Cannot connect two buildings with cupboards";
+							if (!dominatingBuildingPrivilege.IsAuthed(player))
+							{
+								Construction.lastPlacementError = "Cannot attach to unauthorized building";
+							}
+							else
+							{
+								Construction.lastPlacementError = "Cannot connect two buildings with cupboards";
+							}
 							Pool.FreeList(ref obj);
 							return true;
 						}
@@ -84,7 +91,7 @@ public class BuildingProximity : PrefabAttribute
 				Vector3 v = proximityInfo.line.point1 - proximityInfo.line.point0;
 				if (!(Mathf.Abs(v.y) > 1.49f) && !(v.Magnitude2D() > 1.49f))
 				{
-					Construction.lastPlacementError = "Not enough space";
+					Construction.lastPlacementError = "Too close to another building";
 					Pool.FreeList(ref obj);
 					return true;
 				}

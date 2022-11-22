@@ -206,7 +206,6 @@ public class Construction : PrefabAttribute
 			{
 				transform.position = placement.position;
 				transform.rotation = placement.rotation;
-				lastPlacementError = "Too close to another building";
 				continue;
 			}
 			if (common.isBuildingPrivilege && !target.player.CanPlaceBuildingPrivilege(placement.position, placement.rotation, common.bounds))

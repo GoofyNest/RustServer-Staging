@@ -19,6 +19,8 @@ public class Socket_Base : PrefabAttribute
 
 	public bool femaleDummy;
 
+	public bool femaleNoStability;
+
 	public bool monogamous;
 
 	[NonSerialized]

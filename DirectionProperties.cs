@@ -9,8 +9,6 @@ public class DirectionProperties : PrefabAttribute
 
 	public ProtectionProperties extraProtection;
 
-	public Transform[] weakspots;
-
 	protected override Type GetIndexedType()
 	{
 		return typeof(DirectionProperties);
@@ -38,15 +36,22 @@ public class DirectionProperties : PrefabAttribute
 		Vector3 target = worldToLocalMatrix.MultiplyPoint3x4(info.HitPositionWorld);
 		OBB oBB = new OBB(worldPosition, worldRotation, bounds);
 		Vector3 position = initiatorPlayer.eyes.position;
-		if (weakspots != null && weakspots.Length != 0)
+		WeakpointProperties[] array = PrefabAttribute.server.FindAll<WeakpointProperties>(hitEntity.prefabID);
+		if (array != null && array.Length != 0)
 		{
-			Transform[] array = weakspots;
-			foreach (Transform transform in array)
+			bool flag = false;
+			WeakpointProperties[] array2 = array;
+			foreach (WeakpointProperties weakpointProperties in array2)
 			{
-				if (IsWeakspotVisible(hitEntity, position, tx.TransformPoint(transform.position)))
+				if ((!weakpointProperties.BlockWhenRoofAttached || CheckWeakpointRoof(hitEntity)) && IsWeakspotVisible(hitEntity, position, tx.TransformPoint(weakpointProperties.worldPosition + weakpointProperties.Position)))
 				{
+					flag = true;
 					break;
 				}
+			}
+			if (!flag)
+			{
+				return false;
 			}
 		}
 		else if (!IsWeakspotVisible(hitEntity, position, tx.TransformPoint(oBB.position)))
@@ -58,6 +63,25 @@ public class DirectionProperties : PrefabAttribute
 			return oBB.Contains(target);
 		}
 		return false;
+	}
+
+	private bool CheckWeakpointRoof(BaseEntity hitEntity)
+	{
+		foreach (EntityLink entityLink in hitEntity.GetEntityLinks())
+		{
+			if (!(entityLink.socket is NeighbourSocket))
+			{
+				continue;
+			}
+			foreach (EntityLink connection in entityLink.connections)
+			{
+				if (connection.owner is BuildingBlock buildingBlock && (buildingBlock.ShortPrefabName == "roof" || buildingBlock.ShortPrefabName == "roof.triangle"))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private bool IsWeakspotVisible(BaseEntity hitEntity, Vector3 playerEyes, Vector3 weakspotPos)
