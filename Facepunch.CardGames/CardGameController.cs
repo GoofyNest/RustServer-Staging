@@ -27,7 +27,7 @@ public abstract class CardGameController : IDisposable
 		Idle
 	}
 
-	public const int IDLE_KICK_SECONDS = 600;
+	public const int IDLE_KICK_SECONDS = 240;
 
 	private CardGame.CardList localPlayerCards;
 
@@ -624,7 +624,7 @@ public abstract class CardGameController : IDisposable
 			{
 				cardPlayerData.lastActionTime = Time.unscaledTime;
 			}
-			else if (cardPlayerData.HasBeenIdleFor(600) && BasePlayer.TryFindByID(cardPlayerData.UserID, out basePlayer))
+			else if (cardPlayerData.HasBeenIdleFor(240) && BasePlayer.TryFindByID(cardPlayerData.UserID, out basePlayer))
 			{
 				basePlayer.GetMounted().DismountPlayer(basePlayer);
 			}

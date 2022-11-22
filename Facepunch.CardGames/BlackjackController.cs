@@ -699,10 +699,32 @@ public class BlackjackController : CardGameController
 
 	protected override void OnTurnTimeout(CardPlayerData pData)
 	{
-		if (pData.HasUserInCurrentRound && !pData.hasCompletedTurn)
+		if (!pData.HasUserInCurrentRound || pData.hasCompletedTurn)
 		{
-			HandlePlayerLeavingDuringTheirTurn(pData);
+			return;
 		}
+		BlackjackInputOption blackjackInputOption = BlackjackInputOption.Abandon;
+		int value = 0;
+		if (AllBetsPlaced)
+		{
+			if ((pData.availableInputs & 4) == 4)
+			{
+				blackjackInputOption = BlackjackInputOption.Stand;
+				ReceivedInputFromPlayer(pData, 4, countAsAction: true, 0, playerInitiated: false);
+			}
+		}
+		else if ((pData.availableInputs & 1) == 1 && pData.GetScrapAmount() >= MinBuyIn)
+		{
+			blackjackInputOption = BlackjackInputOption.SubmitBet;
+			value = MinBuyIn;
+		}
+		if (blackjackInputOption != BlackjackInputOption.Abandon)
+		{
+			ReceivedInputFromPlayer(pData, (int)blackjackInputOption, countAsAction: true, value, playerInitiated: false);
+			return;
+		}
+		blackjackInputOption = BlackjackInputOption.Abandon;
+		ReceivedInputFromPlayer(pData, (int)blackjackInputOption, countAsAction: true, 0, playerInitiated: false);
 		pData.ClearAllData();
 		if (base.HasActiveRound && NumPlayersInCurrentRound() < MinPlayers)
 		{
