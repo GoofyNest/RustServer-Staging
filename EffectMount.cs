@@ -9,4 +9,8 @@ public class EffectMount : EntityComponent<BaseEntity>, IClientComponent
 	public GameObject spawnedEffect;
 
 	public GameObject mountBone;
+
+	public SoundDefinition onSoundDef;
+
+	public SoundDefinition offSoundDef;
 }
