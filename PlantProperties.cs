@@ -69,6 +69,8 @@ public class PlantProperties : ScriptableObject
 
 	public BaseEntity.Menu.Option pickAllOption;
 
+	public BaseEntity.Menu.Option eatOption;
+
 	public ItemDefinition pickupItem;
 
 	public BaseEntity.Menu.Option cloneOption;
