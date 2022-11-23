@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[887]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[889]
 	{
 		new ConsoleSystem.Command
 		{
@@ -10638,6 +10638,34 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				IOEntity.backtracking = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "debugbudget",
+			Parent = "ioentity",
+			FullName = "ioentity.debugbudget",
+			ServerAdmin = true,
+			Description = "Print out what is taking so long in the IO frame budget",
+			Variable = true,
+			GetOveride = () => IOEntity.debugBudget.ToString(),
+			SetOveride = delegate(string str)
+			{
+				IOEntity.debugBudget = str.ToBool();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "debugbudgetthreshold",
+			Parent = "ioentity",
+			FullName = "ioentity.debugbudgetthreshold",
+			ServerAdmin = true,
+			Description = "Ignore frames with a lower ms than this while debugBudget is active",
+			Variable = true,
+			GetOveride = () => IOEntity.debugBudgetThreshold.ToString(),
+			SetOveride = delegate(string str)
+			{
+				IOEntity.debugBudgetThreshold = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command
