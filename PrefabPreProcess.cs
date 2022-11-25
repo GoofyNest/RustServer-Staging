@@ -122,6 +122,10 @@ public class PrefabPreProcess : IPrefabProcessor
 				return true;
 			}
 		}
+		if (isClientside && ShouldProcessCanvasObject(go))
+		{
+			return true;
+		}
 		if (!isServerside)
 		{
 			if (serversideOnlyTypes.Any((Type type) => HasComponents(go.transform, type)))
@@ -207,6 +211,10 @@ public class PrefabPreProcess : IPrefabProcessor
 			}
 		}
 		RunCleanupQueue();
+		if (isClientside)
+		{
+			AddCanvasDisabler(go);
+		}
 		foreach (IPrefabPostProcess item6 in FindComponents<IPrefabPostProcess>(go.transform))
 		{
 			item6.PostProcess(this, go, name, isServerside, isClientside, isBundling);
@@ -405,6 +413,33 @@ public class PrefabPreProcess : IPrefabProcessor
 			if (!(parent == null) && !parent.name.StartsWith("PrefabPreProcess - "))
 			{
 				UnityEngine.Object.DestroyImmediate(go, allowDestroyingAssets: true);
+			}
+		}
+	}
+
+	private bool ShouldProcessCanvasObject(GameObject root)
+	{
+		return HasComponents<Canvas>(root.transform);
+	}
+
+	private void AddCanvasDisabler(GameObject root)
+	{
+		if (!ShouldProcessCanvasObject(root))
+		{
+			return;
+		}
+		Canvas[] componentsInChildren = root.GetComponentsInChildren<Canvas>(includeInactive: true);
+		foreach (Canvas canvas in componentsInChildren)
+		{
+			if (!(canvas.GetComponent<CanvasDisabler>() != null))
+			{
+				CanvasGroup component = canvas.GetComponent<CanvasGroup>();
+				if (component != null)
+				{
+					CanvasDisabler canvasDisabler = canvas.gameObject.AddComponent<CanvasDisabler>();
+					canvasDisabler.canvas = canvas;
+					canvasDisabler.canvasGroup = component;
+				}
 			}
 		}
 	}
