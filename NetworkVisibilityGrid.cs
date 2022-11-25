@@ -103,7 +103,7 @@ public class NetworkVisibilityGrid : MonoBehaviour, Provider
 		{
 			return 1;
 		}
-		if (y > dynamicDungeonsThreshold)
+		if (y >= dynamicDungeonsThreshold)
 		{
 			return 10 + Mathf.FloorToInt((y - dynamicDungeonsThreshold) / dynamicDungeonsInterval);
 		}
