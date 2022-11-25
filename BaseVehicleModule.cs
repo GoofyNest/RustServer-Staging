@@ -576,7 +576,7 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		{
 			return false;
 		}
-		return Vehicle.PlayerCanUseThis(player, ModularCarLock.LockType.General);
+		return Vehicle.PlayerCanUseThis(player, ModularCarCodeLock.LockType.General);
 	}
 
 	public bool PlayerIsLookingAtUsable(string lookingAtColldierName, string usableColliderName)

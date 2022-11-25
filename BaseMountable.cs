@@ -319,8 +319,12 @@ public class BaseMountable : BaseCombatEntity
 	[RPC_Server.IsVisible(3f)]
 	public void RPC_WantsMount(RPCMessage msg)
 	{
-		BasePlayer player = msg.player;
-		if (!player || !player.CanInteract())
+		WantsMount(msg.player);
+	}
+
+	public void WantsMount(BasePlayer player)
+	{
+		if (!player.IsValid() || !player.CanInteract())
 		{
 			return;
 		}
@@ -329,7 +333,7 @@ public class BaseMountable : BaseCombatEntity
 			BaseVehicle baseVehicle = VehicleParent();
 			if (baseVehicle != null)
 			{
-				baseVehicle.RPC_WantsMount(msg);
+				baseVehicle.WantsMount(player);
 				return;
 			}
 		}

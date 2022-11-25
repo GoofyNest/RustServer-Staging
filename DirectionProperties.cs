@@ -43,7 +43,7 @@ public class DirectionProperties : PrefabAttribute
 			WeakpointProperties[] array2 = array;
 			foreach (WeakpointProperties weakpointProperties in array2)
 			{
-				if ((!weakpointProperties.BlockWhenRoofAttached || CheckWeakpointRoof(hitEntity)) && IsWeakspotVisible(hitEntity, position, tx.TransformPoint(weakpointProperties.worldPosition + weakpointProperties.Position)))
+				if ((!weakpointProperties.BlockWhenRoofAttached || CheckWeakpointRoof(hitEntity)) && IsWeakspotVisible(hitEntity, position, tx.TransformPoint(weakpointProperties.worldPosition)))
 				{
 					flag = true;
 					break;

@@ -641,6 +641,10 @@ public class Item
 				if (iTargetPos == -1 && newcontainer.GetEntityOwner(returnHeldEntity: true) is IItemContainerEntity itemContainerEntity)
 				{
 					iTargetPos = itemContainerEntity.GetIdealSlot(sourcePlayer, this);
+					if (iTargetPos == int.MinValue)
+					{
+						return false;
+					}
 				}
 				if (iTargetPos == -1)
 				{

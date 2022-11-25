@@ -688,7 +688,7 @@ public class Server : ConsoleSystem
 		{
 			return "invalid player";
 		}
-		return basePlayer.stats.combat.Get(combatlogsize, 0u, arg.HasArg("--json"), arg.IsAdmin);
+		return basePlayer.stats.combat.Get(combatlogsize, 0u, arg.HasArg("--json"), arg.IsAdmin, arg.Connection?.userid ?? 0);
 	}
 
 	[ServerAllVar(Help = "Get the player combat log, only showing outgoing damage")]
@@ -703,7 +703,7 @@ public class Server : ConsoleSystem
 		{
 			return "invalid player";
 		}
-		return basePlayer.stats.combat.Get(combatlogsize, basePlayer.net.ID, arg.HasArg("--json"), arg.IsAdmin);
+		return basePlayer.stats.combat.Get(combatlogsize, basePlayer.net.ID, arg.HasArg("--json"), arg.IsAdmin, arg.Connection?.userid ?? 0);
 	}
 
 	[ServerVar(Help = "Print the current player position.")]

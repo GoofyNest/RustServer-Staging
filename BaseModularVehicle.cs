@@ -32,6 +32,8 @@ public abstract class BaseModularVehicle : GroundVehicle, PlayerInventory.ICanMo
 	[SerializeField]
 	private LODGroup lodGroup;
 
+	public GameObjectRef keyEnterDialog;
+
 	private float _mass = -1f;
 
 	public const Flags FLAG_KINEMATIC = Flags.Reserved6;
@@ -359,7 +361,7 @@ public abstract class BaseModularVehicle : GroundVehicle, PlayerInventory.ICanMo
 		}
 	}
 
-	public virtual bool PlayerCanUseThis(BasePlayer player, ModularCarLock.LockType lockType)
+	public virtual bool PlayerCanUseThis(BasePlayer player, ModularCarCodeLock.LockType lockType)
 	{
 		return true;
 	}

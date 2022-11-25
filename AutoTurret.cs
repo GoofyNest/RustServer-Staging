@@ -1359,46 +1359,37 @@ public class AutoTurret : ContainerIOEntity, IRemoteControllable
 
 	public void TargetScan()
 	{
-		if (HasTarget() || IsOffline() || IsBeingRemoteControlled() || targetTrigger.entityContents == null)
+		if (HasTarget() || IsOffline() || IsBeingRemoteControlled())
 		{
 			return;
 		}
-		foreach (BaseEntity entityContent in targetTrigger.entityContents)
+		if (targetTrigger.entityContents != null)
 		{
-			if (entityContent == null)
+			foreach (BaseEntity entityContent in targetTrigger.entityContents)
 			{
-				continue;
-			}
-			BaseCombatEntity component = entityContent.GetComponent<BaseCombatEntity>();
-			if (component == null || !component.IsAlive() || !InFiringArc(component) || !ObjectVisible(component))
-			{
-				continue;
-			}
-			if (!Sentry.targetall)
-			{
-				BasePlayer basePlayer = component as BasePlayer;
-				if ((bool)basePlayer && (IsAuthed(basePlayer) || Ignore(basePlayer)))
+				BaseCombatEntity baseCombatEntity = entityContent as BaseCombatEntity;
+				if (baseCombatEntity == null)
 				{
 					continue;
 				}
-			}
-			if (!ShouldTarget(component))
-			{
-				continue;
-			}
-			if (PeacekeeperMode())
-			{
-				if (!IsEntityHostile(component))
+				if (!Sentry.targetall)
 				{
-					continue;
+					BasePlayer basePlayer = baseCombatEntity as BasePlayer;
+					if (basePlayer != null && (IsAuthed(basePlayer) || Ignore(basePlayer)))
+					{
+						continue;
+					}
 				}
-				if (target == null)
+				if ((!PeacekeeperMode() || IsEntityHostile(baseCombatEntity)) && baseCombatEntity.IsAlive() && ShouldTarget(baseCombatEntity) && InFiringArc(baseCombatEntity) && ObjectVisible(baseCombatEntity))
 				{
-					nextShotTime = UnityEngine.Time.time + 1f;
+					SetTarget(baseCombatEntity);
+					break;
 				}
 			}
-			SetTarget(component);
-			break;
+		}
+		if (PeacekeeperMode() && target == null)
+		{
+			nextShotTime = UnityEngine.Time.time + 1f;
 		}
 	}
 

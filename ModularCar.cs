@@ -105,8 +105,6 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public VisualCarWheel wheelRR;
 
-	public ItemDefinition carKeyDefinition;
-
 	[SerializeField]
 	private CarSettings carSettings;
 
@@ -142,8 +140,6 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 	public static float outsidedecayminutes = 864f;
 
 	public const BUTTON RapidSteerButton = BUTTON.SPRINT;
-
-	public ModularCarLock carLock;
 
 	private VehicleEngineController<GroundVehicle>.EngineState lastSetEngineState;
 
@@ -203,7 +199,9 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public float MaxSteerAngle => carSettings.maxSteerAngle;
 
-	public override bool IsLockable => carLock.HasALock;
+	public override bool IsLockable => CarLock.HasALock;
+
+	public ModularCarCodeLock CarLock { get; private set; }
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
@@ -238,6 +236,64 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 				}
 				return true;
 			}
+			if (rpc == 1382140449 && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_OpenFuelWithKeycode "));
+				}
+				using (TimeWarning.New("RPC_OpenFuelWithKeycode"))
+				{
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg3 = rPCMessage;
+							RPC_OpenFuelWithKeycode(msg3);
+						}
+					}
+					catch (Exception exception2)
+					{
+						Debug.LogException(exception2);
+						player.Kick("RPC Error in RPC_OpenFuelWithKeycode");
+					}
+				}
+				return true;
+			}
+			if (rpc == 2818660542u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log(string.Concat("SV_RPCMessage: ", player, " - RPC_TryMountWithKeycode "));
+				}
+				using (TimeWarning.New("RPC_TryMountWithKeycode"))
+				{
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg4 = rPCMessage;
+							RPC_TryMountWithKeycode(msg4);
+						}
+					}
+					catch (Exception exception3)
+					{
+						Debug.LogException(exception3);
+						player.Kick("RPC Error in RPC_TryMountWithKeycode");
+					}
+				}
+				return true;
+			}
 		}
 		return base.OnRpcMessage(player, rpc, msg);
 	}
@@ -267,7 +323,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 	public override void PostServerLoad()
 	{
 		base.PostServerLoad();
-		carLock.EnableCentralLockingIfNoDriver();
+		CarLock.PostServerLoad();
 		if (IsDead())
 		{
 			Kill();
@@ -426,7 +482,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 				attachedModuleEntity.OnPlayerDismountedVehicle(player);
 			}
 		}
-		carLock.EnableCentralLockingIfNoDriver();
+		CarLock.EnableCentralLockingIfNoDriver();
 	}
 
 	public override void Save(SaveInfo info)
@@ -439,7 +495,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		info.msg.modularCar.brakeInput = GetBrakeInput();
 		info.msg.modularCar.fuelStorageID = GetFuelSystem().fuelStorageInstance.uid;
 		info.msg.modularCar.fuelFraction = GetFuelFraction();
-		info.msg.modularCar.lockID = carLock.LockID;
+		CarLock.Save(info);
 	}
 
 	public override void Hurt(HitInfo info)
@@ -467,7 +523,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			return true;
 		}
-		return PlayerCanUseThis(player, ModularCarLock.LockType.Door);
+		return PlayerCanUseThis(player, ModularCarCodeLock.LockType.Door);
 	}
 
 	public override bool IsComplete()
@@ -642,9 +698,9 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			attachedModuleEntity.repair.enabled = false;
 		}
-		if (carLock != null)
+		if (CarLock != null)
 		{
-			carLock.RemoveLock();
+			CarLock.RemoveLock();
 		}
 		timeSinceDeath = 0f;
 		if (vehicle.carwrecks)
@@ -666,7 +722,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public void RemoveLock()
 	{
-		carLock.RemoveLock();
+		CarLock.RemoveLock();
 	}
 
 	public void RestoreVelocity(Vector3 vel)
@@ -804,6 +860,46 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		}
 	}
 
+	[RPC_Server]
+	public void RPC_OpenFuelWithKeycode(RPCMessage msg)
+	{
+		BasePlayer player = msg.player;
+		if (player == null)
+		{
+			return;
+		}
+		string codeEntered = msg.read.String();
+		if (CarLock.TryOpenWithCode(player, codeEntered))
+		{
+			if (CanBeLooted(player))
+			{
+				GetFuelSystem().LootFuel(player);
+			}
+		}
+		else
+		{
+			ClientRPC(null, "CodeEntryFailed");
+		}
+	}
+
+	[RPC_Server]
+	public void RPC_TryMountWithKeycode(RPCMessage msg)
+	{
+		BasePlayer player = msg.player;
+		if (!(player == null))
+		{
+			string codeEntered = msg.read.String();
+			if (CarLock.TryOpenWithCode(player, codeEntered))
+			{
+				WantsMount(player);
+			}
+			else
+			{
+				ClientRPC(null, "CodeEntryFailed");
+			}
+		}
+	}
+
 	public override void ScaleDamageForPlayer(BasePlayer player, HitInfo info)
 	{
 		base.ScaleDamageForPlayer(player, info);
@@ -825,7 +921,10 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 	public override void InitShared()
 	{
 		base.InitShared();
-		carLock = new ModularCarLock(this, base.isServer);
+		if (CarLock == null)
+		{
+			CarLock = new ModularCarCodeLock(this, base.isServer);
+		}
 	}
 
 	public override float MaxHealth()
@@ -871,11 +970,11 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			return;
 		}
-		bool hasALock = carLock.HasALock;
-		carLock.LockID = info.msg.modularCar.lockID;
 		engineController.FuelSystem.fuelStorageInstance.uid = info.msg.modularCar.fuelStorageID;
 		cachedFuelFraction = info.msg.modularCar.fuelFraction;
-		if (carLock.HasALock != hasALock)
+		bool hasALock = CarLock.HasALock;
+		CarLock.Load(info);
+		if (CarLock.HasALock != hasALock)
 		{
 			for (int i = 0; i < base.AttachedModuleEntities.Count; i++)
 			{
@@ -944,17 +1043,17 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public bool PlayerHasUnlockPermission(BasePlayer player)
 	{
-		return carLock.PlayerHasUnlockPermission(player);
+		return CarLock.PlayerHasUnlockPermission(player);
 	}
 
-	public override bool PlayerCanUseThis(BasePlayer player, ModularCarLock.LockType lockType)
+	public override bool PlayerCanUseThis(BasePlayer player, ModularCarCodeLock.LockType lockType)
 	{
-		return carLock.PlayerCanUseThis(player, lockType);
+		return CarLock.PlayerCanUseThis(player, lockType);
 	}
 
 	public bool PlayerCanDestroyLock(BasePlayer player, BaseVehicleModule viaModule)
 	{
-		return carLock.PlayerCanDestroyLock(viaModule);
+		return CarLock.PlayerCanDestroyLock(viaModule);
 	}
 
 	public override bool CanBeLooted(BasePlayer player)
@@ -967,7 +1066,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			return true;
 		}
-		if (!PlayerCanUseThis(player, ModularCarLock.LockType.General))
+		if (!PlayerCanUseThis(player, ModularCarCodeLock.LockType.General))
 		{
 			return false;
 		}
@@ -980,7 +1079,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			return false;
 		}
-		if (pusher.InSafeZone() && !carLock.PlayerHasUnlockPermission(pusher))
+		if (pusher.InSafeZone() && !CarLock.PlayerHasUnlockPermission(pusher))
 		{
 			return false;
 		}

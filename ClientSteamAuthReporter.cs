@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Facepunch;
 using Newtonsoft.Json;
 using Rust;
+using Steamworks;
 using UnityEngine;
 
 public class ClientSteamAuthReporter
@@ -76,7 +77,8 @@ public class ClientSteamAuthReporter
 		}
 		isConnected = true;
 		EnsureUploadTask();
-		_sessionToken = sessionToken;
+		AuthTicket authSessionTicket = SteamUser.GetAuthSessionTicket();
+		_sessionToken = authSessionTicket.Data;
 		_ip = ip;
 		_port = port;
 		lock (_lock)
