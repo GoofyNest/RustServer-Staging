@@ -176,8 +176,12 @@ public class Inventory : ConsoleSystem
 	[ServerVar]
 	public static void unlockall(Arg arg)
 	{
-		BasePlayer basePlayer = arg.Player();
-		if ((bool)basePlayer)
+		BasePlayer basePlayer = arg.GetPlayer(0) ?? arg.Player();
+		if (!basePlayer)
+		{
+			arg.ReplyWith("Can't find player");
+		}
+		else
 		{
 			basePlayer.blueprints.UnlockAll();
 		}

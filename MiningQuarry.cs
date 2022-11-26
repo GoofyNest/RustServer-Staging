@@ -46,6 +46,10 @@ public class MiningQuarry : BaseResourceExtractor
 
 	public float workToAdd = 15f;
 
+	public float workPerFuel = 1000f;
+
+	public float pendingWork;
+
 	public GameObjectRef bucketDropEffect;
 
 	public GameObject bucketDropTransform;
@@ -131,18 +135,19 @@ public class MiningQuarry : BaseResourceExtractor
 			}
 			else if (staticType == QuarryType.Basic)
 			{
-				_linkedDeposit.Add(ItemManager.FindItemDefinition("metal.ore"), 1f, 1000, 2f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
-				_linkedDeposit.Add(ItemManager.FindItemDefinition("stones"), 1f, 1000, 0.3f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
+				_linkedDeposit.Add(ItemManager.FindItemDefinition("metal.ore"), 1f, 1000, 1f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
+				_linkedDeposit.Add(ItemManager.FindItemDefinition("stones"), 1f, 1000, 0.2f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
 			}
 			else if (staticType == QuarryType.Sulfur)
 			{
-				_linkedDeposit.Add(ItemManager.FindItemDefinition("sulfur.ore"), 1f, 1000, 2f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
+				_linkedDeposit.Add(ItemManager.FindItemDefinition("sulfur.ore"), 1f, 1000, 1f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
 			}
 			else if (staticType == QuarryType.HQM)
 			{
-				_linkedDeposit.Add(ItemManager.FindItemDefinition("hq.metal.ore"), 1f, 1000, 30f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
+				_linkedDeposit.Add(ItemManager.FindItemDefinition("hq.metal.ore"), 1f, 1000, 20f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM);
 			}
-			_linkedDeposit.Add(ItemManager.FindItemDefinition("crude.oil"), 1f, 1000, 10f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM, liquid: true);
+			_linkedDeposit.Add(ItemManager.FindItemDefinition("crude.oil"), 1f, 1000, 16.666666f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM, liquid: true);
+			_linkedDeposit.Add(ItemManager.FindItemDefinition("lowgradefuel"), 1f, 1000, 5.882353f, ResourceDepositManager.ResourceDeposit.surveySpawnType.ITEM, liquid: true);
 		}
 	}
 
@@ -166,18 +171,30 @@ public class MiningQuarry : BaseResourceExtractor
 		{
 			return;
 		}
+		if (!FuelCheck())
+		{
+			SetOn(isOn: false);
+		}
+		float num = Mathf.Min(workToAdd, pendingWork);
+		pendingWork -= num;
 		foreach (ResourceDepositManager.ResourceDeposit.ResourceDepositEntry resource in _linkedDeposit._resources)
 		{
 			if ((!canExtractLiquid && resource.isLiquid) || (!canExtractSolid && !resource.isLiquid))
 			{
 				continue;
 			}
-			resource.workDone += workToAdd;
-			if (!(resource.workDone < resource.workNeeded))
+			float workNeeded = resource.workNeeded;
+			int num2 = Mathf.FloorToInt(resource.workDone / workNeeded);
+			resource.workDone += num;
+			int num3 = Mathf.FloorToInt(resource.workDone / workNeeded);
+			if (resource.workDone > workNeeded)
 			{
-				int num = Mathf.FloorToInt(resource.workDone / resource.workNeeded);
-				resource.workDone -= (float)num * resource.workNeeded;
-				Item item = ItemManager.Create(resource.type, num, 0uL);
+				resource.workDone %= workNeeded;
+			}
+			if (num2 != num3)
+			{
+				int iAmount = num3 - num2;
+				Item item = ItemManager.Create(resource.type, iAmount, 0uL);
 				if (!item.MoveToContainer(hopperPrefab.instance.GetComponent<StorageContainer>().inventory))
 				{
 					item.Remove();
@@ -185,17 +202,18 @@ public class MiningQuarry : BaseResourceExtractor
 				}
 			}
 		}
-		if (!FuelCheck())
-		{
-			SetOn(isOn: false);
-		}
 	}
 
 	public bool FuelCheck()
 	{
+		if (pendingWork > 0f)
+		{
+			return true;
+		}
 		Item item = fuelStoragePrefab.instance.GetComponent<StorageContainer>().inventory.FindItemsByItemName("diesel_barrel");
 		if (item != null && item.amount >= 1)
 		{
+			pendingWork += workPerFuel;
 			item.UseItem();
 			return true;
 		}
