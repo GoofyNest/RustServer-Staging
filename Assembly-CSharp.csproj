@@ -138,7 +138,6 @@
     <Reference Include="Rust.Workshop">
       <HintPath>Rust.Workshop.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http" />
     <Reference Include="UnityEngine.DirectorModule">
       <HintPath>UnityEngine.DirectorModule.dll</HintPath>
     </Reference>
@@ -163,6 +162,7 @@
     <Reference Include="System.Memory">
       <HintPath>System.Memory.dll</HintPath>
     </Reference>
+    <Reference Include="System.Net.Http" />
     <Reference Include="Facepunch.Rcon">
       <HintPath>Facepunch.Rcon.dll</HintPath>
     </Reference>
