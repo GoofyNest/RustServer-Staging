@@ -103,9 +103,6 @@ public class VehicleEditingPanel : LootPanel
 	private Translate.Phrase phraseRepairEnactInfo;
 
 	[SerializeField]
-	private Translate.Phrase phraseCodeHiddenStreamerMode;
-
-	[SerializeField]
 	private Translate.Phrase phraseHasLock;
 
 	[SerializeField]

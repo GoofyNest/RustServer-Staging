@@ -1013,11 +1013,15 @@ public class Admin : ConsoleSystem
 			{
 				if (!(ent is AutoTurret autoTurret))
 				{
-					if (ent is CodeLock codeLock)
+					if (!(ent is CodeLock codeLock))
 					{
-						return CodeLockAuthList(codeLock);
+						if (ent is BaseVehicleModule vehicleModule)
+						{
+							return CodeLockAuthList(vehicleModule);
+						}
+						goto IL_0055;
 					}
-					goto IL_0042;
+					return CodeLockAuthList(codeLock);
 				}
 				authorizedPlayers = autoTurret.authorizedPlayers;
 			}
@@ -1038,8 +1042,8 @@ public class Admin : ConsoleSystem
 			}
 			return textTable.ToString();
 		}
-		goto IL_0042;
-		IL_0042:
+		goto IL_0055;
+		IL_0055:
 		return "Entity has no auth list";
 	}
 
@@ -1060,6 +1064,27 @@ public class Admin : ConsoleSystem
 		foreach (ulong guestPlayer in codeLock.guestPlayers)
 		{
 			textTable.AddRow(guestPlayer.ToString(), GetPlayerName(guestPlayer), "x");
+		}
+		return textTable.ToString();
+	}
+
+	private static string CodeLockAuthList(BaseVehicleModule vehicleModule)
+	{
+		if (!vehicleModule.IsOnAVehicle)
+		{
+			return "Nobody is authed to this entity";
+		}
+		ModularCar modularCar = vehicleModule.Vehicle as ModularCar;
+		if (modularCar == null || !modularCar.IsLockable || modularCar.CarLock.WhitelistPlayers.Count == 0)
+		{
+			return "Nobody is authed to this entity";
+		}
+		TextTable textTable = new TextTable();
+		textTable.AddColumn("steamID");
+		textTable.AddColumn("username");
+		foreach (ulong whitelistPlayer in modularCar.CarLock.WhitelistPlayers)
+		{
+			textTable.AddRow(whitelistPlayer.ToString(), GetPlayerName(whitelistPlayer));
 		}
 		return textTable.ToString();
 	}

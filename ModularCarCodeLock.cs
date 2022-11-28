@@ -21,8 +21,6 @@ public class ModularCarCodeLock
 
 	public const float LOCK_DESTROY_HEALTH = 0.2f;
 
-	private List<ulong> whitelistPlayers = new List<ulong>();
-
 	private int wrongCodes;
 
 	private float lastWrongTime = float.NegativeInfinity;
@@ -63,6 +61,9 @@ public class ModularCarCodeLock
 		}
 	}
 
+	public List<ulong> WhitelistPlayers { get; private set; } = new List<ulong>();
+
+
 	public string Code { get; private set; } = "";
 
 
@@ -92,8 +93,8 @@ public class ModularCarCodeLock
 		{
 			Code = "";
 		}
-		whitelistPlayers.Clear();
-		whitelistPlayers.AddRange(info.msg.modularCar.whitelistUsers);
+		WhitelistPlayers.Clear();
+		WhitelistPlayers.AddRange(info.msg.modularCar.whitelistUsers);
 	}
 
 	public bool PlayerHasUnlockPermission(BasePlayer player)
@@ -110,7 +111,7 @@ public class ModularCarCodeLock
 		{
 			return false;
 		}
-		return whitelistPlayers.Contains(player.userID);
+		return WhitelistPlayers.Contains(player.userID);
 	}
 
 	public bool PlayerCanUseThis(BasePlayer player, LockType lockType)
@@ -167,8 +168,8 @@ public class ModularCarCodeLock
 			return false;
 		}
 		Code = newCode;
-		whitelistPlayers.Clear();
-		whitelistPlayers.Add(userID);
+		WhitelistPlayers.Clear();
+		WhitelistPlayers.Add(userID);
 		owner.SendNetworkUpdate();
 		return true;
 	}
@@ -208,9 +209,9 @@ public class ModularCarCodeLock
 			lastWrongTime = Time.realtimeSinceStartup;
 			return false;
 		}
-		if (!whitelistPlayers.Contains(player.userID))
+		if (!WhitelistPlayers.Contains(player.userID))
 		{
-			whitelistPlayers.Add(player.userID);
+			WhitelistPlayers.Add(player.userID);
 			wrongCodes = 0;
 		}
 		owner.SendNetworkUpdate();
@@ -244,6 +245,6 @@ public class ModularCarCodeLock
 			info.msg.modularCar.lockCode = Code;
 		}
 		info.msg.modularCar.whitelistUsers = Pool.Get<List<ulong>>();
-		info.msg.modularCar.whitelistUsers.AddRange(whitelistPlayers);
+		info.msg.modularCar.whitelistUsers.AddRange(WhitelistPlayers);
 	}
 }

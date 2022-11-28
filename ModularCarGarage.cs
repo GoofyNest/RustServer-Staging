@@ -131,8 +131,6 @@ public class ModularCarGarage : ContainerIOEntity
 
 	public OccupantLock OccupantLockState { get; private set; }
 
-	public string OccupantLockCode { get; private set; }
-
 	private bool LiftIsUp => vehicleLiftState == VehicleLiftState.Up;
 
 	private bool LiftIsMoving => vehicleLiftAnim.isPlaying;
@@ -637,7 +635,7 @@ public class ModularCarGarage : ContainerIOEntity
 		base.ServerInit();
 		magnetSnap = new MagnetSnap(vehicleLiftPos);
 		RefreshOnOffState();
-		SetOccupantState(hasOccupant: false, editableOccupant: false, driveableOccupant: false, OccupantLock.CannotHaveLock, "", forced: true);
+		SetOccupantState(hasOccupant: false, editableOccupant: false, driveableOccupant: false, OccupantLock.CannotHaveLock, forced: true);
 		RefreshLiftState(forced: true);
 	}
 
@@ -649,7 +647,6 @@ public class ModularCarGarage : ContainerIOEntity
 		info.msg.vehicleLift.editableOccupant = HasEditableOccupant;
 		info.msg.vehicleLift.driveableOccupant = HasDriveableOccupant;
 		info.msg.vehicleLift.occupantLockState = (int)OccupantLockState;
-		info.msg.vehicleLift.occupantLockCode = OccupantLockCode;
 	}
 
 	public override uint GetIdealContainer(BasePlayer player, Item item)
@@ -724,13 +721,11 @@ public class ModularCarGarage : ContainerIOEntity
 			{
 				bool editableOccupant = Vector3.SqrMagnitude(carOccupant.transform.position - vehicleLiftPos.position) < 1f && carOccupant.CouldBeEdited();
 				bool driveableOccupant = carOccupant.IsComplete();
-				OccupantLock occupantLockState = (carOccupant.CarLock.CanHaveALock() ? ((!carOccupant.CarLock.HasALock) ? OccupantLock.NoLock : OccupantLock.HasLock) : OccupantLock.CannotHaveLock);
-				string code = carOccupant.CarLock.Code;
-				SetOccupantState(HasOccupant, editableOccupant, driveableOccupant, occupantLockState, code);
+				SetOccupantState(occupantLockState: carOccupant.CarLock.CanHaveALock() ? ((!carOccupant.CarLock.HasALock) ? OccupantLock.NoLock : OccupantLock.HasLock) : OccupantLock.CannotHaveLock, hasOccupant: HasOccupant, editableOccupant: editableOccupant, driveableOccupant: driveableOccupant);
 			}
 			else
 			{
-				SetOccupantState(hasOccupant: false, editableOccupant: false, driveableOccupant: false, OccupantLock.CannotHaveLock, "");
+				SetOccupantState(hasOccupant: false, editableOccupant: false, driveableOccupant: false, OccupantLock.CannotHaveLock);
 			}
 		}
 	}
@@ -1025,9 +1020,9 @@ public class ModularCarGarage : ContainerIOEntity
 		return 5;
 	}
 
-	private void SetOccupantState(bool hasOccupant, bool editableOccupant, bool driveableOccupant, OccupantLock occupantLockState, string occupantLockCode, bool forced = false)
+	private void SetOccupantState(bool hasOccupant, bool editableOccupant, bool driveableOccupant, OccupantLock occupantLockState, bool forced = false)
 	{
-		if (PlatformIsOccupied == hasOccupant && HasEditableOccupant == editableOccupant && HasDriveableOccupant == driveableOccupant && OccupantLockState == occupantLockState && OccupantLockCode == occupantLockCode && !forced)
+		if (PlatformIsOccupied == hasOccupant && HasEditableOccupant == editableOccupant && HasDriveableOccupant == driveableOccupant && OccupantLockState == occupantLockState && !forced)
 		{
 			return;
 		}
@@ -1036,7 +1031,6 @@ public class ModularCarGarage : ContainerIOEntity
 		HasEditableOccupant = editableOccupant;
 		HasDriveableOccupant = driveableOccupant;
 		OccupantLockState = occupantLockState;
-		OccupantLockCode = occupantLockCode;
 		if (base.isServer)
 		{
 			UpdateOccupantMode();
