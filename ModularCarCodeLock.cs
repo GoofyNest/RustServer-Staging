@@ -233,7 +233,7 @@ public class ModularCarCodeLock
 		bool flag = false;
 		foreach (BaseVehicleModule attachedModuleEntity in owner.AttachedModuleEntities)
 		{
-			if (attachedModuleEntity is VehicleModuleSeating vehicleModuleSeating && vehicleModuleSeating.IsCockpit() && vehicleModuleSeating.AnyMounted())
+			if (attachedModuleEntity is VehicleModuleSeating vehicleModuleSeating && vehicleModuleSeating.HasADriverSeat() && vehicleModuleSeating.AnyMounted())
 			{
 				flag = true;
 				break;
