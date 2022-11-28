@@ -194,6 +194,18 @@ public class VehicleModuleSeating : BaseVehicleModule, IPrefabPreProcess
 		}
 	}
 
+	public bool IsCockpit()
+	{
+		foreach (MountPointInfo mountPoint in mountPoints)
+		{
+			if (mountPoint.isDriver)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public virtual bool IsOnThisModule(BasePlayer player)
 	{
 		BaseMountable mounted = player.GetMounted();

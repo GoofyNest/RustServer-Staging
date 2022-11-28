@@ -482,7 +482,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 				attachedModuleEntity.OnPlayerDismountedVehicle(player);
 			}
 		}
-		CarLock.EnableCentralLockingIfNoDriver();
+		CarLock.CheckEnableCentralLocking();
 	}
 
 	public override void Save(SaveInfo info)

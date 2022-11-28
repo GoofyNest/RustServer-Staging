@@ -73,7 +73,7 @@ public class ModularCarCodeLock
 		this.isServer = isServer;
 		if (isServer)
 		{
-			EnableCentralLockingIfNoDriver();
+			CheckEnableCentralLocking();
 		}
 	}
 
@@ -126,7 +126,7 @@ public class ModularCarCodeLock
 	public void PostServerLoad()
 	{
 		owner.SetFlag(BaseEntity.Flags.Reserved10, b: false);
-		EnableCentralLockingIfNoDriver();
+		CheckEnableCentralLocking();
 	}
 
 	public bool CanHaveALock()
@@ -224,9 +224,22 @@ public class ModularCarCodeLock
 		wrongCodes = 0;
 	}
 
-	public void EnableCentralLockingIfNoDriver()
+	public void CheckEnableCentralLocking()
 	{
-		if (!owner.HasDriver() && !CentralLockingIsOn)
+		if (CentralLockingIsOn)
+		{
+			return;
+		}
+		bool flag = false;
+		foreach (BaseVehicleModule attachedModuleEntity in owner.AttachedModuleEntities)
+		{
+			if (attachedModuleEntity is VehicleModuleSeating vehicleModuleSeating && vehicleModuleSeating.IsCockpit() && vehicleModuleSeating.AnyMounted())
+			{
+				flag = true;
+				break;
+			}
+		}
+		if (!flag)
 		{
 			owner.SetFlag(BaseEntity.Flags.Reserved2, b: true);
 		}
