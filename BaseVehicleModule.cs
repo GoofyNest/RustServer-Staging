@@ -243,6 +243,10 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		VehicleModuleButtonComponent[] array2 = buttonComponents;
 		foreach (VehicleModuleButtonComponent vehicleModuleButtonComponent in array2)
 		{
+			if (vehicleModuleButtonComponent == null)
+			{
+				break;
+			}
 			if (PlayerIsLookingAtUsable(lookingAtColldierName, vehicleModuleButtonComponent.interactionColliderName))
 			{
 				vehicleModuleButtonComponent.ServerUse(player, this);
