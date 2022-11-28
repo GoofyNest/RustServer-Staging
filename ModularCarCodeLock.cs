@@ -97,7 +97,7 @@ public class ModularCarCodeLock
 		WhitelistPlayers.AddRange(info.msg.modularCar.whitelistUsers);
 	}
 
-	public bool PlayerHasUnlockPermission(BasePlayer player)
+	public bool HasLockPermission(BasePlayer player, bool ignoreTempBlock = false)
 	{
 		if (!HasALock)
 		{
@@ -107,7 +107,7 @@ public class ModularCarCodeLock
 		{
 			return false;
 		}
-		if (CodeEntryBlocked)
+		if (!ignoreTempBlock && CodeEntryBlocked)
 		{
 			return false;
 		}
@@ -120,7 +120,7 @@ public class ModularCarCodeLock
 		{
 			return true;
 		}
-		return PlayerHasUnlockPermission(player);
+		return HasLockPermission(player);
 	}
 
 	public void PostServerLoad()

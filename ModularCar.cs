@@ -1043,7 +1043,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 
 	public bool PlayerHasUnlockPermission(BasePlayer player)
 	{
-		return CarLock.PlayerHasUnlockPermission(player);
+		return CarLock.HasLockPermission(player);
 	}
 
 	public override bool PlayerCanUseThis(BasePlayer player, ModularCarCodeLock.LockType lockType)
@@ -1079,7 +1079,7 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		{
 			return false;
 		}
-		if (pusher.InSafeZone() && !CarLock.PlayerHasUnlockPermission(pusher))
+		if (pusher.InSafeZone() && !CarLock.HasLockPermission(pusher))
 		{
 			return false;
 		}

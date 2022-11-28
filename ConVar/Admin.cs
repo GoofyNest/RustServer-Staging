@@ -1528,6 +1528,10 @@ public class Admin : ConsoleSystem
 				{
 					flag = true;
 				}
+				if (!flag && baseEntity is ModularCar modularCar && modularCar.IsLockable && modularCar.CarLock.HasLockPermission(ply, ignoreTempBlock: true))
+				{
+					flag = true;
+				}
 			}
 			if (flag && !string.IsNullOrEmpty(filter) && !serverEntity.ShortPrefabName.Contains(filter, CompareOptions.IgnoreCase))
 			{
