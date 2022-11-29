@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[889]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[892]
 	{
 		new ConsoleSystem.Command
 		{
@@ -10253,6 +10253,20 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "steamnagletime",
+			Parent = "global",
+			FullName = "global.steamnagletime",
+			ServerAdmin = true,
+			Description = "Nagle time, in microseconds",
+			Variable = true,
+			GetOveride = () => SteamNetworking.steamnagletime.ToString(),
+			SetOveride = delegate(string str)
+			{
+				SteamNetworking.steamnagletime = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "steamnetdebug",
 			Parent = "global",
 			FullName = "global.steamnetdebug",
@@ -10367,6 +10381,34 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				SteamNetworking.steamsendbuffer = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "steamsendratemax",
+			Parent = "global",
+			FullName = "global.steamsendratemax",
+			ServerAdmin = true,
+			Description = "Maxminum send rate clamp, 0 is no limit",
+			Variable = true,
+			GetOveride = () => SteamNetworking.steamsendratemax.ToString(),
+			SetOveride = delegate(string str)
+			{
+				SteamNetworking.steamsendratemax = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "steamsendratemin",
+			Parent = "global",
+			FullName = "global.steamsendratemin",
+			ServerAdmin = true,
+			Description = "Minimum send rate clamp, 0 is no limit",
+			Variable = true,
+			GetOveride = () => SteamNetworking.steamsendratemin.ToString(),
+			SetOveride = delegate(string str)
+			{
+				SteamNetworking.steamsendratemin = str.ToInt();
 			}
 		},
 		new ConsoleSystem.Command

@@ -522,6 +522,10 @@ public class BaseProjectile : AttackEntity
 				{
 					using (TimeWarning.New("Conditions"))
 					{
+						if (!RPC_Server.CallsPerSecond.Test(3327286961u, "ToggleFireMode", this, player, 2uL))
+						{
+							return true;
+						}
 						if (!RPC_Server.IsActiveItem.Test(3327286961u, "ToggleFireMode", this, player))
 						{
 							return true;
