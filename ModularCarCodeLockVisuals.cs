@@ -11,6 +11,9 @@ public class ModularCarCodeLockVisuals : VehicleModuleButtonComponent
 	private GameObject unlockedVisuals;
 
 	[SerializeField]
+	private GameObject blockedVisuals;
+
+	[SerializeField]
 	private GameObjectRef codelockEffectDenied;
 
 	[SerializeField]
