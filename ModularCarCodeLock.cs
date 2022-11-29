@@ -49,18 +49,6 @@ public class ModularCarCodeLock
 		}
 	}
 
-	public bool CodeEntryBlocked
-	{
-		get
-		{
-			if (owner != null)
-			{
-				return owner.HasFlag(BaseEntity.Flags.Reserved10);
-			}
-			return false;
-		}
-	}
-
 	public List<ulong> WhitelistPlayers { get; private set; } = new List<ulong>();
 
 
@@ -86,6 +74,19 @@ public class ModularCarCodeLock
 		return viaModule.healthFraction <= 0.2f;
 	}
 
+	public bool CodeEntryBlocked(BasePlayer player)
+	{
+		if (HasLockPermission(player))
+		{
+			return false;
+		}
+		if (owner != null)
+		{
+			return owner.HasFlag(BaseEntity.Flags.Reserved10);
+		}
+		return false;
+	}
+
 	public void Load(BaseNetworkable.LoadInfo info)
 	{
 		Code = info.msg.modularCar.lockCode;
@@ -97,17 +98,13 @@ public class ModularCarCodeLock
 		WhitelistPlayers.AddRange(info.msg.modularCar.whitelistUsers);
 	}
 
-	public bool HasLockPermission(BasePlayer player, bool ignoreTempBlock = false)
+	public bool HasLockPermission(BasePlayer player)
 	{
 		if (!HasALock)
 		{
 			return true;
 		}
-		if (player.IsDead())
-		{
-			return false;
-		}
-		if (!ignoreTempBlock && CodeEntryBlocked)
+		if (!player.IsValid() || player.IsDead())
 		{
 			return false;
 		}
@@ -185,7 +182,7 @@ public class ModularCarCodeLock
 
 	public bool TryOpenWithCode(BasePlayer player, string codeEntered)
 	{
-		if (CodeEntryBlocked)
+		if (CodeEntryBlocked(player))
 		{
 			return false;
 		}

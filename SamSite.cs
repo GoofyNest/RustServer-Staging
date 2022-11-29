@@ -541,7 +541,7 @@ public class SamSite : ContainerIOEntity
 			}
 			return result;
 		default:
-			return base.GetPassthroughAmount(outputSlot);
+			return GetCurrentEnergy();
 		}
 	}
 

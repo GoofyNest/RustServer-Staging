@@ -1528,7 +1528,7 @@ public class Admin : ConsoleSystem
 				{
 					flag = true;
 				}
-				if (!flag && baseEntity is ModularCar modularCar && modularCar.IsLockable && modularCar.CarLock.HasLockPermission(ply, ignoreTempBlock: true))
+				if (!flag && baseEntity is ModularCar modularCar && modularCar.IsLockable && modularCar.CarLock.HasLockPermission(ply))
 				{
 					flag = true;
 				}

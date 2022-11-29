@@ -362,6 +362,15 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		return Vehicle.CanBeLooted(player);
 	}
 
+	public bool KeycodeEntryBlocked(BasePlayer player)
+	{
+		if (IsOnAVehicle && Vehicle is ModularCar modularCar)
+		{
+			return modularCar.KeycodeEntryBlocked(player);
+		}
+		return false;
+	}
+
 	public virtual void OnEngineStateChanged(VehicleEngineController<GroundVehicle>.EngineState oldState, VehicleEngineController<GroundVehicle>.EngineState newState)
 	{
 	}

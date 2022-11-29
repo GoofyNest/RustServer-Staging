@@ -1046,6 +1046,11 @@ public class ModularCar : BaseModularVehicle, TakeCollisionDamage.ICanRestoreVel
 		return CarLock.HasLockPermission(player);
 	}
 
+	public bool KeycodeEntryBlocked(BasePlayer player)
+	{
+		return CarLock.CodeEntryBlocked(player);
+	}
+
 	public override bool PlayerCanUseThis(BasePlayer player, ModularCarCodeLock.LockType lockType)
 	{
 		return CarLock.PlayerCanUseThis(player, lockType);
