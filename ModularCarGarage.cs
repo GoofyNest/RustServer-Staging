@@ -83,6 +83,12 @@ public class ModularCarGarage : ContainerIOEntity
 	[SerializeField]
 	private SoundDefinition liftLoopSoundDef;
 
+	[SerializeField]
+	private GameObjectRef addRemoveLockEffect;
+
+	[SerializeField]
+	private GameObjectRef repairEffect;
+
 	public ChassisBuildOption[] chassisBuildOptions;
 
 	public ItemAmount lockResourceCost;
@@ -826,6 +832,7 @@ public class ModularCarGarage : ContainerIOEntity
 			if (vehicleItem != null)
 			{
 				RepairBench.RepairAnItem(vehicleItem, player, this, 0f, mustKnowBlueprint: false);
+				Effect.server.Run(repairEffect.resourcePath, this, 0u, Vector3.zero, Vector3.zero);
 			}
 			else
 			{
@@ -934,6 +941,7 @@ public class ModularCarGarage : ContainerIOEntity
 			if ((float)player.inventory.GetAmount(itemAmount.itemDef.itemid) >= itemAmount.amount && carOccupant.CarLock.TryAddALock(code, player.userID))
 			{
 				player.inventory.Take(null, itemAmount.itemDef.itemid, Mathf.CeilToInt(itemAmount.amount));
+				Effect.server.Run(addRemoveLockEffect.resourcePath, this, 0u, Vector3.zero, Vector3.zero);
 			}
 		}
 	}
@@ -946,6 +954,7 @@ public class ModularCarGarage : ContainerIOEntity
 		if (HasOccupant && carOccupant.CarLock.HasALock)
 		{
 			carOccupant.CarLock.RemoveLock();
+			Effect.server.Run(addRemoveLockEffect.resourcePath, this, 0u, Vector3.zero, Vector3.zero);
 		}
 	}
 
