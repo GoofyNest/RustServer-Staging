@@ -74,9 +74,9 @@ public class Bootstrap : SingletonComponent<Bootstrap>
 		Facepunch.Pool.FillBuffer<Networkable>();
 		Facepunch.Pool.FillBuffer<EntityLink>();
 		SteamNetworking.SetDebugFunction();
-		if (Facepunch.CommandLine.HasSwitch("-raknet"))
+		if (Facepunch.CommandLine.HasSwitch("-swnet"))
 		{
-			NetworkInitRaknet();
+			NetworkInitSteamworks(enableSteamDatagramRelay: false);
 		}
 		else if (Facepunch.CommandLine.HasSwitch("-sdrnet"))
 		{
@@ -84,7 +84,7 @@ public class Bootstrap : SingletonComponent<Bootstrap>
 		}
 		else
 		{
-			NetworkInitSteamworks(enableSteamDatagramRelay: false);
+			NetworkInitRaknet();
 		}
 		if (!UnityEngine.Application.isEditor)
 		{
