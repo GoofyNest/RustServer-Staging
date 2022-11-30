@@ -194,7 +194,7 @@ public class ExcavatorArm : BaseEntity
 			{
 				if (!activePlayer.IsNpc && activePlayer.IsConnected)
 				{
-					activePlayer.ShowToast(GameTip.Styles.Red_Normal, excavatorPhrase);
+					activePlayer.ShowToast(GameTip.Styles.Server_Event, excavatorPhrase);
 				}
 			}
 			nextNotificationTime = UnityEngine.Time.time + 60f;

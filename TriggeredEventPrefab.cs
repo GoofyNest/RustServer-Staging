@@ -26,7 +26,7 @@ public class TriggeredEventPrefab : TriggeredEvent
 		{
 			if ((bool)activePlayer && activePlayer.IsConnected)
 			{
-				activePlayer.ShowToast(GameTip.Styles.Red_Normal, spawnPhrase);
+				activePlayer.ShowToast(GameTip.Styles.Server_Event, spawnPhrase);
 			}
 		}
 	}

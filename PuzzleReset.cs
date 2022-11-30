@@ -193,7 +193,7 @@ public class PuzzleReset : FacepunchBehaviour
 		{
 			if (!activePlayer.IsNpc && activePlayer.IsConnected)
 			{
-				activePlayer.ShowToast(GameTip.Styles.Red_Normal, resetPhrase);
+				activePlayer.ShowToast(GameTip.Styles.Server_Event, resetPhrase);
 			}
 		}
 	}
