@@ -298,7 +298,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>
 		uint id = msg.read.UInt32();
 		string text = msg.read.String();
 		Item item = FindItemUID(id);
-		if (item == null || item.IsLocked() || !CanMoveItemsFrom(item.GetEntityOwner(), item))
+		if (item == null || item.IsLocked() || (item.parent != null && item.parent.IsLocked()) || !CanMoveItemsFrom(item.GetEntityOwner(), item))
 		{
 			return;
 		}
