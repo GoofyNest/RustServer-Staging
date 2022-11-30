@@ -87,6 +87,9 @@ public class ModularCarGarage : ContainerIOEntity
 	private GameObjectRef addRemoveLockEffect;
 
 	[SerializeField]
+	private GameObjectRef changeLockCodeEffect;
+
+	[SerializeField]
 	private GameObjectRef repairEffect;
 
 	public ChassisBuildOption[] chassisBuildOptions;
@@ -963,13 +966,17 @@ public class ModularCarGarage : ContainerIOEntity
 	[RPC_Server.IsVisible(3f)]
 	public void RPC_RequestNewCode(RPCMessage msg)
 	{
-		if (HasOccupant && carOccupant.CarLock.HasALock)
+		if (!HasOccupant || !carOccupant.CarLock.HasALock)
 		{
-			BasePlayer player = msg.player;
-			if (!(player == null))
+			return;
+		}
+		BasePlayer player = msg.player;
+		if (!(player == null))
+		{
+			string newCode = msg.read.String();
+			if (carOccupant.CarLock.TrySetNewCode(newCode, player.userID))
 			{
-				string newCode = msg.read.String();
-				carOccupant.CarLock.TrySetNewCode(newCode, player.userID);
+				Effect.server.Run(changeLockCodeEffect.resourcePath, this, 0u, Vector3.zero, Vector3.zero);
 			}
 		}
 	}
