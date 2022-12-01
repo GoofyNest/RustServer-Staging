@@ -513,7 +513,7 @@ public class BaseVehicle : BaseMountable
 		{
 			num = Mathf.Min(num, mountable.customPlayerCollider.radius);
 		}
-		Vector3 vector2 = position - vector * (num - 0.15f);
+		Vector3 vector2 = position - vector * (num - 0.2f);
 		if (clippingChecks == ClippingCheckMode.AlwaysHeadOnly)
 		{
 			return GamePhysics.CheckSphere(vector2, num, clipCheckMask, QueryTriggerInteraction.Ignore);
