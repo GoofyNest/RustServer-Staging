@@ -168,6 +168,7 @@ public class SaveRestore : SingletonComponent<SaveRestore>
 					RCon.Update();
 					if (key2.IsValid())
 					{
+						key2.UpdateNetworkGroup();
 						key2.PostServerLoad();
 					}
 				}
