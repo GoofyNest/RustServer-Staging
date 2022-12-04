@@ -512,7 +512,7 @@ public class MotorRowboat : BaseBoat
 			Transform[] array = stationaryDismounts;
 			foreach (Transform transform in array)
 			{
-				if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+				if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
 				{
 					return true;
 				}
@@ -530,7 +530,7 @@ public class MotorRowboat : BaseBoat
 			Transform[] array = stationaryDismounts;
 			foreach (Transform transform in array)
 			{
-				if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+				if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
 				{
 					obj.Add(transform.transform.position);
 				}

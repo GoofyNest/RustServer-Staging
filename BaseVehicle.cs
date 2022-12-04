@@ -20,6 +20,12 @@ public class BaseVehicle : BaseMountable
 		AlwaysHeadOnly
 	}
 
+	public enum DismountStyle
+	{
+		Closest,
+		Ordered
+	}
+
 	[Serializable]
 	public class MountPointInfo
 	{
@@ -208,6 +214,8 @@ public class BaseVehicle : BaseMountable
 	public ClippingCheckMode clippingChecks;
 
 	public bool checkVehicleClipping;
+
+	public DismountStyle dismountStyle;
 
 	public bool shouldShowHudHealth;
 
@@ -1131,9 +1139,13 @@ public class BaseVehicle : BaseMountable
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
 			{
 				obj.Add(transform.transform.position);
+				if (dismountStyle == DismountStyle.Ordered)
+				{
+					break;
+				}
 			}
 		}
 		if (obj.Count == 0)

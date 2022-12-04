@@ -196,10 +196,10 @@ public class ZiplineMountable : BaseMountable
 		}
 	}
 
-	public override bool ValidDismountPosition(Vector3 disPos, Vector3 visualCheckOrigin)
+	public override bool ValidDismountPosition(BasePlayer player, Vector3 disPos, Vector3 visualCheckOrigin)
 	{
 		ZipCollider.enabled = false;
-		bool result = base.ValidDismountPosition(disPos, visualCheckOrigin);
+		bool result = base.ValidDismountPosition(player, disPos, visualCheckOrigin);
 		ZipCollider.enabled = true;
 		return result;
 	}

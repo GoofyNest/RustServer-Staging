@@ -506,7 +506,7 @@ public class BaseMountable : BaseCombatEntity
 		}
 	}
 
-	public virtual bool ValidDismountPosition(Vector3 disPos, Vector3 visualCheckOrigin)
+	public virtual bool ValidDismountPosition(BasePlayer player, Vector3 disPos, Vector3 visualCheckOrigin)
 	{
 		bool debugDismounts = Debugging.DebugDismounts;
 		if (debugDismounts)
@@ -517,37 +517,25 @@ public class BaseMountable : BaseCombatEntity
 		Vector3 end = disPos + new Vector3(0f, 1.3f, 0f);
 		if (!UnityEngine.Physics.CheckCapsule(start, end, 0.5f, 1537286401))
 		{
-			Vector3 vector = disPos + base.transform.up * 0.5f;
+			Vector3 position = disPos + base.transform.up * 0.5f;
 			if (debugDismounts)
 			{
 				Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} capsule check is OK.");
 			}
-			if (IsVisible(vector))
+			if (IsVisible(position))
 			{
 				if (debugDismounts)
 				{
 					Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} is visible.");
 				}
-				if (!UnityEngine.Physics.Linecast(visualCheckOrigin, vector, out var hitInfo, 1486946561) || HitOurself(hitInfo))
+				if (!AntiHack.TestNoClipping(player, visualCheckOrigin + player.NoClipOffset(), disPos + player.NoClipOffset(), player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true, vehicleLayer: false))
 				{
 					if (debugDismounts)
 					{
-						Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} linecast is OK.");
+						Debug.Log($"<color=green>ValidDismountPosition debug: Dismount point {disPos} is valid</color>.");
+						Debug.DrawLine(visualCheckOrigin, disPos, Color.green, 10f);
 					}
-					Ray ray = new Ray(visualCheckOrigin, Vector3Ex.Direction(vector, visualCheckOrigin));
-					float maxDistance = Vector3.Distance(visualCheckOrigin, vector);
-					if (!UnityEngine.Physics.SphereCast(ray, 0.5f, out hitInfo, maxDistance, 1486946561) || HitOurself(hitInfo))
-					{
-						if (debugDismounts)
-						{
-							if (debugDismounts)
-							{
-								Debug.Log($"<color=green>ValidDismountPosition debug: Dismount point {disPos} is valid</color>.");
-							}
-							Debug.DrawLine(visualCheckOrigin, disPos, Color.green, 10f);
-						}
-						return true;
-					}
+					return true;
 				}
 			}
 		}
@@ -560,15 +548,6 @@ public class BaseMountable : BaseCombatEntity
 			}
 		}
 		return false;
-		bool HitOurself(RaycastHit hit)
-		{
-			BaseEntity entity = hit.GetEntity();
-			if (!(entity == this))
-			{
-				return EqualNetID(entity);
-			}
-			return true;
-		}
 	}
 
 	public virtual bool HasValidDismountPosition(BasePlayer player)
@@ -582,7 +561,7 @@ public class BaseMountable : BaseCombatEntity
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
 			{
 				return true;
 			}
@@ -602,7 +581,7 @@ public class BaseMountable : BaseCombatEntity
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
 			{
 				res = transform.transform.position;
 				return true;

@@ -225,8 +225,13 @@ public static class AntiHack
 
 	public static bool TestNoClipping(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float radius, float backtracking, bool sphereCast)
 	{
+		return TestNoClipping(ply, oldPos, newPos, radius, backtracking, sphereCast, ply.vehiclePauseTime <= 0f);
+	}
+
+	public static bool TestNoClipping(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float radius, float backtracking, bool sphereCast, bool vehicleLayer)
+	{
 		int num = 429990145;
-		if (ply.vehiclePauseTime > 0f)
+		if (!vehicleLayer)
 		{
 			num &= -8193;
 		}
