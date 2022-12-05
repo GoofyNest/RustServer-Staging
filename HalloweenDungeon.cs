@@ -142,9 +142,9 @@ public class HalloweenDungeon : BasePortal
 		float num3 = Mathf.Floor(TerrainMeta.Size.x / 200f);
 		float num4 = 1000f;
 		Vector3 zero = Vector3.zero;
-		zero.x = 0f - Mathf.Min(TerrainMeta.Size.x, 4000f) + num;
+		zero.x = 0f - Mathf.Min(TerrainMeta.Size.x * 0.5f, 4000f) + num;
 		zero.y = 1000f;
-		zero.z = 0f - Mathf.Min(TerrainMeta.Size.z, 4000f) + num;
+		zero.z = 0f - Mathf.Min(TerrainMeta.Size.z * 0.5f, 4000f) + num;
 		_ = Vector3.zero;
 		for (int i = 0; (float)i < num4; i++)
 		{
@@ -154,7 +154,7 @@ public class HalloweenDungeon : BasePortal
 				bool flag = false;
 				foreach (ProceduralDynamicDungeon dungeon in ProceduralDynamicDungeon.dungeons)
 				{
-					if (Vector3.Distance(dungeon.transform.position, vector) < 10f)
+					if (dungeon != null && dungeon.isServer && Vector3.Distance(dungeon.transform.position, vector) < 10f)
 					{
 						flag = true;
 						break;
@@ -193,8 +193,9 @@ public class HalloweenDungeon : BasePortal
 			return;
 		}
 		BaseEntity baseEntity = GameManager.server.CreateEntity(dungeonPrefab.resourcePath, dungeonSpawnPoint, Quaternion.identity);
-		baseEntity.Spawn();
 		ProceduralDynamicDungeon component = baseEntity.GetComponent<ProceduralDynamicDungeon>();
+		component.mapOffset = base.transform.position - dungeonSpawnPoint;
+		baseEntity.Spawn();
 		dungeonInstance.Set(component);
 		BasePortal basePortal = (targetPortal = component.GetExitPortal());
 		basePortal.targetPortal = this;

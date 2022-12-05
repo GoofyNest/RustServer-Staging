@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ConVar;
+using Facepunch;
 using Network;
 using ProtoBuf;
 using Rust;
@@ -646,6 +647,8 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 		}
 	}
 
+	public bool SendClientCurrentState;
+
 	public bool UseQueuedMovementUpdates;
 
 	public bool AllowedToSleep = true;
@@ -687,6 +690,8 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 	public float MemoryDuration = 10f;
 
 	public bool RefreshKnownLOS;
+
+	public AIState ClientCurrentState;
 
 	public Vector3 mainInterestPoint;
 
@@ -1348,6 +1353,14 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 
 	protected virtual void OnStateChanged()
 	{
+		if (SendClientCurrentState)
+		{
+			BaseEntity baseEntity = GetBaseEntity();
+			if (baseEntity != null)
+			{
+				baseEntity.ClientRPC(null, "ClientChangeState", (int)((CurrentState != null) ? CurrentState.StateType : AIState.None));
+			}
+		}
 	}
 
 	private void AddEvents(int stateContainerID)
@@ -1593,6 +1606,21 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 		IsGrouped = false;
 		IsGroupLeader = false;
 		GroupLeader = null;
+	}
+
+	public override void LoadComponent(BaseNetworkable.LoadInfo info)
+	{
+		base.LoadComponent(info);
+	}
+
+	public override void SaveComponent(BaseNetworkable.SaveInfo info)
+	{
+		base.SaveComponent(info);
+		if (SendClientCurrentState && CurrentState != null)
+		{
+			info.msg.brainComponent = Facepunch.Pool.Get<BrainComponent>();
+			info.msg.brainComponent.currentState = (int)CurrentState.StateType;
+		}
 	}
 
 	private void SendStateChangeEvent(int previousStateID, int newStateID, int sourceEventID)

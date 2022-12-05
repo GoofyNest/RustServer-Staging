@@ -3209,6 +3209,17 @@ public class BaseEntity : BaseNetworkable, IOnParentSpawning, IPrefabPreProcess
 			info.msg.ownerInfo = Facepunch.Pool.Get<OwnerInfo>();
 			info.msg.ownerInfo.steamid = OwnerID;
 		}
+		if (Components == null)
+		{
+			return;
+		}
+		for (int i = 0; i < Components.Length; i++)
+		{
+			if (!(Components[i] == null))
+			{
+				Components[i].SaveComponent(info);
+			}
+		}
 	}
 
 	public virtual bool ShouldNetworkOwnerInfo()
@@ -3268,6 +3279,17 @@ public class BaseEntity : BaseNetworkable, IOnParentSpawning, IPrefabPreProcess
 		if ((bool)_spawnable)
 		{
 			_spawnable.Load(info);
+		}
+		if (Components == null)
+		{
+			return;
+		}
+		for (int i = 0; i < Components.Length; i++)
+		{
+			if (!(Components[i] == null))
+			{
+				Components[i].LoadComponent(info);
+			}
 		}
 	}
 }
