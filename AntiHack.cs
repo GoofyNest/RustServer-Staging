@@ -193,6 +193,7 @@ public static class AntiHack
 			Vector3 vector3 = ply.NoClipOffset();
 			float radius = ply.NoClipRadius(ConVar.AntiHack.noclip_margin);
 			float noclip_backtracking = ConVar.AntiHack.noclip_backtracking;
+			bool vehicleLayer = ply.vehiclePauseTime <= 0f;
 			if (ConVar.AntiHack.noclip_protection >= 3)
 			{
 				float b = Mathf.Max(ConVar.AntiHack.noclip_stepsize, 0.1f);
@@ -201,7 +202,7 @@ public static class AntiHack
 				while (ticks.MoveNext(b))
 				{
 					vector2 = (flag ? ticks.CurrentPoint : matrix4x.MultiplyPoint3x4(ticks.CurrentPoint));
-					if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: true))
+					if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: true, vehicleLayer))
 					{
 						return true;
 					}
@@ -210,12 +211,12 @@ public static class AntiHack
 			}
 			else if (ConVar.AntiHack.noclip_protection >= 2)
 			{
-				if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: true))
+				if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: true, vehicleLayer))
 				{
 					return true;
 				}
 			}
-			else if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: false))
+			else if (TestNoClipping(ply, vector + vector3, vector2 + vector3, radius, noclip_backtracking, sphereCast: false, vehicleLayer))
 			{
 				return true;
 			}
@@ -223,12 +224,7 @@ public static class AntiHack
 		}
 	}
 
-	public static bool TestNoClipping(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float radius, float backtracking, bool sphereCast)
-	{
-		return TestNoClipping(ply, oldPos, newPos, radius, backtracking, sphereCast, ply.vehiclePauseTime <= 0f);
-	}
-
-	public static bool TestNoClipping(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float radius, float backtracking, bool sphereCast, bool vehicleLayer)
+	public static bool TestNoClipping(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float radius, float backtracking, bool sphereCast, bool vehicleLayer = false, BaseEntity ignoreEntity = null)
 	{
 		int num = 429990145;
 		if (!vehicleLayer)
@@ -238,11 +234,12 @@ public static class AntiHack
 		Vector3 normalized = (newPos - oldPos).normalized;
 		Vector3 vector = oldPos - normalized * backtracking;
 		float magnitude = (newPos - vector).magnitude;
+		Ray ray = new Ray(vector, normalized);
 		RaycastHit hitInfo = default(RaycastHit);
-		bool flag = UnityEngine.Physics.Raycast(new Ray(vector, normalized), out hitInfo, magnitude + radius, num, QueryTriggerInteraction.Ignore);
+		bool flag = ((ignoreEntity == null) ? UnityEngine.Physics.Raycast(ray, out hitInfo, magnitude + radius, num, QueryTriggerInteraction.Ignore) : GamePhysics.Trace(ray, 0f, out hitInfo, magnitude + radius, num, QueryTriggerInteraction.Ignore, ignoreEntity));
 		if (!flag && sphereCast)
 		{
-			flag = UnityEngine.Physics.SphereCast(new Ray(vector, normalized), radius, out hitInfo, magnitude, num, QueryTriggerInteraction.Ignore);
+			flag = ((ignoreEntity == null) ? UnityEngine.Physics.SphereCast(ray, radius, out hitInfo, magnitude, num, QueryTriggerInteraction.Ignore) : GamePhysics.Trace(ray, radius, out hitInfo, magnitude, num, QueryTriggerInteraction.Ignore, ignoreEntity));
 		}
 		if (flag)
 		{

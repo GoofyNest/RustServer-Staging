@@ -506,12 +506,13 @@ public class BaseMountable : BaseCombatEntity
 		}
 	}
 
-	public virtual bool ValidDismountPosition(BasePlayer player, Vector3 disPos, Vector3 visualCheckOrigin)
+	public virtual bool ValidDismountPosition(BasePlayer player, Vector3 disPos)
 	{
 		bool debugDismounts = Debugging.DebugDismounts;
+		Vector3 vector = GetMountedPosition() + player.NoClipOffset();
 		if (debugDismounts)
 		{
-			Debug.Log($"ValidDismountPosition debug: Checking dismount point {disPos} from {visualCheckOrigin}.");
+			Debug.Log($"ValidDismountPosition debug: Checking dismount point {disPos} from {vector}.");
 		}
 		Vector3 start = disPos + new Vector3(0f, 0.5f, 0f);
 		Vector3 end = disPos + new Vector3(0f, 1.3f, 0f);
@@ -524,16 +525,17 @@ public class BaseMountable : BaseCombatEntity
 			}
 			if (IsVisible(position))
 			{
+				Vector3 vector2 = disPos + player.NoClipOffset();
 				if (debugDismounts)
 				{
 					Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} is visible.");
 				}
-				if (!AntiHack.TestNoClipping(player, visualCheckOrigin + player.NoClipOffset(), disPos + player.NoClipOffset(), player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true, vehicleLayer: false))
+				if (!AntiHack.TestNoClipping(player, vector, vector2, player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true, vehicleLayer: false, this))
 				{
 					if (debugDismounts)
 					{
 						Debug.Log($"<color=green>ValidDismountPosition debug: Dismount point {disPos} is valid</color>.");
-						Debug.DrawLine(visualCheckOrigin, disPos, Color.green, 10f);
+						Debug.DrawLine(vector, vector2, Color.green, 10f);
 					}
 					return true;
 				}
@@ -541,7 +543,7 @@ public class BaseMountable : BaseCombatEntity
 		}
 		if (debugDismounts)
 		{
-			Debug.DrawLine(visualCheckOrigin, disPos, Color.red, 10f);
+			Debug.DrawLine(vector, disPos, Color.red, 10f);
 			if (debugDismounts)
 			{
 				Debug.Log($"<color=red>ValidDismountPosition debug: Dismount point {disPos} is invalid</color>.");
@@ -557,11 +559,10 @@ public class BaseMountable : BaseCombatEntity
 		{
 			return baseVehicle.HasValidDismountPosition(player);
 		}
-		Vector3 visualCheckOrigin = player.TriggerPoint();
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position))
 			{
 				return true;
 			}
@@ -577,11 +578,10 @@ public class BaseMountable : BaseCombatEntity
 			return baseVehicle.GetDismountPosition(player, out res);
 		}
 		int num = 0;
-		Vector3 visualCheckOrigin = player.TriggerPoint();
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position))
 			{
 				res = transform.transform.position;
 				return true;
@@ -716,6 +716,15 @@ public class BaseMountable : BaseCombatEntity
 	public virtual bool IsInstrument()
 	{
 		return false;
+	}
+
+	public Vector3 GetMountedPosition()
+	{
+		if (mountAnchor == null)
+		{
+			return base.transform.position;
+		}
+		return mountAnchor.transform.position;
 	}
 
 	public bool NearMountPoint(BasePlayer player)

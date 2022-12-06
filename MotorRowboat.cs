@@ -508,11 +508,10 @@ public class MotorRowboat : BaseBoat
 	{
 		if (rigidBody.velocity.magnitude <= 4f)
 		{
-			Vector3 visualCheckOrigin = player.TriggerPoint();
 			Transform[] array = stationaryDismounts;
 			foreach (Transform transform in array)
 			{
-				if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
+				if (ValidDismountPosition(player, transform.transform.position))
 				{
 					return true;
 				}
@@ -526,11 +525,10 @@ public class MotorRowboat : BaseBoat
 		if (rigidBody.velocity.magnitude <= 4f)
 		{
 			List<Vector3> obj = Facepunch.Pool.GetList<Vector3>();
-			Vector3 visualCheckOrigin = player.TriggerPoint();
 			Transform[] array = stationaryDismounts;
 			foreach (Transform transform in array)
 			{
-				if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
+				if (ValidDismountPosition(player, transform.transform.position))
 				{
 					obj.Add(transform.transform.position);
 				}

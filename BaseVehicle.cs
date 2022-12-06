@@ -1135,11 +1135,10 @@ public class BaseVehicle : BaseMountable
 			return baseVehicle.GetDismountPosition(player, out res);
 		}
 		List<Vector3> obj = Facepunch.Pool.GetList<Vector3>();
-		Vector3 visualCheckOrigin = player.TriggerPoint();
 		Transform[] array = dismountPositions;
 		foreach (Transform transform in array)
 		{
-			if (ValidDismountPosition(player, transform.transform.position, visualCheckOrigin))
+			if (ValidDismountPosition(player, transform.transform.position))
 			{
 				obj.Add(transform.transform.position);
 				if (dismountStyle == DismountStyle.Ordered)
