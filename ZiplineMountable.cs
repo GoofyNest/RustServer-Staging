@@ -41,6 +41,8 @@ public class ZiplineMountable : BaseMountable
 
 	private TimeSince mountTime;
 
+	private bool hasEnded;
+
 	private List<Collider> ignoreColliders = new List<Collider>();
 
 	private Vector3 startPosition = Vector3.zero;
@@ -75,8 +77,13 @@ public class ZiplineMountable : BaseMountable
 		return linePoints[linePoints.Count - 1];
 	}
 
-	private Vector3 GetLineEndPoint()
+	private Vector3 GetLineEndPoint(bool applyDismountOffset = false)
 	{
+		if (applyDismountOffset && linePoints != null)
+		{
+			Vector3 normalized = (linePoints[linePoints.Count - 2] - linePoints[linePoints.Count - 1]).normalized;
+			return linePoints[linePoints.Count - 1] + normalized * 0.5f;
+		}
 		return linePoints?[linePoints.Count - 1] ?? Vector3.zero;
 	}
 
@@ -103,6 +110,7 @@ public class ZiplineMountable : BaseMountable
 		base.ResetState();
 		additiveValue = 0f;
 		currentTravelDistance = 0f;
+		hasEnded = false;
 		linePoints = null;
 	}
 
@@ -129,7 +137,7 @@ public class ZiplineMountable : BaseMountable
 
 	private void Update()
 	{
-		if (linePoints == null || base.isClient || isAnimatingIn)
+		if (linePoints == null || base.isClient || isAnimatingIn || hasEnded)
 		{
 			return;
 		}
@@ -176,8 +184,9 @@ public class ZiplineMountable : BaseMountable
 			SetFlag(Flags.Reserved1, additiveValue > 0.5f);
 			if (Vector3.Distance(position, GetLineEndPoint()) < 0.1f)
 			{
+				base.transform.position = GetLineEndPoint(applyDismountOffset: true);
+				hasEnded = true;
 				EndZipline();
-				base.transform.position = GetLineEndPoint();
 			}
 		}
 	}
