@@ -34,7 +34,7 @@ public class NPCPlayerCorpse : PlayerCorpse
 	protected override void PreDropItems()
 	{
 		base.PreDropItems();
-		if (containers != null && containers.Length >= 2)
+		if (containers.Length >= 2)
 		{
 			containers[1].Clear();
 			ItemManager.DoRemoves();

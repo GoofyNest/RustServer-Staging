@@ -12,7 +12,7 @@ namespace ConVar;
 [Factory("inventory")]
 public class Inventory : ConsoleSystem
 {
-	public class SavedLoadout
+	private class SavedLoadout
 	{
 		public struct SavedItem
 		{
@@ -482,7 +482,7 @@ public class Inventory : ConsoleSystem
 		}
 	}
 
-	public static bool LoadLoadout(string name, out SavedLoadout so)
+	private static bool LoadLoadout(string name, out SavedLoadout so)
 	{
 		so = new SavedLoadout();
 		string loadoutPath = GetLoadoutPath(name);

@@ -10,10 +10,9 @@ public class HalloweenDungeon : BasePortal
 	public EntityRef<ProceduralDynamicDungeon> dungeonInstance;
 
 	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
-	public static float population = 0f;
+	public static float population;
 
-	[ServerVar(Help = "How long each active dungeon should last before dying", ShowInAdminUI = true)]
-	public static float lifetime = 600f;
+	public float lifetime = 600f;
 
 	private float secondsUsed;
 
@@ -24,11 +23,6 @@ public class HalloweenDungeon : BasePortal
 	public Translate.Phrase collapsePhrase;
 
 	public Translate.Phrase mountPhrase;
-
-	public virtual float GetLifetime()
-	{
-		return lifetime;
-	}
 
 	public override void Load(LoadInfo info)
 	{
@@ -43,7 +37,7 @@ public class HalloweenDungeon : BasePortal
 
 	public float GetLifeFraction()
 	{
-		return Mathf.Clamp01(secondsUsed / GetLifetime());
+		return Mathf.Clamp01(secondsUsed / lifetime);
 	}
 
 	public void Update()

@@ -5373,52 +5373,27 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	{
 		using (TimeWarning.New("Create corpse"))
 		{
-			string strCorpsePrefab = "assets/prefabs/player/player_corpse.prefab";
-			bool flag = false;
-			if (ConVar.Global.cinematicGingerbreadCorpses)
-			{
-				foreach (Item item in inventory.containerWear.itemList)
-				{
-					if (item != null && item.info.TryGetComponent<ItemCorpseOverride>(out var component))
-					{
-						strCorpsePrefab = ((GetFloatBasedOnUserID(userID, 4332uL) > 0.5f) ? component.FemaleCorpse.resourcePath : component.MaleCorpse.resourcePath);
-						flag = component.BlockWearableCopy;
-						break;
-					}
-				}
-			}
-			PlayerCorpse playerCorpse = DropCorpse(strCorpsePrefab) as PlayerCorpse;
+			PlayerCorpse playerCorpse = DropCorpse("assets/prefabs/player/player_corpse.prefab") as PlayerCorpse;
 			if ((bool)playerCorpse)
 			{
 				playerCorpse.SetFlag(Flags.Reserved5, HasPlayerFlag(PlayerFlags.DisplaySash));
-				if (!flag)
-				{
-					playerCorpse.TakeFrom(inventory.containerMain, inventory.containerWear, inventory.containerBelt);
-				}
+				playerCorpse.TakeFrom(inventory.containerMain, inventory.containerWear, inventory.containerBelt);
 				playerCorpse.playerName = displayName;
 				playerCorpse.playerSteamID = userID;
 				playerCorpse.underwearSkin = GetUnderwearSkin();
 				playerCorpse.Spawn();
 				playerCorpse.TakeChildren(this);
-				ResourceDispenser component2 = playerCorpse.GetComponent<ResourceDispenser>();
+				ResourceDispenser component = playerCorpse.GetComponent<ResourceDispenser>();
 				int num = 2;
 				if (lifeStory != null)
 				{
 					num += Mathf.Clamp(Mathf.FloorToInt(lifeStory.secondsAlive / 180f), 0, 20);
 				}
-				component2.containedItems.Add(new ItemAmount(ItemManager.FindItemDefinition("fat.animal"), num));
+				component.containedItems.Add(new ItemAmount(ItemManager.FindItemDefinition("fat.animal"), num));
 				return playerCorpse;
 			}
 		}
 		return null;
-		static float GetFloatBasedOnUserID(ulong steamid, ulong seed)
-		{
-			UnityEngine.Random.State state = UnityEngine.Random.state;
-			UnityEngine.Random.InitState((int)(seed + steamid));
-			float result = UnityEngine.Random.Range(0f, 1f);
-			UnityEngine.Random.state = state;
-			return result;
-		}
 	}
 
 	public override void OnKilled(HitInfo info)
@@ -5614,72 +5589,54 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	public void RespawnAt(Vector3 position, Quaternion rotation)
 	{
 		BaseGameMode activeGameMode = BaseGameMode.GetActiveGameMode(serverside: true);
-		if ((bool)activeGameMode && !activeGameMode.CanPlayerRespawn(this))
+		if (!activeGameMode || activeGameMode.CanPlayerRespawn(this))
 		{
-			return;
-		}
-		SetPlayerFlag(PlayerFlags.Wounded, b: false);
-		SetPlayerFlag(PlayerFlags.Unused2, b: false);
-		SetPlayerFlag(PlayerFlags.Unused1, b: false);
-		SetPlayerFlag(PlayerFlags.ReceivingSnapshot, b: true);
-		SetPlayerFlag(PlayerFlags.DisplaySash, b: false);
-		ServerPerformance.spawns++;
-		SetParent(null, worldPositionStays: true);
-		base.transform.SetPositionAndRotation(position, rotation);
-		tickInterpolator.Reset(position);
-		tickHistory.Reset(position);
-		eyeHistory.Clear();
-		estimatedVelocity = Vector3.zero;
-		estimatedSpeed = 0f;
-		estimatedSpeed2D = 0f;
-		lastTickTime = 0f;
-		StopWounded();
-		ResetWoundingVars();
-		StopSpectating();
-		UpdateNetworkGroup();
-		EnablePlayerCollider();
-		RemovePlayerRigidbody();
-		StartSleeping();
-		LifeStoryStart();
-		metabolism.Reset();
-		if (modifiers != null)
-		{
-			modifiers.RemoveAll();
-		}
-		InitializeHealth(StartHealth(), StartMaxHealth());
-		bool flag = false;
-		if (ConVar.Server.respawnWithLoadout)
-		{
-			string infoString = GetInfoString("client.respawnloadout", string.Empty);
-			if (!string.IsNullOrEmpty(infoString) && Inventory.LoadLoadout(infoString, out var so))
+			SetPlayerFlag(PlayerFlags.Wounded, b: false);
+			SetPlayerFlag(PlayerFlags.Unused2, b: false);
+			SetPlayerFlag(PlayerFlags.Unused1, b: false);
+			SetPlayerFlag(PlayerFlags.ReceivingSnapshot, b: true);
+			SetPlayerFlag(PlayerFlags.DisplaySash, b: false);
+			ServerPerformance.spawns++;
+			SetParent(null, worldPositionStays: true);
+			base.transform.SetPositionAndRotation(position, rotation);
+			tickInterpolator.Reset(position);
+			tickHistory.Reset(position);
+			eyeHistory.Clear();
+			estimatedVelocity = Vector3.zero;
+			estimatedSpeed = 0f;
+			estimatedSpeed2D = 0f;
+			lastTickTime = 0f;
+			StopWounded();
+			ResetWoundingVars();
+			StopSpectating();
+			UpdateNetworkGroup();
+			EnablePlayerCollider();
+			RemovePlayerRigidbody();
+			StartSleeping();
+			LifeStoryStart();
+			metabolism.Reset();
+			if (modifiers != null)
 			{
-				so.LoadItemsOnTo(this);
-				flag = true;
+				modifiers.RemoveAll();
 			}
-		}
-		if (!flag)
-		{
+			InitializeHealth(StartHealth(), StartMaxHealth());
 			inventory.GiveDefaultItems();
-		}
-		SendNetworkUpdateImmediate();
-		ClientRPCPlayer(null, this, "StartLoading");
-		if ((bool)activeGameMode)
-		{
-			BaseGameMode.GetActiveGameMode(serverside: true).OnPlayerRespawn(this);
-		}
-		if (net != null)
-		{
-			EACServer.OnStartLoading(net.connection);
+			SendNetworkUpdateImmediate();
+			ClientRPCPlayer(null, this, "StartLoading");
+			if ((bool)activeGameMode)
+			{
+				BaseGameMode.GetActiveGameMode(serverside: true).OnPlayerRespawn(this);
+			}
+			if (net != null)
+			{
+				EACServer.OnStartLoading(net.connection);
+			}
 		}
 	}
 
 	public void Respawn()
 	{
 		SpawnPoint spawnPoint = ServerMgr.FindSpawnPoint(this);
-		if (ConVar.Server.respawnAtDeathPosition && ServerCurrentDeathNote != null)
-		{
-			spawnPoint.pos = ServerCurrentDeathNote.worldPosition;
-		}
 		RespawnAt(spawnPoint.pos, spawnPoint.rot);
 	}
 
@@ -6183,15 +6140,6 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			return defaultVal;
 		}
 		return net.connection.info.GetInt(key, defaultVal);
-	}
-
-	public virtual string GetInfoString(string key, string defaultVal)
-	{
-		if (!IsConnected)
-		{
-			return defaultVal;
-		}
-		return net.connection.info.GetString(key, defaultVal);
 	}
 
 	[RPC_Server]
@@ -7782,10 +7730,6 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			{
 				stats.combat.LogAttack(info, "", oldHealth);
 			}
-		}
-		if (ConVar.Global.cinematicGingerbreadCorpses)
-		{
-			info.HitMaterial = ConVar.Global.GingerbreadMaterialID();
 		}
 	}
 

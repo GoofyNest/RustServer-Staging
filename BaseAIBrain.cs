@@ -387,8 +387,7 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 				Stop();
 				return StateStatus.Error;
 			}
-			FaceTarget();
-			if (!brain.Navigator.SetDestination(baseEntity.transform.position, brain.Navigator.MoveTowardsSpeed, 0.25f))
+			if (!brain.Navigator.SetDestination(baseEntity.transform.position, BaseNavigator.NavigationSpeed.Normal, 0.25f))
 			{
 				return StateStatus.Error;
 			}
@@ -397,22 +396,6 @@ public class BaseAIBrain : EntityComponent<BaseEntity>, IPet, IAISleepable, IAID
 				return StateStatus.Finished;
 			}
 			return StateStatus.Running;
-		}
-
-		private void FaceTarget()
-		{
-			if (brain.Navigator.FaceMoveTowardsTarget)
-			{
-				BaseEntity baseEntity = brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot);
-				if (baseEntity == null)
-				{
-					brain.Navigator.ClearFacingDirectionOverride();
-				}
-				else if (Vector3.Distance(baseEntity.transform.position, brain.transform.position) <= 1.5f)
-				{
-					brain.Navigator.SetFacingDirectionEntity(baseEntity);
-				}
-			}
 		}
 	}
 
