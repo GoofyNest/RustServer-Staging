@@ -1,3 +1,4 @@
+using ConVar;
 using ProtoBuf;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ public class GingerbreadNPC : HumanNPC, IClientBrainStateListener
 	public GameObjectRef OverrideCorpseMale;
 
 	public GameObjectRef OverrideCorpseFemale;
+
+	public PhysicMaterial HitMaterial;
 
 	public bool RoamAroundHomePoint;
 
@@ -32,6 +35,12 @@ public class GingerbreadNPC : HumanNPC, IClientBrainStateListener
 				return result;
 			}
 		}
+	}
+
+	public override void OnAttacked(HitInfo info)
+	{
+		base.OnAttacked(info);
+		info.HitMaterial = Global.GingerbreadMaterialID();
 	}
 
 	public override string Categorize()
