@@ -509,10 +509,10 @@ public class BaseMountable : BaseCombatEntity
 	public virtual bool ValidDismountPosition(BasePlayer player, Vector3 disPos)
 	{
 		bool debugDismounts = Debugging.DebugDismounts;
-		Vector3 vector = GetMountedPosition() + player.NoClipOffset();
+		Vector3 dismountCheckStart = GetDismountCheckStart(player);
 		if (debugDismounts)
 		{
-			Debug.Log($"ValidDismountPosition debug: Checking dismount point {disPos} from {vector}.");
+			Debug.Log($"ValidDismountPosition debug: Checking dismount point {disPos} from {dismountCheckStart}.");
 		}
 		Vector3 start = disPos + new Vector3(0f, 0.5f, 0f);
 		Vector3 end = disPos + new Vector3(0f, 1.3f, 0f);
@@ -525,17 +525,17 @@ public class BaseMountable : BaseCombatEntity
 			}
 			if (IsVisible(position))
 			{
-				Vector3 vector2 = disPos + player.NoClipOffset();
+				Vector3 vector = disPos + player.NoClipOffset();
 				if (debugDismounts)
 				{
 					Debug.Log($"ValidDismountPosition debug: Dismount point {disPos} is visible.");
 				}
-				if (!AntiHack.TestNoClipping(player, vector, vector2, player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true, vehicleLayer: false, this))
+				if (!AntiHack.TestNoClipping(player, dismountCheckStart, vector, player.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, sphereCast: true, vehicleLayer: false, this))
 				{
 					if (debugDismounts)
 					{
 						Debug.Log($"<color=green>ValidDismountPosition debug: Dismount point {disPos} is valid</color>.");
-						Debug.DrawLine(vector, vector2, Color.green, 10f);
+						Debug.DrawLine(dismountCheckStart, vector, Color.green, 10f);
 					}
 					return true;
 				}
@@ -543,7 +543,7 @@ public class BaseMountable : BaseCombatEntity
 		}
 		if (debugDismounts)
 		{
-			Debug.DrawLine(vector, disPos, Color.red, 10f);
+			Debug.DrawLine(dismountCheckStart, disPos, Color.red, 10f);
 			if (debugDismounts)
 			{
 				Debug.Log($"<color=red>ValidDismountPosition debug: Dismount point {disPos} is invalid</color>.");
@@ -716,6 +716,17 @@ public class BaseMountable : BaseCombatEntity
 	public virtual bool IsInstrument()
 	{
 		return false;
+	}
+
+	public Vector3 GetDismountCheckStart(BasePlayer player)
+	{
+		Vector3 result = GetMountedPosition() + player.NoClipOffset();
+		if (mountPose == PlayerModel.MountPoses.Chair || mountPose == PlayerModel.MountPoses.SitGeneric)
+		{
+			Vector3 vector = ((mountAnchor == null) ? base.transform.forward : mountAnchor.transform.forward);
+			result += -vector * 0.32f;
+		}
+		return result;
 	}
 
 	public Vector3 GetMountedPosition()
