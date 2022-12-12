@@ -10,6 +10,8 @@ using UnityEngine.Assertions;
 
 public class Planner : HeldEntity
 {
+	private static RaycastHit buildRayHit;
+
 	public BaseEntity[] buildableList;
 
 	public bool isTypeDeployable => GetModDeployable() != null;
@@ -198,12 +200,24 @@ public class Planner : HeldEntity
 				return;
 			}
 		}
+		Vector3 vector = ((target.entity != null && target.socket != null) ? target.GetWorldPosition() : target.position);
+		if (ConVar.AntiHack.build_inside_check)
+		{
+			bool queriesHitBackfaces = UnityEngine.Physics.queriesHitBackfaces;
+			UnityEngine.Physics.queriesHitBackfaces = true;
+			if (UnityEngine.Physics.Raycast(vector, Vector3.up, out buildRayHit, 50f, 65537) && Vector3.Dot(Vector3.up, buildRayHit.normal) > 0f)
+			{
+				ownerPlayer.ChatMessage("Can't deploy inside objects");
+				return;
+			}
+			UnityEngine.Physics.queriesHitBackfaces = queriesHitBackfaces;
+		}
 		if (ConVar.AntiHack.eye_protection >= 2)
 		{
 			Vector3 center = ownerPlayer.eyes.center;
 			Vector3 position = ownerPlayer.eyes.position;
 			Vector3 origin = target.ray.origin;
-			Vector3 p = ((target.entity != null && target.socket != null) ? target.GetWorldPosition() : target.position);
+			Vector3 p = vector;
 			int num = 2097152;
 			int num2 = (ConVar.AntiHack.build_terraincheck ? 10551296 : 2162688);
 			float num3 = ConVar.AntiHack.build_losradius;

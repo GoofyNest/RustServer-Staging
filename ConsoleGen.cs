@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[900]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[901]
 	{
 		new ConsoleSystem.Command
 		{
@@ -2387,6 +2387,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				ConVar.AntiHack.admincheat = str.ToBool();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "build_inside_check",
+			Parent = "antihack",
+			FullName = "antihack.build_inside_check",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => ConVar.AntiHack.build_inside_check.ToString(),
+			SetOveride = delegate(string str)
+			{
+				ConVar.AntiHack.build_inside_check = str.ToBool();
 			}
 		},
 		new ConsoleSystem.Command
