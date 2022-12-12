@@ -721,10 +721,17 @@ public class BaseMountable : BaseCombatEntity
 	public Vector3 GetDismountCheckStart(BasePlayer player)
 	{
 		Vector3 result = GetMountedPosition() + player.NoClipOffset();
-		if (mountPose == PlayerModel.MountPoses.Chair || mountPose == PlayerModel.MountPoses.SitGeneric)
+		Vector3 vector = ((mountAnchor == null) ? base.transform.forward : mountAnchor.transform.forward);
+		Vector3 vector2 = ((mountAnchor == null) ? base.transform.up : mountAnchor.transform.up);
+		if (mountPose == PlayerModel.MountPoses.Chair)
 		{
-			Vector3 vector = ((mountAnchor == null) ? base.transform.forward : mountAnchor.transform.forward);
 			result += -vector * 0.32f;
+			result += vector2 * 0.25f;
+		}
+		else if (mountPose == PlayerModel.MountPoses.SitGeneric)
+		{
+			result += -vector * 0.26f;
+			result += vector2 * 0.25f;
 		}
 		return result;
 	}
