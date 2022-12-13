@@ -17,7 +17,7 @@ public class XmasDungeon : HalloweenDungeon
 
 	public override float GetLifetime()
 	{
-		return HalloweenDungeon.lifetime;
+		return xmaslifetime;
 	}
 
 	public override void ServerInit()
