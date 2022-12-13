@@ -143,20 +143,18 @@ public class HalloweenDungeon : BasePortal
 
 	public static Vector3 GetDungeonSpawnPoint()
 	{
-		float num = 200f;
-		float num2 = 200f;
-		float num3 = Mathf.Floor(TerrainMeta.Size.x / 200f);
-		float num4 = 1000f;
+		float num = Mathf.Floor(TerrainMeta.Size.x / 200f);
+		float num2 = 1000f;
 		Vector3 zero = Vector3.zero;
-		zero.x = 0f - Mathf.Min(TerrainMeta.Size.x * 0.5f, 4000f) + num;
-		zero.y = 1000f;
-		zero.z = 0f - Mathf.Min(TerrainMeta.Size.z * 0.5f, 4000f) + num;
+		zero.x = 0f - Mathf.Min(TerrainMeta.Size.x * 0.5f, 4000f) + 200f;
+		zero.y = 1025f;
+		zero.z = 0f - Mathf.Min(TerrainMeta.Size.z * 0.5f, 4000f) + 200f;
 		_ = Vector3.zero;
-		for (int i = 0; (float)i < num4; i++)
+		for (int i = 0; (float)i < num2; i++)
 		{
-			for (int j = 0; (float)j < num3; j++)
+			for (int j = 0; (float)j < num; j++)
 			{
-				Vector3 vector = zero + new Vector3((float)j * num, (float)i * num2, 0f);
+				Vector3 vector = zero + new Vector3((float)j * 200f, (float)i * 100f, 0f);
 				bool flag = false;
 				foreach (ProceduralDynamicDungeon dungeon in ProceduralDynamicDungeon.dungeons)
 				{

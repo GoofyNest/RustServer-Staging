@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[901]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[902]
 	{
 		new ConsoleSystem.Command
 		{
@@ -11906,6 +11906,21 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				Wolf.Population = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "playerdetectrange",
+			Parent = "xmasdungeon",
+			FullName = "xmasdungeon.playerdetectrange",
+			ServerAdmin = true,
+			Description = "How far we detect players from our inside/outside",
+			ShowInAdminUI = true,
+			Variable = true,
+			GetOveride = () => XmasDungeon.playerdetectrange.ToString(),
+			SetOveride = delegate(string str)
+			{
+				XmasDungeon.playerdetectrange = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command

@@ -13,8 +13,6 @@ public class ProceduralDynamicDungeon : BaseEntity
 
 	public bool[] grid;
 
-	public List<ProceduralDungeonCell> cellPrefabs = new List<ProceduralDungeonCell>();
-
 	public List<GameObjectRef> cellPrefabReferences = new List<GameObjectRef>();
 
 	public List<ProceduralDungeonCell> spawnedCells = new List<ProceduralDungeonCell>();
@@ -43,6 +41,24 @@ public class ProceduralDynamicDungeon : BaseEntity
 	{
 		base.InitShared();
 		dungeons.Add(this);
+	}
+
+	public override void OnFlagsChanged(Flags old, Flags next)
+	{
+		base.OnFlagsChanged(old, next);
+		foreach (ProceduralDungeonCell spawnedCell in spawnedCells)
+		{
+			EntityFlag_Toggle[] componentsInChildren = spawnedCell.GetComponentsInChildren<EntityFlag_Toggle>();
+			for (int i = 0; i < componentsInChildren.Length; i++)
+			{
+				componentsInChildren[i].DoUpdate(this);
+			}
+		}
+	}
+
+	public BaseEntity GetExitPortal(bool serverSide)
+	{
+		return exitPortal.Get(serverSide);
 	}
 
 	public override void DestroyShared()
