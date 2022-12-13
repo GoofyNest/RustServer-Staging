@@ -2399,7 +2399,7 @@ public class ConsoleGen
 			GetOveride = () => ConVar.AntiHack.build_inside_check.ToString(),
 			SetOveride = delegate(string str)
 			{
-				ConVar.AntiHack.build_inside_check = str.ToBool();
+				ConVar.AntiHack.build_inside_check = str.ToInt();
 			}
 		},
 		new ConsoleSystem.Command

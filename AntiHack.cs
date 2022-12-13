@@ -20,6 +20,8 @@ public static class AntiHack
 
 	private static Dictionary<ulong, int> bans = new Dictionary<ulong, int>();
 
+	private static RaycastHit buildRayHit;
+
 	public static void ResetTimer(BasePlayer ply)
 	{
 		ply.lastViolationTime = UnityEngine.Time.realtimeSinceStartup;
@@ -428,6 +430,34 @@ public static class AntiHack
 			ply.flyhackDistanceHorizontal = 0f;
 		}
 		return false;
+	}
+
+	public static bool TestIsBuildingInsideSomething(Construction.Target target, Vector3 deployPos)
+	{
+		if (ConVar.AntiHack.build_inside_check <= 0)
+		{
+			return false;
+		}
+		bool queriesHitBackfaces = UnityEngine.Physics.queriesHitBackfaces;
+		UnityEngine.Physics.queriesHitBackfaces = true;
+		if (IsInside(deployPos) && IsInside(target.ray.origin))
+		{
+			LogToConsole(target.player, AntiHackType.InsideTerrain, "Tried to build while clipped inside " + buildRayHit.collider.name);
+			if (ConVar.AntiHack.build_inside_check > 1)
+			{
+				return true;
+			}
+		}
+		UnityEngine.Physics.queriesHitBackfaces = queriesHitBackfaces;
+		return false;
+		static bool IsInside(Vector3 pos)
+		{
+			if (UnityEngine.Physics.Raycast(pos, Vector3.up, out buildRayHit, 50f, 65537))
+			{
+				return Vector3.Dot(Vector3.up, buildRayHit.normal) > 0f;
+			}
+			return false;
+		}
 	}
 
 	public static void NoteAdminHack(BasePlayer ply)
