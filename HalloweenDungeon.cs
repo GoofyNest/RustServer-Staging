@@ -59,7 +59,7 @@ public class HalloweenDungeon : BasePortal
 			if (dungeonInstance.IsValid(serverside: true))
 			{
 				ProceduralDynamicDungeon proceduralDynamicDungeon = dungeonInstance.Get(serverside: true);
-				float value = radiationCurve.Evaluate(lifeFraction) * 100f;
+				float value = radiationCurve.Evaluate(lifeFraction) * 80f;
 				proceduralDynamicDungeon.exitRadiation.RadiationAmountOverride = Mathf.Clamp(value, 0f, float.PositiveInfinity);
 			}
 			if (lifeFraction >= 1f)

@@ -10,7 +10,7 @@ public class XmasDungeon : HalloweenDungeon
 	public static float xmaspopulation = 1.5f;
 
 	[ServerVar(Help = "How long each active dungeon should last before dying", ShowInAdminUI = true)]
-	public static float xmaslifetime = 600f;
+	public static float xmaslifetime = 1200f;
 
 	[ServerVar(Help = "How far we detect players from our inside/outside", ShowInAdminUI = true)]
 	public static float playerdetectrange = 30f;
