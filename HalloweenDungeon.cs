@@ -122,19 +122,20 @@ public class HalloweenDungeon : BasePortal
 		float num = radius * radius;
 		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
 		{
-			if (serverEntity is BaseEntity baseEntity && baseEntity != this && (baseEntity.transform.position - proceduralDynamicDungeon.transform.position).sqrMagnitude < num)
+			BaseEntity baseEntity = serverEntity as BaseEntity;
+			if (baseEntity.IsValid() && !(baseEntity == this) && (baseEntity.transform.position - proceduralDynamicDungeon.transform.position).sqrMagnitude < num)
 			{
 				obj.Add(baseEntity);
 			}
 		}
 		foreach (BaseEntity item in obj)
 		{
-			if (item is LootableCorpse lootableCorpse)
-			{
-				lootableCorpse.blockBagDrop = true;
-			}
 			if (!item.IsDestroyed)
 			{
+				if (item is LootableCorpse lootableCorpse)
+				{
+					lootableCorpse.blockBagDrop = true;
+				}
 				item.Kill();
 			}
 		}
