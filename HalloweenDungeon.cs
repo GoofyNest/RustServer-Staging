@@ -90,23 +90,15 @@ public class HalloweenDungeon : BasePortal
 
 	public bool AnyPlayersInside()
 	{
-		if (Time.time > nextPlayerCheckTime)
+		ProceduralDynamicDungeon proceduralDynamicDungeon = dungeonInstance.Get(serverside: true);
+		if (proceduralDynamicDungeon == null)
+		{
+			anyplayers_cached = false;
+		}
+		else if (Time.time > nextPlayerCheckTime)
 		{
 			nextPlayerCheckTime = Time.time + 10f;
-			anyplayers_cached = false;
-			ProceduralDynamicDungeon proceduralDynamicDungeon = dungeonInstance.Get(serverside: true);
-			if (proceduralDynamicDungeon == null)
-			{
-				return false;
-			}
-			foreach (BasePlayer allPlayer in BasePlayer.allPlayerList)
-			{
-				if (Vector3.Distance(allPlayer.transform.position, proceduralDynamicDungeon.transform.position) <= 80f)
-				{
-					anyplayers_cached = true;
-					break;
-				}
-			}
+			anyplayers_cached = BaseNetworkable.HasCloseConnections(proceduralDynamicDungeon.transform.position, 80f);
 		}
 		return anyplayers_cached;
 	}
@@ -119,18 +111,10 @@ public class HalloweenDungeon : BasePortal
 			return;
 		}
 		List<BaseEntity> obj = Pool.GetList<BaseEntity>();
-		float num = radius * radius;
-		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
-		{
-			BaseEntity baseEntity = serverEntity as BaseEntity;
-			if (baseEntity.IsValid() && !(baseEntity == this) && (baseEntity.transform.position - proceduralDynamicDungeon.transform.position).sqrMagnitude < num)
-			{
-				obj.Add(baseEntity);
-			}
-		}
+		Vis.Entities(proceduralDynamicDungeon.transform.position, radius, obj);
 		foreach (BaseEntity item in obj)
 		{
-			if (!item.IsDestroyed)
+			if (item.IsValid() && !item.IsDestroyed)
 			{
 				if (item is LootableCorpse lootableCorpse)
 				{
