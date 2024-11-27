@@ -385,12 +385,10 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 	private void CarveSphere(int r, Vector3 worldSpacePosition)
 	{
 		int3 inBlockSpace = GetInBlockSpace(worldSpacePosition);
-		int num = r + 1;
 		CarveAndBlurSphereJob carveAndBlurSphereJob = default(CarveAndBlurSphereJob);
 		carveAndBlurSphereJob.Grid = _grid;
 		carveAndBlurSphereJob.Origin = inBlockSpace;
-		carveAndBlurSphereJob.R2 = r * r;
-		carveAndBlurSphereJob.R2B = num * num;
+		carveAndBlurSphereJob.R = r;
 		CarveAndBlurSphereJob jobData = carveAndBlurSphereJob;
 		IJobExtensions.RunByRef(ref jobData);
 		MarkServerGridUpdate();
@@ -402,7 +400,7 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 		BoxBlurSphereJob boxBlurSphereJob = default(BoxBlurSphereJob);
 		boxBlurSphereJob.Grid = _grid;
 		boxBlurSphereJob.Origin = inBlockSpace;
-		boxBlurSphereJob.R2 = r * r;
+		boxBlurSphereJob.R = r;
 		BoxBlurSphereJob jobData = boxBlurSphereJob;
 		IJobExtensions.RunByRef(ref jobData);
 		MarkServerGridUpdate();

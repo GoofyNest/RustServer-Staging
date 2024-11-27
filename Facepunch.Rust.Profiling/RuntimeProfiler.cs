@@ -583,7 +583,7 @@ public static class RuntimeProfiler
 			int num3 = 0;
 			int num4 = 0;
 			int num5 = 0;
-			for (int i = 0; i < 26; i++)
+			for (int i = 0; i < 27; i++)
 			{
 				int num6 = PacketProfiler.inboundCount[i];
 				int num7 = PacketProfiler.inboundBytes[i];

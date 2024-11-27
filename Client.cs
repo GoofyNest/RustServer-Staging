@@ -19,4 +19,10 @@ public class Client : SingletonComponent<Client>
 	public static Translate.Phrase loading_clientready = new Translate.Phrase("loading.clientready", "Client Ready");
 
 	public static Translate.Phrase loading_prefabwarmup = new Translate.Phrase("loading.prefabwarmup", "Warming Prefabs [{0}/{1}]");
+
+	public static Translate.Phrase loading_queue = new Translate.Phrase("loading.queue", "Queue");
+
+	public static Translate.Phrase loading_queue_status = new Translate.Phrase("loading.queue.status", "{0:N0} PLAYERS AHEAD OF YOU, {1:N0} PLAYERS BEHIND");
+
+	public static Translate.Phrase loading_queue_next = new Translate.Phrase("loading.queue.next", "YOU'RE NEXT - {1:N0} PLAYERS BEHIND YOU");
 }

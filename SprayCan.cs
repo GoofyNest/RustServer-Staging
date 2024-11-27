@@ -30,7 +30,7 @@ public class SprayCan : HeldEntity
 		public uint PrefabId;
 	}
 
-	private struct ChildPreserveInfo
+	public struct ChildPreserveInfo
 	{
 		public BaseEntity TargetEntity;
 

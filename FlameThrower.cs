@@ -435,7 +435,14 @@ public class FlameThrower : AttackEntity
 		{
 			nextFlameTime = UnityEngine.Time.realtimeSinceStartup + (ownerPlayer.IsNpc ? 0.25f : 0.45f);
 			Vector3 vector = hitInfo.point - ray.direction * 0.25f;
-			if (!GamePhysics.CheckSphere(vector, 0.1f, 1218519041))
+			Vector3 vector2 = vector + new Vector3(0f, 0.2f, 0f);
+			bool flag = !GamePhysics.CheckSphere(vector, 0.1f, 1084293377);
+			if (!flag && GamePhysics.LineOfSight(vector, vector2, 1084293377))
+			{
+				vector = vector2;
+				flag = !GamePhysics.CheckSphere(vector, 0.1f, 1084293377);
+			}
+			if (flag)
 			{
 				BaseEntity baseEntity = GameManager.server.CreateEntity(fireballPrefab.resourcePath, vector);
 				if ((bool)baseEntity)

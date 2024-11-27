@@ -6198,6 +6198,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			{
 				num15 |= 0x8000000;
 			}
+			if (flag6 && net.group != null && hitEntity.net != null && hitEntity.net.group != null && !net.subscriber.IsSubscribed(hitEntity.net.group))
+			{
+				AntiHack.Log(this, AntiHackType.ProjectileHack, "Entity out of network range");
+				stats.combat.LogInvalid(hitInfo, "projectile_network_range");
+				flag9 = false;
+			}
 			if (flag && hitInfo.boneArea == (HitArea)(-1))
 			{
 				string text = hitInfo.ProjectilePrefab.name;
@@ -6425,7 +6431,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 						num32 = ((value.simulatedPositions.Count <= 1 && flag11) ? 1 : 0);
 						if (num32 == 0)
 						{
-							goto IL_1259;
+							goto IL_12c5;
 						}
 					}
 					else
@@ -6433,27 +6439,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 						num32 = 1;
 					}
 					stats.Add("hit_" + (flag6 ? hitEntity.Categorize() : "world") + "_direct_los", 1, Stats.Server);
-					goto IL_12b7;
+					goto IL_1323;
 				}
 				num32 = 0;
-				goto IL_1259;
+				goto IL_12c5;
 			}
-			goto IL_1529;
+			goto IL_1595;
 		}
-		goto IL_1542;
-		IL_1529:
-		if (!flag9)
-		{
-			AntiHack.AddViolation(this, AntiHackType.ProjectileHack, ConVar.AntiHack.projectile_penalty);
-			playerProjectileAttack.ResetToPool();
-			playerProjectileAttack = null;
-			return;
-		}
-		goto IL_1542;
-		IL_1259:
-		stats.Add("hit_" + (flag6 ? hitEntity.Categorize() : "world") + "_indirect_los", 1, Stats.Server);
-		goto IL_12b7;
-		IL_1542:
+		goto IL_15ae;
+		IL_15ae:
 		value.position = hitInfo.HitPositionWorld;
 		value.velocity = playerProjectileAttack.hitVelocity;
 		value.travelTime = num;
@@ -6516,7 +6510,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		playerProjectileAttack.ResetToPool();
 		playerProjectileAttack = null;
 		return;
-		IL_12b7:
+		IL_12c5:
+		stats.Add("hit_" + (flag6 ? hitEntity.Categorize() : "world") + "_indirect_los", 1, Stats.Server);
+		goto IL_1323;
+		IL_1323:
 		if (num32 == 0)
 		{
 			string text27 = hitInfo.ProjectilePrefab.name;
@@ -6580,7 +6577,16 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				flag9 = false;
 			}
 		}
-		goto IL_1529;
+		goto IL_1595;
+		IL_1595:
+		if (!flag9)
+		{
+			AntiHack.AddViolation(this, AntiHackType.ProjectileHack, ConVar.AntiHack.projectile_penalty);
+			playerProjectileAttack.ResetToPool();
+			playerProjectileAttack = null;
+			return;
+		}
+		goto IL_15ae;
 	}
 
 	[RPC_Server]
@@ -12351,7 +12357,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public override float AirFactor()
 	{
-		float num = ((WaterFactor() > 0.95f) ? 0f : 1f);
+		float num = ((WaterFactor() >= 1f) ? 0f : 1f);
 		BaseMountable baseMountable = GetMounted();
 		if (baseMountable.IsValid() && baseMountable.BlocksWaterFor(this))
 		{
@@ -12369,7 +12375,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		BaseVehicle mountedVehicle = GetMountedVehicle();
 		if (mountedVehicle.IsValid() && mountedVehicle is IAirSupply airSupply)
 		{
-			float airTimeRemaining = airSupply.GetAirTimeRemaining();
+			float airTimeRemaining = airSupply.GetAirTimeRemaining(null);
 			if (airTimeRemaining > 0f)
 			{
 				airSupplyType = airSupply.AirType;
@@ -12381,7 +12387,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			IAirSupply componentInChildren = item.info.GetComponentInChildren<IAirSupply>();
 			if (componentInChildren != null)
 			{
-				float airTimeRemaining2 = componentInChildren.GetAirTimeRemaining();
+				float airTimeRemaining2 = componentInChildren.GetAirTimeRemaining(item);
 				if (airTimeRemaining2 > 0f)
 				{
 					airSupplyType = componentInChildren.AirType;

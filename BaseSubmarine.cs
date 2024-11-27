@@ -510,7 +510,7 @@ public class BaseSubmarine : BaseVehicle, IEngineControllerUser, IEntity, IAirSu
 		return false;
 	}
 
-	public float GetAirTimeRemaining()
+	public float GetAirTimeRemaining(Item forItem)
 	{
 		if (Oxygen <= 0.5f)
 		{

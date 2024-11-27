@@ -10,60 +10,59 @@ internal struct CarveAndBlurSphereJob : IJob
 
 	public int3 Origin;
 
-	public int R2;
-
-	public int R2B;
+	public int R;
 
 	public void Execute()
 	{
-		for (int i = -R2; i <= R2; i++)
+		int num = R * R;
+		for (int i = -R; i <= R; i++)
 		{
-			for (int j = -R2; j <= R2; j++)
+			for (int j = -R; j <= R; j++)
 			{
-				for (int k = -R2; k <= R2; k++)
+				for (int k = -R; k <= R; k++)
 				{
 					int3 @int = new int3(i, j, k);
 					int3 int2 = Origin + @int;
-					if (!(math.distancesq(int2, Origin) > (float)R2) && Grid.InBounds(int2))
+					if (!(math.distancesq(int2, Origin) > (float)num) && Grid.InBounds(int2))
 					{
 						Grid[int2] = false;
 					}
 				}
 			}
 		}
-		for (int l = -R2B; l <= R2B; l++)
+		for (int l = -R; l <= R; l++)
 		{
-			for (int m = -R2B; m <= R2B; m++)
+			for (int m = -R; m <= R; m++)
 			{
-				for (int n = -R2B; n <= R2B; n++)
+				for (int n = -R; n <= R; n++)
 				{
 					int3 int3 = new int3(l, m, n);
 					int3 int4 = Origin + int3;
-					if (math.distancesq(int4, Origin) > (float)R2 || !Grid.InBoundsNotTouching(int4))
+					if (math.distancesq(int4, Origin) > (float)num || !Grid.InBoundsNotTouching(int4))
 					{
 						continue;
 					}
-					float num = 0f;
-					int num2 = 0;
-					for (int num3 = -1; num3 <= 1; num3++)
+					float num2 = 0f;
+					int num3 = 0;
+					for (int num4 = -1; num4 <= 1; num4++)
 					{
-						for (int num4 = -1; num4 <= 1; num4++)
+						for (int num5 = -1; num5 <= 1; num5++)
 						{
-							for (int num5 = -1; num5 <= 1; num5++)
+							for (int num6 = -1; num6 <= 1; num6++)
 							{
-								if (num3 != 0 || num4 != 0 || num5 != 0)
+								if (num4 != 0 || num5 != 0 || num6 != 0)
 								{
-									int3 int5 = int4 + new int3(num3, num4, num5);
+									int3 int5 = int4 + new int3(num4, num5, num6);
 									if (Grid.InBounds(int5))
 									{
-										num += Grid.Sample(int5);
-										num2++;
+										num2 += Grid.Sample(int5);
+										num3++;
 									}
 								}
 							}
 						}
 					}
-					Grid[int4] = num / (float)num2 > 0.5f;
+					Grid[int4] = num2 / (float)num3 > 0.5f;
 				}
 			}
 		}

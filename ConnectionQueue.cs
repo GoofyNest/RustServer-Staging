@@ -39,6 +39,8 @@ public class ConnectionQueue
 
 	public int Joining => joining.Count;
 
+	public bool IsServerFull => SingletonComponent<ServerMgr>.Instance.AvailableSlots - Joining <= 0;
+
 	public void SkipQueue(ulong userid)
 	{
 		for (int i = 0; i < queue.Count; i++)
@@ -54,13 +56,14 @@ public class ConnectionQueue
 
 	internal void Join(Connection connection)
 	{
-		connection.state = Connection.State.InQueue;
-		queue.Add(connection);
 		nextMessageTime = 0f;
-		if (CanJumpQueue(connection))
+		if ((Queued == 0 && !IsServerFull) || CanJumpQueue(connection))
 		{
 			JoinGame(connection);
+			return;
 		}
+		connection.state = Connection.State.InQueue;
+		queue.Add(connection);
 	}
 
 	public void Cycle(int availableSlots)
@@ -72,34 +75,32 @@ public class ConnectionQueue
 		}
 		if (queue.Count != 0)
 		{
-			if (availableSlots - Joining > 0)
+			SendQueueUpdates();
+			if (!IsServerFull)
 			{
 				JoinGame(queue[0]);
 			}
-			SendMessages();
 		}
 	}
 
-	private void SendMessages()
+	private void SendQueueUpdates()
 	{
 		if (!(nextMessageTime > UnityEngine.Time.realtimeSinceStartup))
 		{
 			nextMessageTime = UnityEngine.Time.realtimeSinceStartup + 10f;
 			for (int i = 0; i < queue.Count; i++)
 			{
-				SendMessage(queue[i], i);
+				SendQueueUpdate(queue[i], i);
 			}
 		}
 	}
 
-	private void SendMessage(Connection c, int position)
+	private void SendQueueUpdate(Connection c, int position)
 	{
-		string empty = string.Empty;
-		empty = ((position <= 0) ? string.Format("YOU'RE NEXT - {1:N0} PLAYERS BEHIND YOU", position, queue.Count - position - 1) : $"{position:N0} PLAYERS AHEAD OF YOU, {queue.Count - position - 1:N0} PLAYERS BEHIND");
 		NetWrite netWrite = Network.Net.sv.StartWrite();
-		netWrite.PacketID(Message.Type.Message);
-		netWrite.String("QUEUE");
-		netWrite.String(empty);
+		netWrite.PacketID(Message.Type.QueueUpdate);
+		netWrite.UInt16((ushort)Queued);
+		netWrite.UInt16((ushort)position);
 		netWrite.Send(new SendInfo(c));
 	}
 

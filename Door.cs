@@ -10,8 +10,10 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions;
 
-public class Door : AnimatedBuildingBlock, INotifyTrigger
+public class Door : AnimatedBuildingBlock, INotifyTrigger, ISimpleUpgradable
 {
+	public static readonly Translate.Phrase UpgradeBlockedLock = new Translate.Phrase("simple.upgrade.blocked_lock", "Remove lock to upgrade.");
+
 	public GameObjectRef knockEffect;
 
 	public bool canTakeLock = true;
@@ -39,6 +41,10 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 	public GameObject[] ClosedColliderRoots;
 
 	public bool allowOnCargoShip;
+
+	public ItemDefinition UpgradeItem;
+
+	public Menu.Option UpgradeMenu;
 
 	[SerializeField]
 	[ReadOnly]
@@ -96,6 +102,42 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 	{
 		using (TimeWarning.New("Door.OnRpcMessage"))
 		{
+			if (rpc == 2824056853u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (Global.developer > 2)
+				{
+					Debug.Log("SV_RPCMessage: " + player?.ToString() + " - DoSimpleUpgrade ");
+				}
+				using (TimeWarning.New("DoSimpleUpgrade"))
+				{
+					using (TimeWarning.New("Conditions"))
+					{
+						if (!RPC_Server.IsVisible.Test(2824056853u, "DoSimpleUpgrade", this, player, 3f))
+						{
+							return true;
+						}
+					}
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg2 = rPCMessage;
+							DoSimpleUpgrade(msg2);
+						}
+					}
+					catch (Exception exception)
+					{
+						Debug.LogException(exception);
+						player.Kick("RPC Error in DoSimpleUpgrade");
+					}
+				}
+				return true;
+			}
 			if (rpc == 3999508679u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
@@ -124,9 +166,9 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							RPC_CloseDoor(rpc2);
 						}
 					}
-					catch (Exception exception)
+					catch (Exception exception2)
 					{
-						Debug.LogException(exception);
+						Debug.LogException(exception2);
 						player.Kick("RPC Error in RPC_CloseDoor");
 					}
 				}
@@ -160,9 +202,9 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							RPC_KnockDoor(rpc3);
 						}
 					}
-					catch (Exception exception2)
+					catch (Exception exception3)
 					{
-						Debug.LogException(exception2);
+						Debug.LogException(exception3);
 						player.Kick("RPC Error in RPC_KnockDoor");
 					}
 				}
@@ -196,9 +238,9 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							RPC_OpenDoor(rpc4);
 						}
 					}
-					catch (Exception exception3)
+					catch (Exception exception4)
 					{
-						Debug.LogException(exception3);
+						Debug.LogException(exception4);
 						player.Kick("RPC Error in RPC_OpenDoor");
 					}
 				}
@@ -232,9 +274,9 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							RPC_ToggleHatch(rpc5);
 						}
 					}
-					catch (Exception exception4)
+					catch (Exception exception5)
 					{
-						Debug.LogException(exception4);
+						Debug.LogException(exception5);
 						player.Kick("RPC Error in RPC_ToggleHatch");
 					}
 				}
@@ -264,13 +306,13 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							rPCMessage.connection = msg.connection;
 							rPCMessage.player = player;
 							rPCMessage.read = msg.read;
-							RPCMessage msg2 = rPCMessage;
-							Server_NotifyWoundedClose(msg2);
+							RPCMessage msg3 = rPCMessage;
+							Server_NotifyWoundedClose(msg3);
 						}
 					}
-					catch (Exception exception5)
+					catch (Exception exception6)
 					{
-						Debug.LogException(exception5);
+						Debug.LogException(exception6);
 						player.Kick("RPC Error in Server_NotifyWoundedClose");
 					}
 				}
@@ -300,13 +342,13 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 							rPCMessage.connection = msg.connection;
 							rPCMessage.player = player;
 							rPCMessage.read = msg.read;
-							RPCMessage msg3 = rPCMessage;
-							Server_NotifyWoundedOpen(msg3);
+							RPCMessage msg4 = rPCMessage;
+							Server_NotifyWoundedOpen(msg4);
 						}
 					}
-					catch (Exception exception6)
+					catch (Exception exception7)
 					{
-						Debug.LogException(exception6);
+						Debug.LogException(exception7);
 						player.Kick("RPC Error in Server_NotifyWoundedOpen");
 					}
 				}
@@ -863,5 +905,44 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger
 				gameObject.gameObject.SetActive(active);
 			}
 		}
+	}
+
+	public ItemDefinition GetUpgradeItem()
+	{
+		return UpgradeItem;
+	}
+
+	public bool CanUpgrade(BasePlayer player)
+	{
+		if (IsOpen())
+		{
+			return false;
+		}
+		return SimpleUpgrade.CanUpgrade(this, UpgradeItem, player);
+	}
+
+	public bool HasLock()
+	{
+		return GetSlot(Slot.Lock) != null;
+	}
+
+	public void DoUpgrade(BasePlayer player)
+	{
+		SimpleUpgrade.DoUpgrade(this, player);
+	}
+
+	[RPC_Server]
+	[RPC_Server.IsVisible(3f)]
+	public void DoSimpleUpgrade(RPCMessage msg)
+	{
+		if (CanUpgrade(msg.player))
+		{
+			DoUpgrade(msg.player);
+		}
+	}
+
+	public bool UpgradingEnabled()
+	{
+		return UpgradeItem != null;
 	}
 }
