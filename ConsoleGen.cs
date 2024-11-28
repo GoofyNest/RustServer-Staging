@@ -9409,7 +9409,7 @@ public class ConsoleGen
 			{
 				ConVar.Physics.serversideragdolls = str.ToBool();
 			},
-			Default = "True"
+			Default = "False"
 		},
 		new ConsoleSystem.Command
 		{

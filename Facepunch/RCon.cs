@@ -521,7 +521,6 @@ public class RCon
 		if (Password.Length < 8)
 		{
 			UnityEngine.Debug.Log("\r\n*******************************************************\r\n**                                                   **\r\n** RCON password length is very insecure.            **\r\n** Support for passwords less than 8 characters may  **\r\n** be removed in the future.                         **\r\n**                                                   **\r\n*******************************************************\r\n");
-			return;
 		}
 		switch (Password.ToLower())
 		{

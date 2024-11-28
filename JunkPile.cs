@@ -79,6 +79,10 @@ public class JunkPile : BaseEntity
 		{
 			return false;
 		}
+		if (DespawnIfAnyLootTaken)
+		{
+			return false;
+		}
 		return true;
 	}
 
