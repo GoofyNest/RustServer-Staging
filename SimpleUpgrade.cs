@@ -23,6 +23,10 @@ internal static class SimpleUpgrade
 		{
 			return false;
 		}
+		if (upgradeItem.Blueprint != null && !ItemModStudyBlueprint.IsBlueprintUnlocked(upgradeItem, player))
+		{
+			return false;
+		}
 		if (upgradeItem.GetComponent<ItemModDeployable>() == null)
 		{
 			return false;

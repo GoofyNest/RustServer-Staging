@@ -22,6 +22,8 @@ public class VendorListing : FacepunchBehaviour
 
 	public VendingPriceMultiplierWidget PriceMultiplier;
 
+	public VendingPriceMultiplierWidget RecievedCurrencyMultiplier;
+
 	[Header("Icons")]
 	public Image AvaliableIcon;
 

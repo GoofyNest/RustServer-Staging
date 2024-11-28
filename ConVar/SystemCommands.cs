@@ -9,11 +9,13 @@ namespace ConVar;
 [ConsoleSystem.Factory("system")]
 public static class SystemCommands
 {
+	public static bool appliedManualCpuAffinity;
+
 	[ServerVar]
 	[ClientVar]
 	public static void cpu_affinity(ConsoleSystem.Arg arg)
 	{
-		long num = 0L;
+		ulong num = 0uL;
 		if (!arg.HasArgs())
 		{
 			arg.ReplyWith("Format is 'cpu_affinity {core,core1-core2,etc}'");
@@ -70,24 +72,32 @@ public static class SystemCommands
 		{
 			if (hashSet.Contains(k))
 			{
-				num |= 1L << k;
+				num |= (ulong)(1L << k);
 			}
 		}
 		if (num == 0L)
 		{
 			arg.ReplyWith("No cores provided (bitmask empty)! Format is 'cpu_affinity {core,core1-core2,etc}'");
-			return;
 		}
+		else if (SetCpuAffinity(num))
+		{
+			appliedManualCpuAffinity = true;
+			arg.ReplyWith("Successfully changed CPU affinity");
+		}
+	}
+
+	public static bool SetCpuAffinity(ulong affinityMask)
+	{
 		try
 		{
-			WindowsAffinityShim.SetProcessAffinityMask(Process.GetCurrentProcess().Handle, new IntPtr(num));
+			WindowsAffinityShim.SetProcessAffinityMask(Process.GetCurrentProcess().Handle, (IntPtr)(long)affinityMask);
+			return true;
 		}
-		catch (Exception arg2)
+		catch (Exception arg)
 		{
-			UnityEngine.Debug.LogWarning($"Unable to set cpu affinity: {arg2}");
-			return;
+			UnityEngine.Debug.LogWarning($"Unable to set CPU affinity: {arg}");
+			return false;
 		}
-		arg.ReplyWith("Successfully changed cpu affinity");
 	}
 
 	[ServerVar]

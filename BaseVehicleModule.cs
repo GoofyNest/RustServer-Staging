@@ -54,7 +54,7 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 	private VehicleModuleSlidingComponent[] slidingComponents;
 
 	[SerializeField]
-	private VehicleModuleButtonComponent[] buttonComponents;
+	protected VehicleModuleButtonComponent[] buttonComponents;
 
 	private TimeSince TimeSinceAddedToVehicle;
 
@@ -144,6 +144,11 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		lights = GetComponentsInChildren<VehicleLight>();
 	}
 
+	public override bool SupportsChildDeployables()
+	{
+		return true;
+	}
+
 	public void RefreshParameters()
 	{
 		for (int num = conditionals.Count - 1; num >= 0; num--)
@@ -231,6 +236,17 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 
 	public virtual void OnEngineStateChanged(VehicleEngineController<GroundVehicle>.EngineState oldState, VehicleEngineController<GroundVehicle>.EngineState newState)
 	{
+		if (!base.isServer || newState != 0)
+		{
+			return;
+		}
+		for (int i = 0; i < children.Count; i++)
+		{
+			if (children[i] is ModularCarRadio modularCarRadio)
+			{
+				modularCarRadio.TryForceOff();
+			}
+		}
 	}
 
 	public override float MaxHealth()
@@ -437,7 +453,7 @@ public class BaseVehicleModule : BaseVehicle, IPrefabPreProcess
 		}
 	}
 
-	private bool CanBeUsedNowBy(BasePlayer player)
+	protected bool CanBeUsedNowBy(BasePlayer player)
 	{
 		if (!IsOnAVehicle || player == null)
 		{

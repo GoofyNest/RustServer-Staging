@@ -652,7 +652,7 @@ public class BaseProjectile : AttackEntity
 
 	protected void StartReloadCooldown(float cooldown)
 	{
-		nextReloadTime = CalculateCooldownTime(nextReloadTime, cooldown, catchup: false);
+		nextReloadTime = CalculateCooldownTime(nextReloadTime, cooldown, catchup: false, unscaledTime: true);
 		startReloadTime = (float)nextReloadTime - cooldown;
 	}
 
@@ -663,17 +663,17 @@ public class BaseProjectile : AttackEntity
 
 	protected bool HasReloadCooldown()
 	{
-		return UnityEngine.Time.time < (float)nextReloadTime;
+		return UnityEngine.Time.unscaledTime < (float)nextReloadTime;
 	}
 
 	protected float GetReloadCooldown()
 	{
-		return Mathf.Max((float)nextReloadTime - UnityEngine.Time.time, 0f);
+		return Mathf.Max((float)nextReloadTime - UnityEngine.Time.unscaledTime, 0f);
 	}
 
 	protected float GetReloadIdle()
 	{
-		return Mathf.Max(UnityEngine.Time.time - (float)nextReloadTime, 0f);
+		return Mathf.Max(UnityEngine.Time.unscaledTime - (float)nextReloadTime, 0f);
 	}
 
 	private void OnDrawGizmos()
@@ -1380,14 +1380,14 @@ public class BaseProjectile : AttackEntity
 			reloadFinished = false;
 			return;
 		}
-		if (UnityEngine.Time.time < (float)startReloadTime + reloadStartDuration)
+		if (UnityEngine.Time.unscaledTime < (float)startReloadTime + reloadStartDuration)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload too early (" + base.ShortPrefabName + ")");
 			player.stats.combat.LogInvalid(player, this, "reload_fraction_too_early");
 			reloadStarted = false;
 			reloadFinished = false;
 		}
-		if (UnityEngine.Time.time < (float)startReloadTime + reloadStartDuration + (float)fractionalInsertCounter * reloadFractionDuration)
+		if (UnityEngine.Time.unscaledTime < (float)startReloadTime + reloadStartDuration + (float)fractionalInsertCounter * reloadFractionDuration)
 		{
 			AntiHack.Log(player, AntiHackType.ReloadHack, "Fractional reload rate too high (" + base.ShortPrefabName + ")");
 			player.stats.combat.LogInvalid(player, this, "reload_fraction_rate");

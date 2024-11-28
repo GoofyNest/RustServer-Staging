@@ -21,6 +21,8 @@ public struct Point3DGrid : IDisposable
 
 	private readonly int _widthHeight;
 
+	private bool _hasDisposed;
+
 	public int Width => _width;
 
 	public int Height => _height;
@@ -75,6 +77,12 @@ public struct Point3DGrid : IDisposable
 		_bounds = new int3(_width, _height, _depth);
 		_widthHeight = _width * _height;
 		_array = new NativeBitArray(_widthHeight * _depth, Allocator.Persistent);
+		_hasDisposed = false;
+	}
+
+	public void Clear()
+	{
+		_array.Clear();
 	}
 
 	public void CopyToByteArray(ref byte[] arr)
@@ -145,6 +153,10 @@ public struct Point3DGrid : IDisposable
 
 	public void Dispose()
 	{
-		_array.Dispose();
+		if (!_hasDisposed)
+		{
+			_array.Dispose();
+			_hasDisposed = true;
+		}
 	}
 }

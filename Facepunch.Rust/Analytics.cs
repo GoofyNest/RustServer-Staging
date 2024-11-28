@@ -395,8 +395,8 @@ public static class Analytics
 					.AddField("ip_convar", global::Network.Net.sv.ip)
 					.AddField("port_convar", global::Network.Net.sv.port)
 					.AddField("net_protocol", global::Network.Net.sv.ProtocolId)
-					.AddField("protocol_network", 2569)
-					.AddField("protocol_save", 261)
+					.AddField("protocol_network", 2570)
+					.AddField("protocol_save", 262)
 					.AddField("changeset", BuildInfo.Current?.Scm.ChangeId ?? "0")
 					.AddField("unity_version", UnityEngine.Application.unityVersion)
 					.AddField("branch", BuildInfo.Current?.Scm.Branch ?? "empty")
@@ -1114,7 +1114,7 @@ public static class Analytics
 					.AddField("message", message);
 				if (BuildInfo.Current != null)
 				{
-					eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2569);
+					eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2570);
 				}
 				switch (type)
 				{

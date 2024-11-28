@@ -1,5 +1,6 @@
 #define UNITY_ASSERTIONS
 using System;
+using System.Collections.Generic;
 using ConVar;
 using Facepunch;
 using Facepunch.MarchingCubes;
@@ -13,7 +14,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
+public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserEntity, IDisposable
 {
 	[Header("BaseSculpture")]
 	[SerializeField]
@@ -81,6 +82,16 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 			_carveRadius = math.clamp(value, 2, 6);
 		}
 	}
+
+	public uint[] GetContentCRCs => new uint[1] { _crc };
+
+	public UGCType ContentType => UGCType.Sculpt;
+
+	public List<ulong> EditingHistory => new List<ulong> { base.OwnerID };
+
+	public BaseNetworkable UgcEntity => this;
+
+	public string ContentString => string.Empty;
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
@@ -282,7 +293,11 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 
 	public override void OnAttacked(HitInfo info)
 	{
-		if (!info.damageTypes.Contains(carvingDamageType) || !base.isServer)
+		if (info.damageTypes.Contains(carvingDamageType) && base.isServer)
+		{
+			info.DidHit = false;
+		}
+		else
 		{
 			base.OnAttacked(info);
 		}
@@ -356,6 +371,19 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 	public void Dispose()
 	{
 		_grid.Dispose();
+	}
+
+	[RPC_Server]
+	[RPC_Server.CallsPerSecond(1uL)]
+	public void SV_LoadFromData(RPCMessage msg)
+	{
+		if (msg.player.IsAdmin && msg.player.IsDeveloper)
+		{
+			ArraySegment<byte> arraySegment = msg.read.PooledBytes();
+			int count = LZ4Codec.Decode(arraySegment.Array, arraySegment.Offset, arraySegment.Count, _decompressArr, 0, _decompressArr.Length);
+			_grid.CopyFromByteArray(_decompressArr, count);
+			MarkServerGridUpdate();
+		}
 	}
 
 	[RPC_Server]
@@ -550,6 +578,12 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IDisposable
 				ClientRPC(RpcTarget.NetworkGroup("CL_UpdateCrc"), _crc);
 			}
 		}
+	}
+
+	public void ClearContent()
+	{
+		FillGrid(_grid);
+		MarkServerGridUpdate();
 	}
 
 	internal override void DoServerDestroy()

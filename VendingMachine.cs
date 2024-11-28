@@ -478,6 +478,17 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		}
 	}
 
+	public static int GetTotalReceivedMerchandiseForOrder(ProtoBuf.VendingMachine.SellOrder order)
+	{
+		return GetTotalReceivedMerchandiseForOrder(order.itemToSellAmount, order.receivedQuantityMultiplier);
+	}
+
+	public static int GetTotalReceivedMerchandiseForOrder(int merchAmountPerOrder, float multiplier)
+	{
+		float num = ((multiplier != 0f) ? multiplier : 1f);
+		return Mathf.Max(Mathf.RoundToInt((float)merchAmountPerOrder * num), 1);
+	}
+
 	public static int GetTotalPriceForOrder(ProtoBuf.VendingMachine.SellOrder order)
 	{
 		return GetTotalPriceForOrder(order.currencyAmountPerItem, order.priceMultiplier);
@@ -636,12 +647,18 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			sellOrder.attachmentsList = list;
 			sellOrder.totalAttachmentSlots = totalAttachmentSlots;
 			sellOrder.priceMultiplier = GetDiscountForSlot(num, sellOrder);
+			sellOrder.receivedQuantityMultiplier = GetReceivedQuantityMultiplier(num, sellOrder);
 			num++;
 			Facepunch.Pool.Free(ref obj, freeElements: false);
 		}
 	}
 
 	protected virtual float GetDiscountForSlot(int sellOrderSlot, ProtoBuf.VendingMachine.SellOrder forOrder)
+	{
+		return 1f;
+	}
+
+	protected virtual float GetReceivedQuantityMultiplier(int sellOrderSlot, ProtoBuf.VendingMachine.SellOrder forOrder)
 	{
 		return 1f;
 	}
@@ -795,6 +812,10 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		}
 		numberOfTransactions = Mathf.Clamp(numberOfTransactions, 1, obj[0].hasCondition ? 1 : 1000000);
 		int num = sellOrder.itemToSellAmount * numberOfTransactions;
+		if (ItemManager.FindItemDefinition(sellOrder.itemToSellID) == NPCVendingMachine.ScrapItem && sellOrder.receivedQuantityMultiplier != 1f)
+		{
+			num = GetTotalPriceForOrder(num, sellOrder.receivedQuantityMultiplier);
+		}
 		int num2 = obj.Sum((Item x) => x.amount);
 		if (num > num2)
 		{
@@ -851,7 +872,7 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			else
 			{
 				num7 += item2.amount;
-				RecordSaleAnalytics(item2, sellOrderId);
+				RecordSaleAnalytics(item2, sellOrderId, sellOrder.currencyAmountPerItem * numberOfTransactions);
 				if (targetContainer == null)
 				{
 					GiveSoldItem(item2, buyer);
@@ -873,7 +894,7 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		return true;
 	}
 
-	protected virtual void RecordSaleAnalytics(Item itemSold, int orderId)
+	protected virtual void RecordSaleAnalytics(Item itemSold, int orderId, int currencyUsed)
 	{
 		Analytics.Server.VendingMachineTransaction(null, itemSold.info, itemSold.amount);
 	}

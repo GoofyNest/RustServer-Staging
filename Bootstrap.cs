@@ -145,7 +145,9 @@ public class Bootstrap : SingletonComponent<Bootstrap>
 			GA.Initialize("218faecaf1ad400a4e15c53392ebeebc", "0c9803ce52c38671278899538b9c54c8d4e19849");
 			Analytics.Server.Enabled = true;
 		}
-		Facepunch.Application.Initialize(new Integration());
+		Integration integration = new Integration();
+		integration.OnManifestUpdated += CpuAffinity.Apply;
+		Facepunch.Application.Initialize(integration);
 		Facepunch.Performance.GetMemoryUsage = () => SystemInfoEx.systemMemoryUsed;
 	}
 
@@ -332,7 +334,7 @@ public class Bootstrap : SingletonComponent<Bootstrap>
 		DemoConVars.LevelUrl = World.Url;
 		DemoConVars.Checksum = World.Checksum;
 		DemoConVars.Hostname = ConVar.Server.hostname;
-		DemoConVars.NetworkVersion = 2569;
+		DemoConVars.NetworkVersion = 2570;
 		DemoConVars.Changeset = BuildInfo.Current?.Scm?.ChangeId ?? "0";
 		Rust.Application.isLoading = false;
 	}
