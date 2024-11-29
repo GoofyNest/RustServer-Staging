@@ -118,6 +118,8 @@ public class NPCVendingMachine : VendingMachine
 
 	protected virtual bool BlockOrderRefreshOnLoad => false;
 
+	public override bool ShouldRecordStats => false;
+
 	private static float ScaledByWipeUpdateFrequency
 	{
 		get

@@ -126,7 +126,7 @@ public class Landmine : BaseTrap
 
 	public void Trigger(BasePlayer ply = null)
 	{
-		if ((bool)ply)
+		if (ply != null)
 		{
 			triggerPlayerID = ply.userID;
 		}
@@ -187,14 +187,14 @@ public class Landmine : BaseTrap
 	[RPC_Server.MaxDistance(3f)]
 	private void RPC_Disarm(RPCMessage rpc)
 	{
-		if ((ulong)rpc.player.userID != triggerPlayerID && Armed())
+		if ((ulong)rpc.player.userID != triggerPlayerID && Armed() && Triggered())
 		{
-			SetFlag(Flags.On, b: false);
 			if (UnityEngine.Random.Range(0, 100) < 15)
 			{
 				Invoke(TryExplode, 0.05f);
 				return;
 			}
+			SetFlag(Flags.On, b: false);
 			rpc.player.GiveItem(ItemManager.CreateByName("trap.landmine", 1, 0uL), GiveItemReason.PickedUp);
 			Kill();
 		}

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ConVar;
 using Facepunch;
+using Facepunch.Math;
 using Facepunch.Rust;
 using Network;
 using ProtoBuf;
@@ -23,6 +24,31 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		public const Flags OutOfStock = Flags.Reserved5;
 
 		public const Flags NoDirectAccess = Flags.Reserved6;
+	}
+
+	private enum HistoryCategory
+	{
+		History,
+		BestSold,
+		MostRevenue
+	}
+
+	[Serializable]
+	public class PurchaseDetails
+	{
+		public int itemId;
+
+		public int amount;
+
+		public int priceId;
+
+		public int price;
+
+		public int timestamp;
+
+		public bool itemIsBp;
+
+		public bool priceIsBp;
 	}
 
 	[Header("VendingMachine")]
@@ -62,6 +88,19 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 
 	public static readonly Translate.Phrase TooManySellOrders = new Translate.Phrase("error_toomanysellorders", "Too many sell orders");
 
+	[ServerVar]
+	public static int max_returned = 100;
+
+	[ServerVar]
+	public static int max_processed = 10000;
+
+	[ServerVar]
+	public static int max_history = 10000;
+
+	private List<PurchaseDetails> purchaseHistory = new List<PurchaseDetails>();
+
+	private Dictionary<ulong, int> uniqueCustomers = new Dictionary<ulong, int>();
+
 	protected ItemDefinition blueprintBaseDef => ItemManager.blueprintBaseDef;
 
 	public uint[] GetContentCRCs => null;
@@ -83,6 +122,8 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 	}
 
 	public string ContentString => shopName;
+
+	public virtual bool ShouldRecordStats => true;
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
 	{
@@ -416,6 +457,64 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 				}
 				return true;
 			}
+			if (rpc == 1147600716 && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (Global.developer > 2)
+				{
+					Debug.Log("SV_RPCMessage: " + player?.ToString() + " - SV_RequestLongTermData ");
+				}
+				using (TimeWarning.New("SV_RequestLongTermData"))
+				{
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg10 = rPCMessage;
+							SV_RequestLongTermData(msg10);
+						}
+					}
+					catch (Exception exception10)
+					{
+						Debug.LogException(exception10);
+						player.Kick("RPC Error in SV_RequestLongTermData");
+					}
+				}
+				return true;
+			}
+			if (rpc == 3957849636u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (Global.developer > 2)
+				{
+					Debug.Log("SV_RPCMessage: " + player?.ToString() + " - SV_RequestPurchaseData ");
+				}
+				using (TimeWarning.New("SV_RequestPurchaseData"))
+				{
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg11 = rPCMessage;
+							SV_RequestPurchaseData(msg11);
+						}
+					}
+					catch (Exception exception11)
+					{
+						Debug.LogException(exception11);
+						player.Kick("RPC Error in SV_RequestPurchaseData");
+					}
+				}
+				return true;
+			}
 			if (rpc == 3559014831u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
@@ -444,9 +543,9 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 							TransactionStart(rpc3);
 						}
 					}
-					catch (Exception exception10)
+					catch (Exception exception12)
 					{
-						Debug.LogException(exception10);
+						Debug.LogException(exception12);
 						player.Kick("RPC Error in TransactionStart");
 					}
 				}
@@ -459,6 +558,14 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 	public override void Load(LoadInfo info)
 	{
 		base.Load(info);
+		if (info.fromDisk && info.msg.vendingMachineStats != null)
+		{
+			purchaseHistory = GetListFromProto(info.msg.vendingMachineStats.purchaseHistory);
+			for (int i = 0; i < info.msg.vendingMachineStats.customers.Count; i++)
+			{
+				uniqueCustomers.Add(info.msg.vendingMachineStats.customers[i], info.msg.vendingMachineStats.customersVisits[i]);
+			}
+		}
 		if (info.msg.vendingMachine != null)
 		{
 			if (!IsLocalized)
@@ -509,6 +616,13 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		if (info.forDisk)
 		{
 			info.msg.vendingMachine.nameLastEditedBy = nameLastEditedBy;
+			if (ShouldRecordStats)
+			{
+				info.msg.vendingMachineStats = Facepunch.Pool.Get<VendingMachineStats>();
+				info.msg.vendingMachineStats.purchaseHistory = GetEntriesProto(purchaseHistory);
+				info.msg.vendingMachineStats.customers = uniqueCustomers.Keys.ToList();
+				info.msg.vendingMachineStats.customersVisits = uniqueCustomers.Values.ToList();
+			}
 		}
 		if (this is NPCVendingMachine)
 		{
@@ -880,6 +994,14 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 				else if (!item2.MoveToContainer(targetContainer))
 				{
 					item2.Drop(targetContainer.dropPosition, targetContainer.dropVelocity);
+				}
+				if (ShouldRecordStats)
+				{
+					AddPurchaseHistory(sellOrder.itemToSellID, num7, sellOrder.currencyID, num4, sellOrder.itemToSellIsBP, sellOrder.currencyIsBP);
+				}
+				if (ShouldRecordStats)
+				{
+					RegisterCustomer(buyer.userID);
 				}
 				onItemPurchased?.Invoke(buyer, item2);
 			}
@@ -1273,5 +1395,288 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 	public virtual string GetTranslationToken()
 	{
 		return "";
+	}
+
+	[ServerVar(Help = "Wipe the backend stats data on all vending machines. Slow operation.")]
+	public static void ClearAllVendingHistory()
+	{
+		VendingMachine[] array = UnityEngine.Object.FindObjectsByType<VendingMachine>(FindObjectsSortMode.None);
+		foreach (VendingMachine vendingMachine in array)
+		{
+			if (!vendingMachine.isClient)
+			{
+				vendingMachine.ClearPurchaseHistory();
+			}
+		}
+	}
+
+	[ServerVar(Help = "Wipe the backend customer stats data on all vending machines. Slow operation.")]
+	public static void ClearAllVendingCustomerHistory()
+	{
+		VendingMachine[] array = UnityEngine.Object.FindObjectsByType<VendingMachine>(FindObjectsSortMode.None);
+		foreach (VendingMachine vendingMachine in array)
+		{
+			if (!vendingMachine.isClient)
+			{
+				vendingMachine.ClearCustomerHistory();
+			}
+		}
+	}
+
+	[RPC_Server]
+	public void SV_RequestLongTermData(RPCMessage msg)
+	{
+		VendingMachineLongTermStats vendingMachineLongTermStats = Facepunch.Pool.Get<VendingMachineLongTermStats>();
+		vendingMachineLongTermStats.numberOfPurchases = purchaseHistory.Count;
+		vendingMachineLongTermStats.bestSalesHour = GetPeakSaleHourIn12HourFormat(86400);
+		vendingMachineLongTermStats.uniqueCustomers = GetUniqueCustomers();
+		vendingMachineLongTermStats.repeatCustomers = GetRepeatCustomers();
+		vendingMachineLongTermStats.bestCustomer = GetBestCustomer();
+		ClientRPC(RpcTarget.NetworkGroup("CL_ReceiveLongTermData"), vendingMachineLongTermStats);
+		vendingMachineLongTermStats.Dispose();
+	}
+
+	[RPC_Server]
+	public void SV_RequestPurchaseData(RPCMessage msg)
+	{
+		HistoryCategory historyCategory = (HistoryCategory)msg.read.Int32();
+		int minutes = msg.read.Int32();
+		VendingMachinePurchaseHistoryMessage proto = GetProto(historyCategory, minutes);
+		ClientRPC(RpcTarget.NetworkGroup("CL_ReceivePurchaseData"), (int)historyCategory, proto);
+		proto.Dispose();
+	}
+
+	public void AddPurchaseHistory(int itemId, int amount, int priceId, int price, bool itemIsBp, bool priceIsBp)
+	{
+		if (purchaseHistory.Count > max_history)
+		{
+			purchaseHistory.RemoveAt(0);
+		}
+		purchaseHistory.Add(new PurchaseDetails
+		{
+			itemId = itemId,
+			amount = amount,
+			priceId = priceId,
+			price = price,
+			timestamp = Epoch.Current,
+			itemIsBp = itemIsBp,
+			priceIsBp = priceIsBp
+		});
+	}
+
+	public void RegisterCustomer(ulong userId)
+	{
+		if (uniqueCustomers.ContainsKey(userId))
+		{
+			uniqueCustomers[userId]++;
+		}
+		else
+		{
+			uniqueCustomers.Add(userId, 1);
+		}
+	}
+
+	public void RemovePurchaseHistory(int index)
+	{
+		purchaseHistory.RemoveAt(index);
+	}
+
+	public void ClearPurchaseHistory()
+	{
+		purchaseHistory.Clear();
+	}
+
+	public void ClearCustomerHistory()
+	{
+		uniqueCustomers.Clear();
+	}
+
+	private VendingMachinePurchaseHistoryMessage GetProto(HistoryCategory category, int minutes)
+	{
+		if (minutes == 0)
+		{
+			minutes = 999999;
+		}
+		VendingMachinePurchaseHistoryMessage vendingMachinePurchaseHistoryMessage = Facepunch.Pool.Get<VendingMachinePurchaseHistoryMessage>();
+		switch (category)
+		{
+		case HistoryCategory.History:
+			vendingMachinePurchaseHistoryMessage.transactions = GetEntriesProto(GetRecentPurchases(minutes * 60));
+			break;
+		case HistoryCategory.BestSold:
+			vendingMachinePurchaseHistoryMessage.smallTransactions = GetEntriesProtoSmall(GetBestSoldItems(minutes * 60));
+			break;
+		case HistoryCategory.MostRevenue:
+			vendingMachinePurchaseHistoryMessage.smallTransactions = GetEntriesProtoSmall(GetMostRevenueGeneratingItems(minutes * 60));
+			break;
+		}
+		return vendingMachinePurchaseHistoryMessage;
+	}
+
+	private List<VendingMachinePurchaseHistoryEntryMessage> GetEntriesProto(List<PurchaseDetails> details)
+	{
+		List<VendingMachinePurchaseHistoryEntryMessage> list = Facepunch.Pool.Get<List<VendingMachinePurchaseHistoryEntryMessage>>();
+		foreach (PurchaseDetails detail in details)
+		{
+			list.Add(GetEntryProto(detail));
+		}
+		return list;
+	}
+
+	private List<PurchaseDetails> GetListFromProto(List<VendingMachinePurchaseHistoryEntryMessage> details)
+	{
+		List<PurchaseDetails> list = new List<PurchaseDetails>();
+		foreach (VendingMachinePurchaseHistoryEntryMessage detail in details)
+		{
+			list.Add(new PurchaseDetails
+			{
+				itemId = detail.itemID,
+				amount = detail.amount,
+				priceId = detail.priceID,
+				price = detail.price,
+				timestamp = detail.dateTime,
+				itemIsBp = detail.itemIsBp,
+				priceIsBp = detail.priceIsBp
+			});
+		}
+		return list;
+	}
+
+	private List<VendingMachinePurchaseHistoryEntrySmallMessage> GetEntriesProtoSmall(List<PurchaseDetails> details)
+	{
+		List<VendingMachinePurchaseHistoryEntrySmallMessage> list = Facepunch.Pool.Get<List<VendingMachinePurchaseHistoryEntrySmallMessage>>();
+		foreach (PurchaseDetails detail in details)
+		{
+			list.Add(GetEntryProtoSmall(detail));
+		}
+		return list;
+	}
+
+	private VendingMachinePurchaseHistoryEntryMessage GetEntryProto(PurchaseDetails details)
+	{
+		VendingMachinePurchaseHistoryEntryMessage vendingMachinePurchaseHistoryEntryMessage = Facepunch.Pool.Get<VendingMachinePurchaseHistoryEntryMessage>();
+		vendingMachinePurchaseHistoryEntryMessage.itemID = details.itemId;
+		vendingMachinePurchaseHistoryEntryMessage.amount = details.amount;
+		vendingMachinePurchaseHistoryEntryMessage.priceID = details.priceId;
+		vendingMachinePurchaseHistoryEntryMessage.price = details.price;
+		vendingMachinePurchaseHistoryEntryMessage.dateTime = details.timestamp;
+		vendingMachinePurchaseHistoryEntryMessage.priceIsBp = details.priceIsBp;
+		vendingMachinePurchaseHistoryEntryMessage.itemIsBp = details.itemIsBp;
+		return vendingMachinePurchaseHistoryEntryMessage;
+	}
+
+	private VendingMachinePurchaseHistoryEntrySmallMessage GetEntryProtoSmall(PurchaseDetails details)
+	{
+		VendingMachinePurchaseHistoryEntrySmallMessage vendingMachinePurchaseHistoryEntrySmallMessage = Facepunch.Pool.Get<VendingMachinePurchaseHistoryEntrySmallMessage>();
+		vendingMachinePurchaseHistoryEntrySmallMessage.itemID = details.itemId;
+		vendingMachinePurchaseHistoryEntrySmallMessage.amount = details.amount;
+		vendingMachinePurchaseHistoryEntrySmallMessage.priceID = details.priceId;
+		vendingMachinePurchaseHistoryEntrySmallMessage.price = details.price;
+		vendingMachinePurchaseHistoryEntrySmallMessage.priceIsBp = details.priceIsBp;
+		vendingMachinePurchaseHistoryEntrySmallMessage.itemIsBp = details.itemIsBp;
+		return vendingMachinePurchaseHistoryEntrySmallMessage;
+	}
+
+	public List<PurchaseDetails> GetRecentPurchases(int seconds)
+	{
+		int currentTime = Epoch.Current;
+		return (from p in purchaseHistory
+			where currentTime - p.timestamp <= seconds
+			orderby p.timestamp descending
+			select p).Take(max_returned).ToList();
+	}
+
+	public List<PurchaseDetails> GetBestSoldItems(int seconds)
+	{
+		int currentTime = Epoch.Current;
+		return (from p in (from p in purchaseHistory
+				where currentTime - p.timestamp <= seconds
+				orderby p.timestamp descending
+				select p).Take(max_processed)
+			group p by new { p.itemId, p.itemIsBp, p.priceIsBp } into @group
+			select new PurchaseDetails
+			{
+				itemId = @group.Key.itemId,
+				amount = @group.Sum((PurchaseDetails p) => p.amount),
+				priceId = 0,
+				price = 0,
+				timestamp = 0,
+				itemIsBp = @group.Key.itemIsBp,
+				priceIsBp = @group.Key.priceIsBp
+			} into p
+			orderby p.amount descending
+			select p).Take(max_returned).ToList();
+	}
+
+	public List<PurchaseDetails> GetMostRevenueGeneratingItems(int seconds)
+	{
+		int currentTime = Epoch.Current;
+		return (from p in (from p in purchaseHistory
+				where currentTime - p.timestamp <= seconds
+				orderby p.timestamp descending
+				select p).Take(max_processed)
+			group p by new { p.itemId, p.priceId, p.itemIsBp, p.priceIsBp } into @group
+			select new PurchaseDetails
+			{
+				itemId = @group.Key.itemId,
+				amount = @group.Sum((PurchaseDetails p) => p.amount),
+				priceId = @group.Key.priceId,
+				price = @group.Sum((PurchaseDetails p) => p.price),
+				timestamp = 0,
+				itemIsBp = @group.Key.itemIsBp,
+				priceIsBp = @group.Key.priceIsBp
+			} into p
+			orderby p.price descending
+			select p).Take(max_returned).ToList();
+	}
+
+	public string GetPeakSaleHourIn12HourFormat(int seconds)
+	{
+		int currentTime = Epoch.Current;
+		return (from @group in (from p in purchaseHistory
+				where currentTime - p.timestamp <= seconds
+				orderby p.timestamp descending
+				select p).Take(max_processed).GroupBy(delegate(PurchaseDetails p)
+			{
+				DateTime dateTime = Epoch.ToDateTime(p.timestamp);
+				int num = dateTime.Hour % 12;
+				num = ((num == 0) ? 12 : num);
+				string arg = ((dateTime.Hour >= 12) ? "PM" : "AM");
+				return new
+				{
+					Hour = $"{num} {arg}",
+					ItemIsBp = p.itemIsBp,
+					PriceIsBp = p.priceIsBp
+				};
+			})
+			select new
+			{
+				Hour = @group.Key.Hour,
+				ItemIsBp = @group.Key.ItemIsBp,
+				PriceIsBp = @group.Key.PriceIsBp,
+				TotalSales = @group.Sum((PurchaseDetails p) => p.amount),
+				TotalRevenue = @group.Sum((PurchaseDetails p) => p.price)
+			} into s
+			orderby s.TotalSales descending
+			select s).FirstOrDefault()?.Hour ?? "No Sales";
+	}
+
+	public int GetUniqueCustomers()
+	{
+		return uniqueCustomers.Count;
+	}
+
+	public int GetRepeatCustomers()
+	{
+		return uniqueCustomers.Count((KeyValuePair<ulong, int> c) => c.Value > 1);
+	}
+
+	public int GetBestCustomer()
+	{
+		if (uniqueCustomers.Count == 0)
+		{
+			return 0;
+		}
+		return uniqueCustomers.Values.Max();
 	}
 }

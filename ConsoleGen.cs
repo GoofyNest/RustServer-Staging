@@ -15,7 +15,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1365]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1369]
 	{
 		new ConsoleSystem.Command
 		{
@@ -18096,6 +18096,58 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				VDDraw.SetIsRecording(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "clearallvendinghistory",
+			Parent = "vendingmachine",
+			FullName = "vendingmachine.clearallvendinghistory",
+			ServerAdmin = true,
+			Description = "Wipe the backend stats data on all vending machines. Slow operation.",
+			Variable = false,
+			Call = delegate
+			{
+				VendingMachine.ClearAllVendingHistory();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "max_history",
+			Parent = "vendingmachine",
+			FullName = "vendingmachine.max_history",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => VendingMachine.max_history.ToString(),
+			SetOveride = delegate(string str)
+			{
+				VendingMachine.max_history = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "max_processed",
+			Parent = "vendingmachine",
+			FullName = "vendingmachine.max_processed",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => VendingMachine.max_processed.ToString(),
+			SetOveride = delegate(string str)
+			{
+				VendingMachine.max_processed = str.ToInt();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "max_returned",
+			Parent = "vendingmachine",
+			FullName = "vendingmachine.max_returned",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => VendingMachine.max_returned.ToString(),
+			SetOveride = delegate(string str)
+			{
+				VendingMachine.max_returned = str.ToInt();
 			}
 		},
 		new ConsoleSystem.Command

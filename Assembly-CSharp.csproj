@@ -108,6 +108,9 @@
     <Reference Include="EZhex1991.EZSoftBone">
       <HintPath>..\RustDedicated_Data\Managed\EZhex1991.EZSoftBone.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.Flexbox">
+      <HintPath>..\RustDedicated_Data\Managed\Facepunch.Flexbox.dll</HintPath>
+    </Reference>
     <Reference Include="CurvedTextMeshPro">
       <HintPath>..\RustDedicated_Data\Managed\CurvedTextMeshPro.dll</HintPath>
     </Reference>
@@ -167,9 +170,6 @@
     </Reference>
     <Reference Include="Unity.Timeline">
       <HintPath>..\RustDedicated_Data\Managed\Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Flexbox">
-      <HintPath>..\RustDedicated_Data\Managed\Facepunch.Flexbox.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestWWWModule">
       <HintPath>..\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
