@@ -1025,6 +1025,10 @@ public class Item : Facepunch.Pool.IPooled
 			if (baseEntity is DroppedItem droppedItem)
 			{
 				droppedItem.DroppedBy = droppedBy;
+				if (info.AdjustCenterOfMassOnDrop)
+				{
+					droppedItem.Rigidbody.centerOfMass = info.DropCenterOfMass;
+				}
 			}
 		}
 		else

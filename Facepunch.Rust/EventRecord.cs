@@ -248,6 +248,10 @@ public class EventRecord : Pool.IPooled
 				AddField(key, "_admin", value: true);
 			}
 		}
+		if (entity is BaseEntity { skinID: not 0uL } baseEntity)
+		{
+			AddField(key, "_skin", baseEntity.skinID);
+		}
 		if (entity is BaseProjectile baseProjectile)
 		{
 			Item item = baseProjectile.GetItem();

@@ -133,6 +133,42 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 				}
 				return true;
 			}
+			if (rpc == 3650562316u && player != null)
+			{
+				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
+				if (ConVar.Global.developer > 2)
+				{
+					Debug.Log("SV_RPCMessage: " + player?.ToString() + " - SV_LoadFromData ");
+				}
+				using (TimeWarning.New("SV_LoadFromData"))
+				{
+					using (TimeWarning.New("Conditions"))
+					{
+						if (!RPC_Server.CallsPerSecond.Test(3650562316u, "SV_LoadFromData", this, player, 1uL))
+						{
+							return true;
+						}
+					}
+					try
+					{
+						using (TimeWarning.New("Call"))
+						{
+							RPCMessage rPCMessage = default(RPCMessage);
+							rPCMessage.connection = msg.connection;
+							rPCMessage.player = player;
+							rPCMessage.read = msg.read;
+							RPCMessage msg3 = rPCMessage;
+							SV_LoadFromData(msg3);
+						}
+					}
+					catch (Exception exception2)
+					{
+						Debug.LogException(exception2);
+						player.Kick("RPC Error in SV_LoadFromData");
+					}
+				}
+				return true;
+			}
 			if (rpc == 4267718869u && player != null)
 			{
 				Assert.IsTrue(player.isServer, "SV_RPC Message is using a clientside player!");
@@ -157,13 +193,13 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 							rPCMessage.connection = msg.connection;
 							rPCMessage.player = player;
 							rPCMessage.read = msg.read;
-							RPCMessage msg3 = rPCMessage;
-							SV_LockSculpture(msg3);
+							RPCMessage msg4 = rPCMessage;
+							SV_LockSculpture(msg4);
 						}
 					}
-					catch (Exception exception2)
+					catch (Exception exception3)
 					{
-						Debug.LogException(exception2);
+						Debug.LogException(exception3);
 						player.Kick("RPC Error in SV_LockSculpture");
 					}
 				}
@@ -193,13 +229,13 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 							rPCMessage.connection = msg.connection;
 							rPCMessage.player = player;
 							rPCMessage.read = msg.read;
-							RPCMessage msg4 = rPCMessage;
-							SV_SmoothSphere(msg4);
+							RPCMessage msg5 = rPCMessage;
+							SV_SmoothSphere(msg5);
 						}
 					}
-					catch (Exception exception3)
+					catch (Exception exception4)
 					{
-						Debug.LogException(exception3);
+						Debug.LogException(exception4);
 						player.Kick("RPC Error in SV_SmoothSphere");
 					}
 				}
@@ -229,13 +265,13 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 							rPCMessage.connection = msg.connection;
 							rPCMessage.player = player;
 							rPCMessage.read = msg.read;
-							RPCMessage msg5 = rPCMessage;
-							SV_UnlockSculpture(msg5);
+							RPCMessage msg6 = rPCMessage;
+							SV_UnlockSculpture(msg6);
 						}
 					}
-					catch (Exception exception4)
+					catch (Exception exception5)
 					{
-						Debug.LogException(exception4);
+						Debug.LogException(exception5);
 						player.Kick("RPC Error in SV_UnlockSculpture");
 					}
 				}

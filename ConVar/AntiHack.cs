@@ -432,6 +432,10 @@ public class AntiHack : ConsoleSystem
 	public static float tick_buffer_server_lag_threshold = 0.3f;
 
 	[ServerVar]
+	[Help("How far a player is allowed to move in forgiveness scenarios")]
+	public static float tick_distance_forgiveness = 5f;
+
+	[ServerVar]
 	[Help("0 == silent, 1 == print max violation, 2 == print nonzero violation, 3 == print any violation except noclip, 4 == print any violation")]
 	public static int debuglevel = 1;
 }

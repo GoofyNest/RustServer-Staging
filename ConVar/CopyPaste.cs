@@ -490,6 +490,7 @@ public class CopyPaste : ConsoleSystem
 		try
 		{
 			Rust.Application.isLoadingSave = true;
+			Rust.Application.isLoading = true;
 			entities = PasteEntities(orLoadPaste, vector, rotation, options);
 		}
 		catch (Exception exception)
@@ -500,6 +501,7 @@ public class CopyPaste : ConsoleSystem
 		finally
 		{
 			Rust.Application.isLoadingSave = false;
+			Rust.Application.isLoading = false;
 		}
 		playerHistory.AddToHistory(steamId, entities);
 	}

@@ -48,7 +48,7 @@ public class Audio : ConsoleSystem
 	public static bool debugVoiceLimiting = false;
 
 	[ClientVar]
-	public static bool enableSoundPooling = true;
+	public static bool enableSoundPooling = false;
 
 	[ClientVar(Help = "Volume", Saved = true)]
 	public static int speakers

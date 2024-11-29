@@ -180,7 +180,7 @@ public class PhoneController : EntityComponent<BaseEntity>
 			PhoneNumber = TelephoneManager.GetUnusedTelephoneNumber();
 			if (AppendGridToName & !string.IsNullOrEmpty(PhoneName))
 			{
-				PhoneName = PhoneName + " " + PositionToGridCoord(base.transform.position);
+				PhoneName = $"{PhoneName} {MapHelper.PositionToGrid(base.transform.position)}";
 			}
 			TelephoneManager.RegisterTelephone(this);
 		}
@@ -546,29 +546,6 @@ public class PhoneController : EntityComponent<BaseEntity>
 	public string GetDirectoryName()
 	{
 		return PhoneName;
-	}
-
-	private static string PositionToGridCoord(Vector3 position)
-	{
-		Vector2 vector = new Vector2(TerrainMeta.NormalizeX(position.x), TerrainMeta.NormalizeZ(position.z));
-		float num = TerrainMeta.Size.x / 1024f;
-		int num2 = 7;
-		Vector2 vector2 = vector * num * num2;
-		float num3 = Mathf.Floor(vector2.x) + 1f;
-		float num4 = Mathf.Floor(num * (float)num2 - vector2.y);
-		string text = string.Empty;
-		float num5 = num3 / 26f;
-		float num6 = num3 % 26f;
-		if (num6 == 0f)
-		{
-			num6 = 26f;
-		}
-		if (num5 > 1f)
-		{
-			text += Convert.ToChar(64 + (int)num5);
-		}
-		text += Convert.ToChar(64 + (int)num6);
-		return $"{text}{num4}";
 	}
 
 	public void WatchForDisconnects()

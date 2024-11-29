@@ -529,7 +529,7 @@ public static class AntiHack
 			}
 			float speed = ply.GetSpeed(running, ducking, crawling);
 			Vector3 v = obj - vector;
-			float num3 = ((flag && ConVar.AntiHack.speedhack_protection >= 3) ? v.magnitude : v.MagnitudeXPositiveYZ());
+			float num3 = ((flag && ConVar.AntiHack.speedhack_protection >= 3) ? v.magnitude : v.Magnitude2D());
 			float num4 = deltaTime * speed;
 			if (!flag && num3 > num4)
 			{
@@ -694,7 +694,7 @@ public static class AntiHack
 		{
 			if (isInAir)
 			{
-				ply.PauseTickDistanceDetection();
+				ply.lastInAirTime = UnityEngine.Time.realtimeSinceStartup;
 			}
 			ply.flyhackDistanceVertical = 0f;
 			ply.flyhackDistanceHorizontal = 0f;

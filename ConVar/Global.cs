@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Facepunch;
 using Facepunch.Extend;
 using Facepunch.Nexus.Models;
@@ -883,32 +882,18 @@ public class Global : ConsoleSystem
 	public static void teleport2grid(Arg arg)
 	{
 		BasePlayer basePlayer = arg.Player();
-		if (basePlayer == null)
+		if (!(basePlayer == null))
 		{
-			return;
+			Vector3? vector = MapHelper.StringToPosition(arg.GetString(0));
+			if (!vector.HasValue)
+			{
+				arg.ReplyWith("Invalid grid reference, should look like 'A1'");
+			}
+			else
+			{
+				TeleportToTopOfBase(basePlayer, vector.Value);
+			}
 		}
-		Match match = new Regex("^([a-zA-Z]+)(\\d+)$").Match(arg.GetString(0));
-		if (!match.Success)
-		{
-			arg.ReplyWith("Invalid grid reference, should look like 'A1'");
-			return;
-		}
-		int num = 0;
-		string text = match.Groups[1].Value.ToLower();
-		foreach (char c in text)
-		{
-			num = num * 26 + c - 97 + 1;
-		}
-		num--;
-		int num2 = int.Parse(match.Groups[2].Value);
-		float num3 = 146.28572f;
-		int num4 = Mathf.FloorToInt((float)global::World.Size / num3 + 0.001f);
-		float num5 = global::World.Size / num4;
-		Vector2 vector = new Vector2((float)(0L - (long)global::World.Size) / 2f, (float)global::World.Size / 2f);
-		Vector2 vector2 = new Vector2((float)num * num5, (float)num2 * num5);
-		Vector3 position = new Vector3(vector.x + vector2.x, 0f, vector.y - vector2.y);
-		position += new Vector3(num5 / 2f, 0f, num5 / -2f);
-		TeleportToTopOfBase(basePlayer, position);
 	}
 
 	[ServerVar]
@@ -991,7 +976,7 @@ public class Global : ConsoleSystem
 		BasePlayer basePlayer = arg.Player();
 		if ((bool)basePlayer)
 		{
-			foreach (Network.Visibility.Group item in basePlayer.net.subscriber.subscribed)
+			foreach (Group item in basePlayer.net.subscriber.subscribed)
 			{
 				textTable.AddRow("sv", item.ID.ToString());
 			}

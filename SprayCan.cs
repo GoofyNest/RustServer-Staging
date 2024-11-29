@@ -471,6 +471,7 @@ public class SprayCan : HeldEntity
 					baseEntity2.skinID = num;
 					baseEntity2.SendNetworkUpdate();
 					Analytics.Server.SkinUsed(def.shortname, targetSkin);
+					Analytics.Azure.OnEntitySkinChanged(msg.player, baseNetworkable, targetSkin);
 				}
 				else
 				{
@@ -572,6 +573,7 @@ public class SprayCan : HeldEntity
 							}
 						}
 						Analytics.Server.SkinUsed(def.shortname, targetSkin);
+						Analytics.Azure.OnEntitySkinChanged(msg.player, baseNetworkable, targetSkin);
 					}
 					if (flag)
 					{
@@ -663,6 +665,7 @@ public class SprayCan : HeldEntity
 			ulong id = ItemDefinition.FindSkin(WallpaperPlanner.WallpaperItemDef.itemid, num);
 			buildingBlock.SetWallpaper(id, (!flag) ? 1 : 0);
 			Analytics.Server.SkinUsed(WallpaperPlanner.WallpaperItemDef.shortname, num);
+			Analytics.Azure.OnWallpaperPlaced(msg.player, buildingBlock, id, (!flag) ? 1 : 0, reskin: true);
 			ClientRPC(RpcTarget.NetworkGroup("Client_ReskinResult"), 1, buildingBlock.net.ID);
 			SetFlag(Flags.Busy, b: true);
 			Invoke(ClearBusy, SprayCooldown);

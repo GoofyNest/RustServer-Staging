@@ -91,6 +91,8 @@ public static class Analytics
 
 			public const string ItemSkinned = "item_skinned";
 
+			public const string EntitySkinned = "entity_skinned";
+
 			public const string ItemAggregate = "item_aggregate";
 
 			public const string CodelockChanged = "code_change";
@@ -172,6 +174,8 @@ public static class Analytics
 			public const string CarShredded = "car_shredded";
 
 			public const string PlayerTick = "player_tick";
+
+			public const string WallpaperPlaced = "wallpaper_placed";
 		}
 
 		private struct SimpleItemAmount
@@ -1827,6 +1831,23 @@ public static class Analytics
 			}
 		}
 
+		public static void OnEntitySkinChanged(BasePlayer player, BaseNetworkable entity, int newSkin)
+		{
+			if (!GameplayAnalytics)
+			{
+				return;
+			}
+			try
+			{
+				SubmitPoint(EventRecord.New("entity_skinned").AddField("player", player).AddField("entity", entity)
+					.AddField("new_skin", newSkin));
+			}
+			catch (Exception exception)
+			{
+				UnityEngine.Debug.LogException(exception);
+			}
+		}
+
 		public static void OnItemRepaired(BasePlayer player, BaseEntity repairBench, Item itemToRepair, float conditionBefore, float maxConditionBefore)
 		{
 			if (!GameplayAnalytics)
@@ -2213,6 +2234,25 @@ public static class Analytics
 					TickLogging.tickUploader = AzureAnalyticsUploader.Create("player_ticks", TimeSpan.FromSeconds(TickLogging.tick_uploader_lifetime), AnalyticsDocumentMode.CSV);
 				}
 				TickLogging.tickUploader.Append(EventRecord.New("player_tick").AddField("player", player).AddField("Timestamp", DateTime.UtcNow));
+			}
+		}
+
+		public static void OnWallpaperPlaced(BasePlayer player, BuildingBlock buildingBlock, ulong skinID, int side, bool reskin)
+		{
+			if (!GameplayAnalytics)
+			{
+				return;
+			}
+			try
+			{
+				SubmitPoint(EventRecord.New("wallpaper_placed").AddField("player", player).AddField("buildingBlock", buildingBlock)
+					.AddField("skin", skinID)
+					.AddField("side", side)
+					.AddField("reskin", reskin));
+			}
+			catch (Exception exception)
+			{
+				UnityEngine.Debug.LogException(exception);
 			}
 		}
 

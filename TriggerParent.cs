@@ -209,6 +209,7 @@ public class TriggerParent : TriggerBase, IServerComponent
 		}
 		basePlayer.PauseFlyHackDetection(5f);
 		basePlayer.PauseSpeedHackDetection(5f);
+		basePlayer.PauseTickDistanceDetection(5f);
 		if (AntiHack.TestNoClipping(basePlayer, basePlayer.transform.position, basePlayer.transform.position, basePlayer.NoClipRadius(ConVar.AntiHack.noclip_margin), ConVar.AntiHack.noclip_backtracking, out var _, vehicleLayer: true))
 		{
 			basePlayer.PauseVehicleNoClipDetection(5f);

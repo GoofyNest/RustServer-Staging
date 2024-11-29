@@ -15,7 +15,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1369]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1371]
 	{
 		new ConsoleSystem.Command
 		{
@@ -4570,6 +4570,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				ConVar.AntiHack.tick_buffer_server_lag_threshold = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "tick_distance_forgiveness",
+			Parent = "antihack",
+			FullName = "antihack.tick_distance_forgiveness",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => ConVar.AntiHack.tick_distance_forgiveness.ToString(),
+			SetOveride = delegate(string str)
+			{
+				ConVar.AntiHack.tick_distance_forgiveness = str.ToFloat();
 			}
 		},
 		new ConsoleSystem.Command
@@ -18096,6 +18109,19 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				VDDraw.SetIsRecording(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "clearallvendingcustomerhistory",
+			Parent = "vendingmachine",
+			FullName = "vendingmachine.clearallvendingcustomerhistory",
+			ServerAdmin = true,
+			Description = "Wipe the backend customer stats data on all vending machines. Slow operation.",
+			Variable = false,
+			Call = delegate
+			{
+				VendingMachine.ClearAllVendingCustomerHistory();
 			}
 		},
 		new ConsoleSystem.Command

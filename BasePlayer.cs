@@ -619,6 +619,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	public float tickDistancePausetime;
 
 	[NonSerialized]
+	public float lastInAirTime;
+
+	[NonSerialized]
 	public TimeAverageValueLookup<uint> rpcHistory = new TimeAverageValueLookup<uint>();
 
 	public static readonly Translate.Phrase ClanInviteSuccess = new Translate.Phrase("clan.action.invite.success", "Invited {name} to your clan.");
@@ -3269,6 +3272,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		tickDistancePausetime = Mathf.Max(tickDistancePausetime, seconds);
 	}
 
+	public bool RecentlyInAir(float seconds = 1f)
+	{
+		return UnityEngine.Time.realtimeSinceStartup - lastInAirTime < seconds;
+	}
+
 	public int GetAntiHackKicks()
 	{
 		return AntiHack.GetKickRecord(this);
@@ -3285,6 +3293,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		flyhackDistanceVertical = 0f;
 		flyhackDistanceHorizontal = 0f;
 		tickDistancePausetime = 0f;
+		lastInAirTime = 0f;
 		rpcHistory.Clear();
 	}
 
@@ -10888,9 +10897,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			{
 				float num2 = Vector3.Distance(tick.position, tickInterpolator.EndPoint);
 				float tick_max_distance = ConVar.AntiHack.tick_max_distance;
-				float f = ((isInAir || tickDistancePausetime > 0f) ? ConVar.AntiHack.tick_max_distance_falling : tick_max_distance);
+				float f = ((isInAir || RecentlyInAir()) ? ConVar.AntiHack.tick_max_distance_falling : tick_max_distance);
 				float f2 = (HasParent() ? ConVar.AntiHack.tick_max_distance_parented : tick_max_distance);
-				float num3 = Mathx.Max(tick_max_distance, f, f2);
+				float f3 = ((tickDistancePausetime > 0f) ? ConVar.AntiHack.tick_distance_forgiveness : tick_max_distance);
+				float num3 = Mathx.Max(tick_max_distance, f, f2, f3);
 				if (num2 > num3)
 				{
 					AntiHack.Log(this, AntiHackType.Ticks, "moved too far between ticks: " + num2 + " units. Max dist: " + num3 + " ");

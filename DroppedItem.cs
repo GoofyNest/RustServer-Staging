@@ -118,6 +118,8 @@ public class DroppedItem : WorldItem, IContainerSounds
 		}
 	}
 
+	public Rigidbody Rigidbody => rB;
+
 	public bool IsSleeping
 	{
 		get
