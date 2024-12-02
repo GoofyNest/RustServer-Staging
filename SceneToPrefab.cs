@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -41,7 +42,7 @@ public class SceneToPrefab : MonoBehaviour, IEditorComponent
 	{
 		if (autospawnToSceneSpawner == null)
 		{
-			autospawnToSceneSpawner = new Dictionary<string, string>();
+			autospawnToSceneSpawner = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 			string[] array = FileSystem.Backend.FindAll("Assets/bundled/Prefabs/remapped");
 			foreach (string text in array)
 			{

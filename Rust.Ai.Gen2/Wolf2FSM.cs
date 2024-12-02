@@ -261,7 +261,11 @@ public class Wolf2FSM : FSMComponent
 			}).AddEndTransition(treeNode11), treeNode11.AddTickTransition(treeNode16, AllyGotHurtNearby).AddTickTransition(treeNode12, new Trans_TargetInRange
 			{
 				Range = 2f
-			}), treeNode12.AddEndTransition(treeNode13, new Trans_TargetInFront
+			}).AddTickTransition(treeNode9, new Trans_ElapsedTime
+			{
+				Duration = 5.0
+			})
+				.AddFailureTransition(treeNode18), treeNode12.AddEndTransition(treeNode13, new Trans_TargetInFront
 			{
 				Angle = 120f,
 				Inverted = true
@@ -269,11 +273,11 @@ public class Wolf2FSM : FSMComponent
 			{
 				MinDuration = 0.75,
 				MaxDuration = 1.5
-			}), treeNode15.AddTickTransition(treeNode11, new Trans_ElapsedTimeRandomized
+			}).AddEndTransition(treeNode11), treeNode15.AddTickTransition(treeNode11, new Trans_ElapsedTimeRandomized
 			{
 				MinDuration = 2.0,
 				MaxDuration = 4.0
-			}), treeNode16.AddTickTransition(treeNode15, new Trans_TargetInRange
+			}).AddEndTransition(treeNode11), treeNode16.AddTickTransition(treeNode15, new Trans_TargetInRange
 			{
 				Range = data.reacCircle.radius + 5f
 			}).AddTickTransition(treeNode11, BarkTrans), treeNode17.AddEndTransition(treeNode8)), treeNode22.AddTickTransition(treeNode32, PathFailedTrans).AddTickTransition(treeNode32, AllyGotHurtNearby).AddChildren(treeNode46.AddTickTransition(treeNode31, new Trans_TargetInRange
@@ -310,7 +314,7 @@ public class Wolf2FSM : FSMComponent
 			{
 				MinDuration = 0.5,
 				MaxDuration = 1.25
-			}), treeNode26.AddTickTransition(treeNode27, new Trans_TargetInRange
+			}).AddEndTransition(treeNode26), treeNode26.AddTickTransition(treeNode27, new Trans_TargetInRange
 			{
 				Range = 2f
 			}), treeNode27.AddEndTransition(treeNode29), treeNode31.AddEndTransition(treeNode28), treeNode28.AddEndTransition(treeNode30), treeNode29.AddEndTransition(treeNode30))), treeNode18.AddChildren(treeNode19.AddFailureTransition(treeNode32).AddTickTransition(treeNode32, FireMeleeTrans).AddTickTransition(treeNode11, new Trans_CanReachTarget_Slow())

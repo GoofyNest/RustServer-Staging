@@ -25,7 +25,10 @@ public class State_Roam : FSMStateBase
 		Vector3 v = ((Vector3.Distance(homePosition.Value, Owner.transform.position) > homeRadius) ? (homePosition.Value - Owner.transform.position).normalized : UnityEngine.Random.insideUnitSphere);
 		float ratio = Mathf.InverseLerp(0f, distanceRange.y, num);
 		base.Agent.SetSpeed(ratio);
-		base.Agent.SetDestinationFromDirectionAsync(v.XZ3D(), num, 0f, restrictTerrain: true);
+		if (!base.Agent.SetDestinationFromDirection(v.XZ3D(), num, restrictTerrain: true))
+		{
+			return EFSMStateStatus.Failure;
+		}
 		return base.OnStateEnter();
 	}
 

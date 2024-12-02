@@ -39,11 +39,10 @@ public class State_MoveToTarget : FSMStateBase, IParametrized<BaseEntity>
 		{
 			base.Agent.deceleration.Value = decelerationOverride;
 		}
-		if (!GetMoveDestination(out var destination))
+		if (!GetMoveDestination(out var destination) || !base.Agent.SetDestination(destination))
 		{
 			return EFSMStateStatus.Failure;
 		}
-		base.Agent.SetDestinationAsync(destination);
 		return base.OnStateEnter();
 	}
 
@@ -53,11 +52,10 @@ public class State_MoveToTarget : FSMStateBase, IParametrized<BaseEntity>
 		{
 			return EFSMStateStatus.Success;
 		}
-		if (!GetMoveDestination(out var destination))
+		if (!GetMoveDestination(out var destination) || !base.Agent.SetDestination(destination))
 		{
 			return EFSMStateStatus.Failure;
 		}
-		base.Agent.SetDestinationAsync(destination);
 		return base.OnStateUpdate(deltaTime);
 	}
 

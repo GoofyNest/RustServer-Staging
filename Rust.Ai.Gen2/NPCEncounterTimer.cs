@@ -15,6 +15,8 @@ public class NPCEncounterTimer : EntityComponent<BaseEntity>, IServerComponent
 
 	private const float fireTimeMultiplier = 4f;
 
+	private const float mountedTimeMultiplier = 12f;
+
 	private float? encounterRemainingTimeSeconds;
 
 	private double? _lastTickTime;
@@ -72,7 +74,15 @@ public class NPCEncounterTimer : EntityComponent<BaseEntity>, IServerComponent
 					item.GetComponent<NPCEncounterTimer>().StartTimer();
 				}
 			}
-			float num2 = (Trans_TargetIsNearFire.Test(base.baseEntity, Senses) ? 4f : 1f);
+			float num2 = 1f;
+			if (target.ToNonNpcPlayer(out var player) && player.isMounted)
+			{
+				num2 = 12f;
+			}
+			else if (Trans_TargetIsNearFire.Test(base.baseEntity, Senses))
+			{
+				num2 = 4f;
+			}
 			encounterRemainingTimeSeconds -= num * num2;
 			if (!(encounterRemainingTimeSeconds <= 0f))
 			{

@@ -10,8 +10,9 @@ public class State_EatFood : FSMStateBase
 	[SerializeField]
 	protected AnimationClip Animation;
 
-	[SerializeField]
-	public float DamageToCorpsesPerLoop = 2.5f;
+	private const float damageToCorpsesPerLoop = 2.5f;
+
+	private const float timeToForgetSightingWhileEating = 5f;
 
 	private bool isAnimationPlaying;
 
@@ -24,6 +25,7 @@ public class State_EatFood : FSMStateBase
 		Vector3 forward = food.transform.position - Owner.transform.position;
 		forward.y = 0f;
 		Owner.transform.rotation = Quaternion.LookRotation(forward);
+		base.Senses.timeToForgetSightings.Value = 5f;
 		PlayAnimation();
 		return base.OnStateEnter();
 	}
@@ -51,7 +53,7 @@ public class State_EatFood : FSMStateBase
 		}
 		if (food is BaseCorpse baseCorpse)
 		{
-			baseCorpse.Hurt(DamageToCorpsesPerLoop);
+			baseCorpse.Hurt(2.5f);
 			if (baseCorpse.IsDead())
 			{
 				base.Senses.ClearTarget();
@@ -77,6 +79,7 @@ public class State_EatFood : FSMStateBase
 
 	public override void OnStateExit()
 	{
+		base.Senses.timeToForgetSightings.Reset();
 		base.AnimPlayer.StopServer();
 	}
 }

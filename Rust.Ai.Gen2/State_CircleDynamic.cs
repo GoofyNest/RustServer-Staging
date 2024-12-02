@@ -99,8 +99,11 @@ public class State_CircleDynamic : FSMStateBase, IParametrized<BaseEntity>
 		base.Agent.SetSpeed(ratio, minSpeed, maxSpeed, burstSpeedIndexOffset);
 		float currentDeviation = Mathx.RemapValClamped(num, distanceSpeedRange.x, distanceSpeedRange.y, randomAngle, 0f);
 		base.Agent.currentDeviation = currentDeviation;
-		Vector3 destinationAsync = targetPosition;
-		base.Agent.SetDestinationAsync(destinationAsync);
+		Vector3 newDestination = targetPosition;
+		if (!base.Agent.SetDestination(newDestination))
+		{
+			return EFSMStateStatus.Failure;
+		}
 		return base.OnStateUpdate(deltaTime);
 	}
 }

@@ -231,7 +231,7 @@ public class Deployer : HeldEntity
 		}
 		else if (ConVar.AntiHack.objectplacement && ownerPlayer.TriggeredAntiHack())
 		{
-			ownerPlayer.ShowToast(GameTip.Styles.Error, ConstructionErrors.Antihack, false);
+			ownerPlayer.ShowToast(GameTip.Styles.Error, ConstructionErrors.AntihackWithReason, false, ownerPlayer.lastViolationType.ToString());
 		}
 		else
 		{

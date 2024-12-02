@@ -177,7 +177,7 @@ public class Planner : HeldEntity
 		}
 		if (ConVar.AntiHack.objectplacement && ownerPlayer.TriggeredAntiHack())
 		{
-			ownerPlayer.ShowToast(GameTip.Styles.Error, ConstructionErrors.Antihack, false);
+			ownerPlayer.ShowToast(GameTip.Styles.Error, ConstructionErrors.AntihackWithReason, false, ownerPlayer.lastViolationType.ToString());
 			return;
 		}
 		Construction construction = PrefabAttribute.server.Find<Construction>(msg.blockID);

@@ -72,7 +72,10 @@ public class State_Flee : FSMStateBase
 			return EFSMStateStatus.Success;
 		}
 		Vector3 normalizedDirection = (Owner.transform.position - targetPosition).NormalizeXZ();
-		base.Agent.SetDestinationFromDirectionAsync(normalizedDirection, distance);
+		if (!base.Agent.SetDestinationFromDirection(normalizedDirection, distance))
+		{
+			return EFSMStateStatus.Failure;
+		}
 		return EFSMStateStatus.None;
 	}
 }

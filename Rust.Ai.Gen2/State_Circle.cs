@@ -56,7 +56,10 @@ public class State_Circle : FSMStateBase, IParametrized<BaseEntity>
 		{
 			return EFSMStateStatus.Failure;
 		}
-		base.Agent.SetDestinationAsync(vector);
+		if (!base.Agent.SetDestination(vector))
+		{
+			return EFSMStateStatus.Failure;
+		}
 		return base.OnStateUpdate(deltaTime);
 	}
 }

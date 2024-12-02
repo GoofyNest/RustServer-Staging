@@ -108,13 +108,12 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 	private float touchDistance = 6f;
 
 	[SerializeField]
-	private float TimeToForgetSightings = 30f;
-
-	[SerializeField]
-	private float TimeToForgetNoises = 5f;
-
-	[SerializeField]
 	private float hearingMultiplier = 1f;
+
+	[NonSerialized]
+	public ResettableFloat timeToForgetSightings = new ResettableFloat(30f);
+
+	private const float timeToForgetNoises = 5f;
 
 	private static HashSet<BaseEntity> entitiesUpdatedThisFrame = new HashSet<BaseEntity>();
 
@@ -391,7 +390,7 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 					{
 						pooledList2.Add(baseEntity2);
 					}
-					else if (!visibilityStatus2.isVisible && visibilityStatus2.GetTimeNotSeen() > TimeToForgetSightings)
+					else if (!visibilityStatus2.isVisible && visibilityStatus2.GetTimeNotSeen() > timeToForgetSightings.Value)
 					{
 						pooledList2.Add(baseEntity2);
 					}
@@ -403,6 +402,10 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 				entitiesUpdatedThisFrame.Clear();
 				foreach (BaseEntity item2 in pooledList2)
 				{
+					if (_target.IsValid() && _target == item2)
+					{
+						ClearTarget();
+					}
 					Forget(item2);
 				}
 			}
@@ -416,70 +419,74 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 
 	private void GetModifiedSenses(BaseEntity entity, out float modTouchDistance, out float modHalfAngle, out float modShortVisionRange, out Vector3 modLongVisionRectangle)
 	{
-		BasePlayer player;
-		bool num = entity.ToNonNpcPlayer(out player);
-		bool flag = num && player.IsDucked();
-		bool flag2 = num && player.IsRunning();
-		if (flag)
+		modTouchDistance = touchDistance;
+		modHalfAngle = ShortRangeVisionCone.halfAngle;
+		modShortVisionRange = ShortRangeVisionCone.range;
+		modLongVisionRectangle = LongRangeVisionRectangle;
+		if (entity.ToNonNpcPlayer(out var player))
 		{
-			modTouchDistance = base.baseEntity.bounds.extents.z * 1.5f;
-			modHalfAngle = ShortRangeVisionCone.halfAngle * 0.85f;
-			modShortVisionRange = ShortRangeVisionCone.range * 0.5f;
-			modLongVisionRectangle = Vector3.Scale(LongRangeVisionRectangle, new Vector3(3f, 0.5f, 0.5f));
+			if (player.IsDucked())
+			{
+				modTouchDistance = base.baseEntity.bounds.extents.z * 1.5f;
+				modHalfAngle = ShortRangeVisionCone.halfAngle * 0.85f;
+				modShortVisionRange = ShortRangeVisionCone.range * 0.5f;
+				modLongVisionRectangle = Vector3.Scale(LongRangeVisionRectangle, new Vector3(3f, 0.5f, 0.5f));
+			}
+			else if (player.IsRunning())
+			{
+				modTouchDistance = touchDistance * 3f;
+				modHalfAngle = ShortRangeVisionCone.halfAngle;
+				modShortVisionRange = ShortRangeVisionCone.range * 1.3f;
+				modLongVisionRectangle = LongRangeVisionRectangle * 1.15f;
+			}
 		}
-		else if (flag2)
+	}
+
+	private bool IsInAnyRange(BaseEntity entity)
+	{
+		using (TimeWarning.New("IsInAnyRange"))
 		{
-			modTouchDistance = touchDistance * 3f;
-			modHalfAngle = ShortRangeVisionCone.halfAngle;
-			modShortVisionRange = ShortRangeVisionCone.range * 1.3f;
-			modLongVisionRectangle = LongRangeVisionRectangle * 1.15f;
-		}
-		else
-		{
-			modTouchDistance = touchDistance;
-			modHalfAngle = ShortRangeVisionCone.halfAngle;
-			modShortVisionRange = ShortRangeVisionCone.range;
-			modLongVisionRectangle = LongRangeVisionRectangle;
+			Vector3 position = GetEyeTransform().GetPosition();
+			Vector3 vector = GetEyeTransform().rotation * Vector3.forward;
+			Vector3 vector2 = entity.transform.position - position;
+			float magnitude = vector2.magnitude;
+			GetModifiedSenses(entity, out var modTouchDistance, out var modHalfAngle, out var modShortVisionRange, out var modLongVisionRectangle);
+			if (magnitude < modTouchDistance)
+			{
+				return true;
+			}
+			if (Vector3.Angle(vector, vector2.normalized) < modHalfAngle)
+			{
+				if (magnitude < modShortVisionRange)
+				{
+					return true;
+				}
+				if (magnitude < modLongVisionRectangle.z && Mathf.Abs(entity.transform.position.y - position.y) < modLongVisionRectangle.y * 0.5f && Vector3.Cross(vector, entity.transform.position - position).magnitude < modLongVisionRectangle.x * 0.5f)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 
 	private void ProcessEntity(BaseEntity entity)
 	{
-		Vector3 vector = GetEyeTransform().rotation * Vector3.forward;
-		Vector3 position = GetEyeTransform().GetPosition();
-		Vector3 vector2 = entity.transform.position - position;
-		float magnitude = vector2.magnitude;
-		GetModifiedSenses(entity, out var modTouchDistance, out var modHalfAngle, out var modShortVisionRange, out var modLongVisionRectangle);
-		bool flag = false;
-		using (TimeWarning.New("SenseComponent:ProcessEntity:CheckRanges"))
-		{
-			if (magnitude < modTouchDistance)
-			{
-				flag = true;
-			}
-			else if (magnitude < modShortVisionRange && Vector3.Angle(vector, vector2.normalized) < modHalfAngle)
-			{
-				flag = true;
-			}
-			else if (magnitude >= modShortVisionRange)
-			{
-				flag = magnitude < modLongVisionRectangle.z && Mathf.Abs(entity.transform.position.y - position.y) < modLongVisionRectangle.y * 0.5f && Vector3.Cross(vector, entity.transform.position - position).magnitude < modLongVisionRectangle.x * 0.5f;
-			}
-		}
-		bool flag2 = flag;
+		bool flag = IsInAnyRange(entity);
 		if (flag && entity.ToNonNpcPlayer(out var player))
 		{
 			using (TimeWarning.New("SenseComponent:ProcessEntity:CanSee"))
 			{
-				flag2 = base.baseEntity.CanSee(position, player.eyes.position);
+				Vector3 position = GetEyeTransform().GetPosition();
+				flag = base.baseEntity.CanSee(position, player.eyes.position);
 			}
 		}
 		if (entitiesWeAreAwareOf.TryGetValue(entity, out var value))
 		{
-			value.UpdateVisibility(flag2, flag2 ? new Vector3?(entity.transform.position) : null);
+			value.UpdateVisibility(flag, flag ? new Vector3?(entity.transform.position) : null);
 			entitiesUpdatedThisFrame.Add(entity);
 		}
-		else if (flag2)
+		else if (flag)
 		{
 			VisibilityStatus visibilityStatus = Facepunch.Pool.Get<VisibilityStatus>();
 			visibilityStatus.position = entity.transform.position;
@@ -505,7 +512,7 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 			NpcNoiseEvent npcNoiseEvent = null;
 			foreach (NpcNoiseEvent item in pooledList)
 			{
-				if (item.Initiator == base.baseEntity || UnityEngine.Time.timeAsDouble - item.EventTime > (double)TimeToForgetNoises || (npcNoiseEvent != null && item.Intensity < npcNoiseEvent.Intensity))
+				if (item.Initiator == base.baseEntity || UnityEngine.Time.timeAsDouble - item.EventTime > 5.0 || (npcNoiseEvent != null && item.Intensity < npcNoiseEvent.Intensity))
 				{
 					continue;
 				}

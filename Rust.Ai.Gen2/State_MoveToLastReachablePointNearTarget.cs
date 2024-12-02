@@ -45,7 +45,11 @@ public class State_MoveToLastReachablePointNearTarget : State_MoveToTarget
 	private bool FindReachableLocation(out Vector3 location)
 	{
 		location = default(Vector3);
-		if (!base.Senses.FindTarget(out var target) || !(target is BasePlayer))
+		if (!base.Senses.FindTarget(out var target) || !(target is BasePlayer basePlayer))
+		{
+			return false;
+		}
+		if (basePlayer.isMounted)
 		{
 			return false;
 		}

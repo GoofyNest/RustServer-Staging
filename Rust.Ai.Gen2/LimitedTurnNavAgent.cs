@@ -24,17 +24,6 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	[SerializeField]
 	private NavMeshAgent agent;
 
-	private static NavMeshPath path;
-
-	[NonSerialized]
-	public UnityEvent onPathFailed = new UnityEvent();
-
-	private LockState movementLock = new LockState();
-
-	private bool isNavMeshReady;
-
-	private Queue<Vector3> pendingDestinationCandidates = new Queue<Vector3>();
-
 	[Header("Speed")]
 	[SerializeField]
 	private float sneakSpeed = 0.6f;
@@ -54,8 +43,6 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	[SerializeField]
 	private float fullSprintSpeed = 9f;
 
-	private float desiredSpeed;
-
 	[SerializeField]
 	public ResettableFloat acceleration = new ResettableFloat(10f);
 
@@ -64,6 +51,23 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 
 	[SerializeField]
 	private float maxTurnRadius = 2f;
+
+	[SerializeField]
+	private TerrainTopology.Enum preferedTopology = TerrainTopology.Enum.Field | TerrainTopology.Enum.Forest | TerrainTopology.Enum.Forestside | TerrainTopology.Enum.Lakeside | TerrainTopology.Enum.Mainland;
+
+	[SerializeField]
+	private TerrainBiome.Enum preferedBiome = TerrainBiome.Enum.Arid | TerrainBiome.Enum.Temperate | TerrainBiome.Enum.Tundra | TerrainBiome.Enum.Arctic;
+
+	private static NavMeshPath path;
+
+	[NonSerialized]
+	public UnityEvent onPathFailed = new UnityEvent();
+
+	private LockState movementLock = new LockState();
+
+	private bool isNavMeshReady;
+
+	private static ListHashSet<LimitedTurnNavAgent> steeringComponents = new ListHashSet<LimitedTurnNavAgent>();
 
 	[NonSerialized]
 	public float currentDeviation;
@@ -77,13 +81,7 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 
 	private float curSpeed;
 
-	private static ListHashSet<LimitedTurnNavAgent> steeringComponents = new ListHashSet<LimitedTurnNavAgent>();
-
-	[SerializeField]
-	private TerrainTopology.Enum preferedTopology = TerrainTopology.Enum.Field | TerrainTopology.Enum.Forest | TerrainTopology.Enum.Forestside | TerrainTopology.Enum.Lakeside | TerrainTopology.Enum.Mainland;
-
-	[SerializeField]
-	private TerrainBiome.Enum preferedBiome = TerrainBiome.Enum.Arid | TerrainBiome.Enum.Temperate | TerrainBiome.Enum.Tundra | TerrainBiome.Enum.Arctic;
+	private float desiredSpeed;
 
 	public bool IsNavmeshReady => isNavMeshReady;
 
@@ -93,15 +91,11 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	{
 		get
 		{
-			if (pendingDestinationCandidates.Count == 0)
+			if (agent.hasPath)
 			{
-				if (agent.hasPath)
-				{
-					return agent.remainingDistance > (shouldStopAtDestination ? base.baseEntity.bounds.extents.z : maxTurnRadius);
-				}
-				return false;
+				return agent.remainingDistance > (shouldStopAtDestination ? base.baseEntity.bounds.extents.z : maxTurnRadius);
 			}
-			return true;
+			return false;
 		}
 	}
 
@@ -136,7 +130,6 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	{
 		using (TimeWarning.New("LimitedTurnNavAgent:ResetPath"))
 		{
-			pendingDestinationCandidates.Clear();
 			shouldStopAtDestination = true;
 			acceleration.Reset();
 			deceleration.Reset();
@@ -156,7 +149,7 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 			{
 				if (triggerPathFailed)
 				{
-					FailPathAndClearPendingRequests(location);
+					FailPath(location);
 				}
 				return false;
 			}
@@ -164,14 +157,14 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 			{
 				if (triggerPathFailed)
 				{
-					FailPathAndClearPendingRequests(sample, path);
+					FailPath(sample, path);
 				}
 				return false;
 			}
 			bool flag = path.status == NavMeshPathStatus.PathComplete;
 			if (!flag && triggerPathFailed)
 			{
-				FailPathAndClearPendingRequests(sample, path);
+				FailPath(sample, path);
 			}
 			else if (flag && triggerPathFailed)
 			{
@@ -181,88 +174,62 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 		}
 	}
 
-	public void SetDestinationAsync(Vector3 newDestination)
+	public bool SetDestination(Vector3 newDestination, bool acceptPartialPaths = false)
 	{
-		using (TimeWarning.New("LimitedTurnNavAgent:SetDestinationAsync"))
+		using (TimeWarning.New("LimitedTurnNavAgent:SetDestination"))
 		{
-			if (agent.pathPending)
+			if (shouldStopAtDestination && agent.hasPath && Vector3.Distance(agent.destination, newDestination) < 1f)
 			{
-				if (!agent.SetDestination(newDestination))
-				{
-					FailPathAndClearPendingRequests(newDestination);
-				}
+				return true;
 			}
-			else if (!shouldStopAtDestination || !agent.hasPath || !(Vector3.Distance(agent.destination, newDestination) < 1f))
+			if (!CalculatePathCustom(newDestination, path))
 			{
-				if (!agent.SetDestination(newDestination))
-				{
-					FailPathAndClearPendingRequests(newDestination);
-					return;
-				}
-				pendingDestinationCandidates.Clear();
-				pendingDestinationCandidates.Enqueue(newDestination);
+				FailPath(newDestination, path);
+				return false;
 			}
+			if (!(acceptPartialPaths ? (path.status != NavMeshPathStatus.PathInvalid) : (path.status == NavMeshPathStatus.PathComplete)))
+			{
+				FailPath(newDestination, path);
+				return false;
+			}
+			SetPath(path);
+			return true;
 		}
 	}
 
-	private void TickPathfinding()
+	public bool SetDestinationFromDirection(Vector3 normalizedDirection, float distance = 10f, bool restrictTerrain = false)
 	{
-		if (pendingDestinationCandidates.Count == 0 || agent.pathPending)
+		using (TimeWarning.New("LimitedTurnNavAgent:SetDestinationFromDirection"))
 		{
-			return;
-		}
-		Vector3 result = pendingDestinationCandidates.Peek();
-		if (agent.pathStatus == NavMeshPathStatus.PathComplete && Vector3.Distance(result, agent.pathEndPosition) <= 0.5f)
-		{
-			SetPathAndClearPendingRequests(agent.path);
-			return;
-		}
-		if (pendingDestinationCandidates.Count == 1)
-		{
-			FailPathAndClearPendingRequests(result, agent.path);
-			return;
-		}
-		pendingDestinationCandidates.Dequeue();
-		while (pendingDestinationCandidates.TryPeek(out result) && !agent.SetDestination(result))
-		{
-			pendingDestinationCandidates.Dequeue();
-		}
-		if (pendingDestinationCandidates.Count == 0)
-		{
-			FailPathAndClearPendingRequests(result, agent.path);
-		}
-	}
-
-	public void SetDestinationFromDirectionAsync(Vector3 normalizedDirection, float distance = 10f, float randomPct = 0f, bool restrictTerrain = false)
-	{
-		using PooledList<Vector3> pooledList = Facepunch.Pool.Get<PooledList<Vector3>>();
-		SamplePositionsInDonutShape(base.baseEntity.transform.position, pooledList, distance, distance);
-		using PooledList<(Vector3, float)> pooledList2 = Facepunch.Pool.Get<PooledList<(Vector3, float)>>();
-		foreach (Vector3 item in pooledList)
-		{
-			float num = 0f;
-			if (restrictTerrain && !IsPositionOnValidTerrain(item))
+			using PooledList<Vector3> pooledList = Facepunch.Pool.Get<PooledList<Vector3>>();
+			SamplePositionsInDonutShape(base.baseEntity.transform.position, pooledList, distance, distance);
+			using PooledList<(Vector3, float)> pooledList2 = Facepunch.Pool.Get<PooledList<(Vector3, float)>>();
+			foreach (Vector3 item in pooledList)
 			{
-				num -= 100f;
+				float num = 0f;
+				if (restrictTerrain && !IsPositionOnValidTerrain(item))
+				{
+					num -= 100f;
+				}
+				if (!restrictTerrain)
+				{
+					num -= WaterLevel.GetOverallWaterDepth(item, waves: true, volumes: false) * 10f;
+				}
+				num += Vector3.Dot((item - base.baseEntity.transform.position).normalized, normalizedDirection);
+				pooledList2.Add((item, num));
 			}
-			if (!restrictTerrain)
+			pooledList2.Sort(((Vector3 position, float score) a, (Vector3 position, float score) b) => b.score.CompareTo(a.score));
+			for (int i = 0; i < pooledList2.Count; i++)
 			{
-				num -= WaterLevel.GetOverallWaterDepth(item, waves: true, volumes: false) * 10f;
+				pooledList[i] = pooledList2[i].Item1;
 			}
-			num += Vector3.Dot((item - base.baseEntity.transform.position).normalized, normalizedDirection);
-			pooledList2.Add((item, num));
-		}
-		pooledList2.Sort(((Vector3 position, float score) a, (Vector3 position, float score) b) => b.score.CompareTo(a.score));
-		for (int i = 0; i < pooledList2.Count; i++)
-		{
-			pooledList[i] = pooledList2[i].Item1;
-		}
-		foreach (Vector3 item2 in pooledList)
-		{
-			if (SamplePosition(item2, out var sample, 10f))
+			if (!GetFirstReachablePoint(pooledList, ref path))
 			{
-				pendingDestinationCandidates.Enqueue(sample);
+				FailPath(null);
+				return false;
 			}
+			SetPath(path);
+			return true;
 		}
 	}
 
@@ -287,11 +254,10 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	{
 	}
 
-	private void SetPathAndClearPendingRequests(NavMeshPath newPath)
+	private void SetPath(NavMeshPath newPath)
 	{
-		using (TimeWarning.New("LimitedTurnNavAgent:SetPathAndClearPendingRequests"))
+		using (TimeWarning.New("LimitedTurnNavAgent:SetPath"))
 		{
-			pendingDestinationCandidates.Clear();
 			if (agent.path != newPath)
 			{
 				agent.SetPath(newPath);
@@ -301,8 +267,13 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 		}
 	}
 
-	private void FailPathAndClearPendingRequests(Vector3? destination, NavMeshPath failedPath = null)
+	private void ShowFailedPath(Vector3? destination, NavMeshPath failedPath)
 	{
+	}
+
+	private void FailPath(Vector3? destination, NavMeshPath failedPath = null)
+	{
+		ShowFailedPath(destination, failedPath);
 		onPathFailed.Invoke();
 		ResetPath();
 	}
@@ -395,16 +366,16 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 					{
 						curSpeed = (base.baseEntity.transform.localPosition - previousLocalPosition.Value).magnitude / UnityEngine.Time.deltaTime;
 					}
-					return;
 				}
-				TickPathfinding();
-				if (!shouldStopAtDestination || IsFollowingPath)
+				else if (!shouldStopAtDestination || IsFollowingPath)
 				{
 					SteerTowardsWaypoint();
-					return;
 				}
-				curSpeed = 0f;
-				ResetPath();
+				else
+				{
+					curSpeed = 0f;
+					ResetPath();
+				}
 			}
 			finally
 			{
@@ -458,7 +429,7 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	{
 		using (TimeWarning.New("IsPositionOnValidTerrain"))
 		{
-			return NavHelpers.IsPositionAtTopologyRequirement(base.baseEntity, position, preferedTopology) && NavHelpers.IsPositionABiomeRequirement(base.baseEntity, position, preferedBiome) && NavHelpers.IsAcceptableWaterDepth(base.baseEntity, position);
+			return IsPositionAtTopologyRequirement(base.baseEntity, position, preferedTopology) && IsPositionABiomeRequirement(base.baseEntity, position, preferedBiome) && IsAcceptableWaterDepth(base.baseEntity, position);
 		}
 	}
 
@@ -527,32 +498,73 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 		{
 			foreach (Vector3 point in points)
 			{
-				if (SamplePosition(point, out var sample, 10f) && CalculatePathCustom(sample, navPath) && navPath.status == NavMeshPathStatus.PathComplete)
+				if (!SamplePosition(point, out var sample, 10f))
 				{
-					return true;
+					continue;
+				}
+				if (CalculatePathCustom(sample, navPath))
+				{
+					if (navPath.status == NavMeshPathStatus.PathComplete)
+					{
+						return true;
+					}
+				}
+				else
+				{
+					ShowFailedPath(sample, navPath);
 				}
 			}
 			return false;
 		}
 	}
 
-	public bool GetFirstReachablePointInShuffledTopPct(List<Vector3> points, ref NavMeshPath navPath, float topPct = 0.05f)
+	public static bool IsPositionAtTopologyRequirement(BaseEntity baseEntity, Vector3 position, TerrainTopology.Enum topologyRequirement)
 	{
-		using (TimeWarning.New("GetFirstReachablePointInShuffledTopPct"))
+		using (TimeWarning.New("IsPositionAtTopologyRequirement"))
 		{
-			using PooledList<Vector3> pooledList = Facepunch.Pool.Get<PooledList<Vector3>>();
-			int a = Mathf.Max(2, Mathf.FloorToInt((float)points.Count * topPct));
-			a = Mathf.Min(a, points.Count);
-			for (int i = 0; i < a; i++)
+			if (TerrainMeta.TopologyMap == null)
 			{
-				pooledList.Add(points[i]);
+				return false;
 			}
-			pooledList.Shuffle((uint)UnityEngine.Random.Range(0, int.MaxValue));
-			if (a < points.Count)
+			TerrainTopology.Enum topology = (TerrainTopology.Enum)TerrainMeta.TopologyMap.GetTopology(position);
+			if ((topologyRequirement & topology) == 0)
 			{
-				pooledList.AddRange(points.GetRange(a, points.Count - a));
+				return false;
 			}
-			return GetFirstReachablePoint(pooledList, ref navPath);
+			return true;
+		}
+	}
+
+	public static bool IsPositionABiomeRequirement(BaseEntity baseEntity, Vector3 position, TerrainBiome.Enum biomeRequirement)
+	{
+		using (TimeWarning.New("IsPositionABiomeRequirement"))
+		{
+			if (biomeRequirement == (TerrainBiome.Enum)0)
+			{
+				return true;
+			}
+			if (TerrainMeta.BiomeMap == null)
+			{
+				return false;
+			}
+			TerrainBiome.Enum biomeMaxType = (TerrainBiome.Enum)TerrainMeta.BiomeMap.GetBiomeMaxType(position);
+			if ((biomeRequirement & biomeMaxType) == 0)
+			{
+				return false;
+			}
+			return true;
+		}
+	}
+
+	public static bool IsAcceptableWaterDepth(BaseEntity baseEntity, Vector3 position, float maxDepth = 0.1f)
+	{
+		using (TimeWarning.New("IsAcceptableWaterDepth"))
+		{
+			if (WaterLevel.GetOverallWaterDepth(position, waves: false, volumes: false) > maxDepth)
+			{
+				return false;
+			}
+			return true;
 		}
 	}
 }
