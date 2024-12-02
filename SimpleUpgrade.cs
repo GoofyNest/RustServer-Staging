@@ -23,7 +23,7 @@ internal static class SimpleUpgrade
 		{
 			return false;
 		}
-		if (upgradeItem.Blueprint != null && !ItemModStudyBlueprint.IsBlueprintUnlocked(upgradeItem, player))
+		if (player.IsBuildingBlocked(entity.transform.position, entity.transform.rotation, entity.bounds))
 		{
 			return false;
 		}
@@ -35,16 +35,21 @@ internal static class SimpleUpgrade
 		{
 			return false;
 		}
-		if (!CanAffordUpgrade(upgradeItem, player))
+		if (!CanAffordUpgrade(entity, upgradeItem, player))
 		{
 			return false;
 		}
 		return true;
 	}
 
-	public static bool CanAffordUpgrade(ItemDefinition upgradeItem, BasePlayer player)
+	public static bool CanAffordUpgrade(BaseEntity entity, ItemDefinition upgradeItem, BasePlayer player)
 	{
 		if (player == null)
+		{
+			return false;
+		}
+		ISimpleUpgradable simpleUpgradable = entity as ISimpleUpgradable;
+		if (entity == null)
 		{
 			return false;
 		}
@@ -52,7 +57,15 @@ internal static class SimpleUpgrade
 		{
 			return true;
 		}
+		if (simpleUpgradable.CostIsItem())
+		{
+			return player.inventory.GetAmount(upgradeItem) > 0;
+		}
 		if (upgradeItem.Blueprint == null)
+		{
+			return false;
+		}
+		if (!ItemModStudyBlueprint.IsBlueprintUnlocked(upgradeItem, player))
 		{
 			return false;
 		}
@@ -66,17 +79,25 @@ internal static class SimpleUpgrade
 		return true;
 	}
 
-	public static void PayForUpgrade(ItemDefinition upgradeItem, BasePlayer player)
+	public static void PayForUpgrade(BaseEntity entity, ItemDefinition upgradeItem, BasePlayer player)
 	{
-		if (player == null || (player.IsInCreativeMode && Creative.freeBuild))
+		if (player == null || (player.IsInCreativeMode && Creative.freeBuild) || !(entity is ISimpleUpgradable simpleUpgradable))
 		{
 			return;
 		}
 		List<Item> list = new List<Item>();
-		foreach (ItemAmount ingredient in upgradeItem.Blueprint.ingredients)
+		if (simpleUpgradable.CostIsItem())
 		{
-			player.inventory.Take(list, ingredient.itemid, (int)ingredient.amount);
-			player.Command("note.inv " + ingredient.itemid + " " + ingredient.amount * -1f);
+			player.inventory.Take(list, upgradeItem.itemid, 1);
+			player.Command("note.inv " + upgradeItem.itemid + " " + -1);
+		}
+		else
+		{
+			foreach (ItemAmount ingredient in upgradeItem.Blueprint.ingredients)
+			{
+				player.inventory.Take(list, ingredient.itemid, (int)ingredient.amount);
+				player.Command("note.inv " + ingredient.itemid + " " + ingredient.amount * -1f);
+			}
 		}
 		foreach (Item item in list)
 		{
@@ -91,7 +112,7 @@ internal static class SimpleUpgrade
 			return;
 		}
 		ItemDefinition upgradeItem = simpleUpgradable.GetUpgradeItem();
-		PayForUpgrade(upgradeItem, player);
+		PayForUpgrade(entity, upgradeItem, player);
 		EntityRef[] slots = entity.GetSlots();
 		BaseEntity parentEntity = entity.GetParentEntity();
 		ItemModDeployable component = upgradeItem.GetComponent<ItemModDeployable>();
@@ -145,10 +166,6 @@ internal static class SimpleUpgrade
 		ItemModDeployable component = upgradeItem.GetComponent<ItemModDeployable>();
 		DeployVolume[] volumes = PrefabAttribute.server.FindAll<DeployVolume>(component.entityPrefab.resourceID);
 		if (DeployVolume.Check(entity.transform.position, entity.transform.rotation, volumes, ~((1 << entity.gameObject.layer) | 0x20000000)))
-		{
-			return true;
-		}
-		if (player.IsBuildingBlocked(entity.transform.position, entity.transform.rotation, entity.bounds))
 		{
 			return true;
 		}

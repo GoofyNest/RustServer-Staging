@@ -57,7 +57,10 @@ public class LargeShredder : BaseEntity
 		Rigidbody component = ent.GetComponent<Rigidbody>();
 		if (isShredding || currentlyShredding != null)
 		{
-			component.velocity = -component.velocity * 3f;
+			if (!component.isKinematic)
+			{
+				component.velocity = -component.velocity * 3f;
+			}
 			return;
 		}
 		shreddingEntityNormalizedHealth = 1f;

@@ -932,6 +932,7 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger, ISimpleUpgradable
 	}
 
 	[RPC_Server]
+	[RPC_Server.CallsPerSecond(5uL)]
 	[RPC_Server.IsVisible(3f)]
 	public void DoSimpleUpgrade(RPCMessage msg)
 	{
@@ -944,5 +945,10 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger, ISimpleUpgradable
 	public bool UpgradingEnabled()
 	{
 		return UpgradeItem != null;
+	}
+
+	public bool CostIsItem()
+	{
+		return true;
 	}
 }

@@ -13,6 +13,10 @@ public static class LODUtil
 
 	public static float GetDistance(Vector3 meshPos, LODDistanceMode mode = LODDistanceMode.XYZ)
 	{
+		if (!MainCamera.isValid)
+		{
+			return 1000f;
+		}
 		return GetDistanceInternal(MainCamera.position, meshPos, mode);
 	}
 

@@ -65,11 +65,6 @@ public class SimpleBuildingBlock : StabilityEntity, ISimpleUpgradable
 		return SimpleUpgrade.CanUpgrade(this, UpgradeItem, player);
 	}
 
-	public bool CanAffordUgprade(BasePlayer player)
-	{
-		return SimpleUpgrade.CanAffordUpgrade(UpgradeItem, player);
-	}
-
 	public void DoUpgrade(BasePlayer player)
 	{
 		SimpleUpgrade.DoUpgrade(this, player);
@@ -85,7 +80,13 @@ public class SimpleBuildingBlock : StabilityEntity, ISimpleUpgradable
 		return UpgradeItem != null;
 	}
 
+	public bool CostIsItem()
+	{
+		return true;
+	}
+
 	[RPC_Server]
+	[RPC_Server.CallsPerSecond(5uL)]
 	[RPC_Server.IsVisible(3f)]
 	public void DoSimpleUpgrade(RPCMessage msg)
 	{

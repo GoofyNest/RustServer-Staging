@@ -4,6 +4,8 @@ public interface ISimpleUpgradable
 
 	bool CanUpgrade(BasePlayer player);
 
+	bool CostIsItem();
+
 	void DoUpgrade(BasePlayer player);
 
 	ItemDefinition GetUpgradeItem();
