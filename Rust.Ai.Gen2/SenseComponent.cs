@@ -461,7 +461,7 @@ public class SenseComponent : EntityComponent<BaseEntity>, IServerComponent
 				{
 					return true;
 				}
-				if (magnitude < modLongVisionRectangle.z && Mathf.Abs(entity.transform.position.y - position.y) < modLongVisionRectangle.y * 0.5f && Vector3.Cross(vector, entity.transform.position - position).magnitude < modLongVisionRectangle.x * 0.5f)
+				if (TOD_Sky.Instance.IsDay && magnitude < modLongVisionRectangle.z && Mathf.Abs(entity.transform.position.y - position.y) < modLongVisionRectangle.y * 0.5f && Vector3.Cross(vector, entity.transform.position - position).magnitude < modLongVisionRectangle.x * 0.5f)
 				{
 					return true;
 				}

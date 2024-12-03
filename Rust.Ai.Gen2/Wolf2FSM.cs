@@ -224,19 +224,7 @@ public class Wolf2FSM : FSMComponent
 			{
 				AllyGotHurtNearby,
 				new Trans_TargetIsNearFire()
-			}).AddTickTransition(treeNode11, new Trans_And
-			{
-				AllyGotHurtNearby,
-				new Trans_RandomChance
-				{
-					chance = 0.25f
-				},
-				new Trans_TargetInRange
-				{
-					Range = 12f
-				}
-			}).AddTickTransition(treeNode16, AllyGotHurtNearby)
-				.AddTickTransition(treeNode11, BarkTrans)
+			}).AddTickTransition(treeNode16, AllyGotHurtNearby).AddTickTransition(treeNode11, BarkTrans)
 				.AddChildren(treeNode8.AddTickTransition(treeNode9, new Trans_TargetInRange
 				{
 					Range = 12f
@@ -273,7 +261,7 @@ public class Wolf2FSM : FSMComponent
 			{
 				MinDuration = 0.75,
 				MaxDuration = 1.5
-			}).AddEndTransition(treeNode11), treeNode15.AddTickTransition(treeNode11, new Trans_ElapsedTimeRandomized
+			}).AddEndTransition(treeNode11), treeNode15.AddTickTransition(treeNode15, AllyGotHurtNearby).AddTickTransition(treeNode11, new Trans_ElapsedTimeRandomized
 			{
 				MinDuration = 2.0,
 				MaxDuration = 4.0

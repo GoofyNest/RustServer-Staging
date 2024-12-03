@@ -52,6 +52,12 @@ public class State_AttackUnreachable : FSMStateBase
 
 	private float previousOffsetZ;
 
+	public static bool SampleGroundPositionUnderTarget(LimitedTurnNavAgent agent, BasePlayer targetAsPlayer, out Vector3 projectedLocation)
+	{
+		float radius = targetAsPlayer.GetRadius();
+		return agent.SampleGroundPositionWithPhysics(targetAsPlayer.transform.position, out projectedLocation, 2f, radius);
+	}
+
 	public override EFSMStateStatus OnStateEnter()
 	{
 		if (!base.Senses.FindTarget(out var target) || !(target is BasePlayer basePlayer))
@@ -59,7 +65,7 @@ public class State_AttackUnreachable : FSMStateBase
 			return EFSMStateStatus.Failure;
 		}
 		destination = target.transform.position;
-		if (!basePlayer.IsOnGround() && !base.Agent.SampleGroundPositionWithPhysics(target.transform.position, out destination, 2f))
+		if (!basePlayer.IsOnGround() && !SampleGroundPositionUnderTarget(base.Agent, basePlayer, out destination))
 		{
 			return EFSMStateStatus.Failure;
 		}
@@ -82,9 +88,9 @@ public class State_AttackUnreachable : FSMStateBase
 		previousOffsetZ = animClip.zMotionCurve.Evaluate(elapsedTime);
 		if (phase == Phase.Jump)
 		{
-			if (base.Senses.FindTarget(out var target) && target is BasePlayer)
+			if (base.Senses.FindTarget(out var target) && target is BasePlayer targetAsPlayer)
 			{
-				base.Agent.SampleGroundPositionWithPhysics(target.transform.position, out destination, 2f);
+				SampleGroundPositionUnderTarget(base.Agent, targetAsPlayer, out destination);
 			}
 			startLocation = Owner.transform.position;
 			Owner.transform.rotation = Quaternion.LookRotation((destination - Owner.transform.position).WithY(0f));

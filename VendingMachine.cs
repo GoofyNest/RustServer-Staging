@@ -1426,9 +1426,10 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 	[RPC_Server]
 	public void SV_RequestLongTermData(RPCMessage msg)
 	{
+		int seconds = 86400;
 		VendingMachineLongTermStats vendingMachineLongTermStats = Facepunch.Pool.Get<VendingMachineLongTermStats>();
 		vendingMachineLongTermStats.numberOfPurchases = purchaseHistory.Count;
-		vendingMachineLongTermStats.bestSalesHour = GetPeakSaleHourIn12HourFormat(86400);
+		vendingMachineLongTermStats.bestSalesHour = GetPeakSaleHourTimestamp(seconds);
 		vendingMachineLongTermStats.uniqueCustomers = GetUniqueCustomers();
 		vendingMachineLongTermStats.repeatCustomers = GetRepeatCustomers();
 		vendingMachineLongTermStats.bestCustomer = GetBestCustomer();
@@ -1630,35 +1631,21 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			select p).Take(max_returned).ToList();
 	}
 
-	public string GetPeakSaleHourIn12HourFormat(int seconds)
+	public long GetPeakSaleHourTimestamp(int seconds)
 	{
 		int currentTime = Epoch.Current;
-		return (from @group in (from p in purchaseHistory
+		return (from p in (from p in purchaseHistory
 				where currentTime - p.timestamp <= seconds
 				orderby p.timestamp descending
-				select p).Take(max_processed).GroupBy(delegate(PurchaseDetails p)
-			{
-				DateTime dateTime = Epoch.ToDateTime(p.timestamp);
-				int num = dateTime.Hour % 12;
-				num = ((num == 0) ? 12 : num);
-				string arg = ((dateTime.Hour >= 12) ? "PM" : "AM");
-				return new
-				{
-					Hour = $"{num} {arg}",
-					ItemIsBp = p.itemIsBp,
-					PriceIsBp = p.priceIsBp
-				};
-			})
+				select p).Take(max_processed)
+			group p by p.timestamp into @group
 			select new
 			{
-				Hour = @group.Key.Hour,
-				ItemIsBp = @group.Key.ItemIsBp,
-				PriceIsBp = @group.Key.PriceIsBp,
-				TotalSales = @group.Sum((PurchaseDetails p) => p.amount),
-				TotalRevenue = @group.Sum((PurchaseDetails p) => p.price)
+				Timestamp = @group.Key,
+				TotalSales = @group.Sum((PurchaseDetails p) => p.amount)
 			} into s
 			orderby s.TotalSales descending
-			select s).FirstOrDefault()?.Hour ?? "No Sales";
+			select s).FirstOrDefault()?.Timestamp ?? (-1);
 	}
 
 	public int GetUniqueCustomers()

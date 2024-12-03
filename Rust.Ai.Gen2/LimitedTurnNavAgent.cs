@@ -38,7 +38,7 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 	private float runSpeed = 4.4f;
 
 	[SerializeField]
-	private float sprintSpeed = 7.5f;
+	private float sprintSpeed = 6f;
 
 	[SerializeField]
 	private float fullSprintSpeed = 9f;
@@ -438,14 +438,19 @@ public class LimitedTurnNavAgent : EntityComponent<BaseEntity>, IServerComponent
 		return SamplePosition(position, out sample, 0.5f);
 	}
 
-	public bool SampleGroundPositionWithPhysics(Vector3 position, out Vector3 sample, float maxDistance)
+	public bool SampleGroundPositionWithPhysics(Vector3 position, out Vector3 sample, float maxDistance, float radius = 0f)
 	{
 		using (TimeWarning.New("SampleGroundPositionWithPhysics"))
 		{
 			sample = position;
-			if (GamePhysics.Trace(new Ray(position, Vector3.down), 0f, out var hitInfo, maxDistance, 1503731969, QueryTriggerInteraction.Ignore))
+			Vector3 origin = position + Vector3.up * radius * 1.5f;
+			float maxDistance2 = maxDistance + radius * 1.5f;
+			if (GamePhysics.Trace(new Ray(origin, Vector3.down), radius, out var hitInfo, maxDistance2, 1503731969, QueryTriggerInteraction.Ignore))
 			{
-				sample = hitInfo.point;
+				if (radius == 0f || hitInfo.distance > 0f)
+				{
+					sample = hitInfo.point;
+				}
 				return true;
 			}
 			return false;

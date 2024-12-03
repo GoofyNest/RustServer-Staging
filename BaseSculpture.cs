@@ -14,8 +14,21 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserEntity, IDisposable
+public class BaseSculpture : IOEntity, IServerFileReceiver, IUGCBrowserEntity, IDisposable
 {
+	[Serializable]
+	public struct ColorSetting
+	{
+		public Translate.Phrase name;
+
+		public Translate.Phrase desc;
+
+		public Color color;
+
+		[ColorUsage(false, true)]
+		public Color materialColor;
+	}
+
 	[Header("BaseSculpture")]
 	[SerializeField]
 	private MeshFilter targetMesh;
@@ -34,6 +47,9 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 
 	[SerializeField]
 	private float gridScale;
+
+	[SerializeField]
+	private GameObjectRef blockImpactEffect;
 
 	[Header("HitGuide")]
 	[SerializeField]
@@ -66,6 +82,25 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 	private static readonly ListHashSet<BaseSculpture> ServerUpdateProcessQueue = new ListHashSet<BaseSculpture>();
 
 	private bool _gridDirty;
+
+	[Header("IO")]
+	public ColorSetting[] colorSettings;
+
+	public Renderer[] lightRenderers;
+
+	public Material noLightMaterial;
+
+	public Material lightMaterial;
+
+	public Light lightSource;
+
+	private bool _hasLightRenderer;
+
+	private MaterialPropertyBlock _mpb;
+
+	private static readonly int EmissionPropertyId = Shader.PropertyToID("_EmissionColor");
+
+	private int _currentColorIndex;
 
 	[ClientVar]
 	public bool ToolIsSmoothing { get; set; }
@@ -332,6 +367,7 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 		if (info.damageTypes.Contains(carvingDamageType) && base.isServer)
 		{
 			info.DidHit = false;
+			info.DoHitEffects = false;
 		}
 		else
 		{
@@ -626,5 +662,17 @@ public class BaseSculpture : BaseCombatEntity, IServerFileReceiver, IUGCBrowserE
 	{
 		base.DoServerDestroy();
 		FileStorage.server.RemoveAllByEntity(net.ID);
+	}
+
+	public override void ResetIOState()
+	{
+		base.ResetIOState();
+		SetFlag(Flags.On, b: false);
+	}
+
+	public override void UpdateFromInput(int inputAmount, int inputSlot)
+	{
+		base.UpdateFromInput(inputAmount, inputSlot);
+		SetFlag(Flags.On, IsPowered());
 	}
 }

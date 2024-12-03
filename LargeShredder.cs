@@ -48,6 +48,8 @@ public class LargeShredder : BaseEntity
 
 	private float shredStartTime;
 
+	private float prevDelta;
+
 	public virtual void OnEntityEnteredTrigger(BaseEntity ent)
 	{
 		if (ent.IsDestroyed)
@@ -92,6 +94,7 @@ public class LargeShredder : BaseEntity
 		ent.transform.rotation = rotation;
 		isShredding = true;
 		SetShredding(isShredding: true);
+		prevDelta = 0f;
 		shredStartTime = Time.realtimeSinceStartup;
 	}
 
@@ -214,32 +217,46 @@ public class LargeShredder : BaseEntity
 		Quaternion b = QuaternionEx.LookRotationForcedUp(vector, flag ? (-base.transform.right) : base.transform.right);
 		float num2 = Time.time * shredSwaySpeed;
 		float num3 = Mathf.PerlinNoise(num2, 0f);
-		b *= Quaternion.Euler(z: Mathf.PerlinNoise(0f, num2 + 150f) * shredSwayAmount, x: num3 * shredSwayAmount, y: 0f);
+		float num4 = Mathf.PerlinNoise(0f, num2 + 150f);
+		b *= Quaternion.Euler(num3 * shredSwayAmount, 0f, num4 * shredSwayAmount);
 		currentlyShredding.transform.rotation = Quaternion.Lerp(entryRotation, b, t2);
-		if (!(num > 5f))
+		if (prevDelta < 1.5f && num > 1.5f)
 		{
-			return;
-		}
-		CreateShredResources();
-		if (currentlyShredding is ScrapTransportHelicopter)
-		{
-			using PooledList<BasePlayer> pooledList = Pool.Get<PooledList<BasePlayer>>();
-			foreach (BaseEntity child in currentlyShredding.children)
+			if (currentlyShredding is BaseVehicle baseVehicle)
 			{
-				if (child is BasePlayer { isMounted: false } basePlayer)
+				foreach (BaseVehicle.MountPointInfo mountPoint in baseVehicle.mountPoints)
 				{
-					pooledList.Add(basePlayer);
+					if (mountPoint.mountable != null && mountPoint.mountable.GetMounted() != null)
+					{
+						mountPoint.mountable.GetMounted().Hurt(999f, DamageType.Blunt, this, useProtection: false);
+					}
 				}
 			}
-			foreach (BasePlayer item in pooledList)
+			if (currentlyShredding is ScrapTransportHelicopter)
 			{
-				item.Hurt(999f, DamageType.Blunt, this, useProtection: false);
+				using PooledList<BasePlayer> pooledList = Pool.Get<PooledList<BasePlayer>>();
+				foreach (BaseEntity child in currentlyShredding.children)
+				{
+					if (child is BasePlayer { isMounted: false } basePlayer)
+					{
+						pooledList.Add(basePlayer);
+					}
+				}
+				foreach (BasePlayer item in pooledList)
+				{
+					item.Hurt(999f, DamageType.Blunt, this, useProtection: false);
+				}
 			}
 		}
-		currentlyShredding.Kill();
-		currentlyShredding = null;
-		isShredding = false;
-		SetShredding(isShredding: false);
+		prevDelta = num;
+		if (num > 5f)
+		{
+			CreateShredResources();
+			currentlyShredding.Kill();
+			currentlyShredding = null;
+			isShredding = false;
+			SetShredding(isShredding: false);
+		}
 	}
 
 	private void Update()
