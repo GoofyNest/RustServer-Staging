@@ -13,28 +13,18 @@ public static class LODUtil
 
 	public static float GetDistance(Vector3 meshPos, LODDistanceMode mode = LODDistanceMode.XYZ)
 	{
-		if (!MainCamera.isValid)
-		{
-			return 1000f;
-		}
-		return GetDistanceInternal(MainCamera.position, meshPos, mode);
+		return 1000f;
 	}
 
 	private static float GetDistanceInternal(Vector3 cameraPos, Vector3 worldPos, LODDistanceMode mode)
 	{
-		if (MainCamera.isValid)
+		return mode switch
 		{
-			switch (mode)
-			{
-			case LODDistanceMode.XYZ:
-				return Vector3.Distance(cameraPos, worldPos);
-			case LODDistanceMode.XZ:
-				return Vector3Ex.Distance2D(cameraPos, worldPos);
-			case LODDistanceMode.Y:
-				return Mathf.Abs(cameraPos.y - worldPos.y);
-			}
-		}
-		return 1000f;
+			LODDistanceMode.XYZ => Vector3.Distance(cameraPos, worldPos), 
+			LODDistanceMode.XZ => Vector3Ex.Distance2D(cameraPos, worldPos), 
+			LODDistanceMode.Y => Mathf.Abs(cameraPos.y - worldPos.y), 
+			_ => 1000f, 
+		};
 	}
 
 	public static float VerifyDistance(float distance)
