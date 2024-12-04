@@ -936,7 +936,11 @@ public class Door : AnimatedBuildingBlock, INotifyTrigger, ISimpleUpgradable
 	[RPC_Server.IsVisible(3f)]
 	public void DoSimpleUpgrade(RPCMessage msg)
 	{
-		if (CanUpgrade(msg.player))
+		if (base.SecondsSinceAttacked < 30f)
+		{
+			msg.player.ShowToast(GameTip.Styles.Error, ConstructionErrors.CantUpgradeRecentlyDamaged, false, (30f - base.SecondsSinceAttacked).ToString("N0"));
+		}
+		else if (CanUpgrade(msg.player))
 		{
 			DoUpgrade(msg.player);
 		}

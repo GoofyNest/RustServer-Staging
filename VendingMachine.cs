@@ -707,7 +707,12 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			}
 			List<Item> obj = Facepunch.Pool.Get<List<Item>>();
 			GetItemsToSell(sellOrder, obj);
-			sellOrder.inStock = ((obj.Count >= 0) ? (obj.Sum((Item x) => x.amount) / sellOrder.itemToSellAmount) : 0);
+			int num2 = sellOrder.itemToSellAmount;
+			if (ItemManager.FindItemDefinition(sellOrder.itemToSellID) == NPCVendingMachine.ScrapItem && sellOrder.receivedQuantityMultiplier != 1f)
+			{
+				num2 = GetTotalPriceForOrder(num2, sellOrder.receivedQuantityMultiplier);
+			}
+			sellOrder.inStock = ((obj.Count >= 0) ? (obj.Sum((Item x) => x.amount) / num2) : 0);
 			float itemCondition = 0f;
 			float itemConditionMax = 0f;
 			int instanceData = 0;
