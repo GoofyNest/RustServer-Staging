@@ -26,6 +26,10 @@ public class SimpleBuildingBlock : StabilityEntity, ISimpleUpgradable
 				{
 					using (TimeWarning.New("Conditions"))
 					{
+						if (!RPC_Server.CallsPerSecond.Test(2824056853u, "DoSimpleUpgrade", this, player, 5uL))
+						{
+							return true;
+						}
 						if (!RPC_Server.IsVisible.Test(2824056853u, "DoSimpleUpgrade", this, player, 3f))
 						{
 							return true;
