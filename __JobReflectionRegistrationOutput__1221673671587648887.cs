@@ -20,8 +20,11 @@ internal class __JobReflectionRegistrationOutput__1221673671587648887
 			IJobParallelForExtensions.EarlyJobInit<FishShoal.FishUpdateJob>();
 			IJobExtensions.EarlyJobInit<FishShoal.KillFish>();
 			IJobParallelForTransformExtensions.EarlyJobInit<TransformLineRenderer.LineRendererUpdateJob>();
+			IJobExtensions.EarlyJobInit<AddAndBlurSphereJob>();
 			IJobForExtensions.EarlyJobInit<BoxBlur3DJob>();
+			IJobExtensions.EarlyJobInit<BoxBlurCylinderJob>();
 			IJobExtensions.EarlyJobInit<BoxBlurSphereJob>();
+			IJobExtensions.EarlyJobInit<CarveAndBlurCylinderJob>();
 			IJobExtensions.EarlyJobInit<CarveAndBlurSphereJob>();
 			IJobExtensions.EarlyJobInit<CleanFloatingIslandsJob>();
 			IJobExtensions.EarlyJobInit<PostCullingJob>();

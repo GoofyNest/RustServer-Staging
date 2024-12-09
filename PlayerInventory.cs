@@ -535,7 +535,7 @@ public class PlayerInventory : EntityComponent<BasePlayer>, IAmmoContainer
 				}
 				if (!GiveItem(item, itemMoveModifier))
 				{
-					msg.player.ShowToast(GameTip.Styles.Error, "GiveItem failed!", true);
+					msg.player.ShowToast(GameTip.Styles.Error, "GiveItem failed!", false);
 				}
 				return;
 			}

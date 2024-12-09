@@ -8,8 +8,10 @@ namespace Facepunch.NativeMeshSimplification;
 [BurstCompile]
 internal struct PopulateArraysJob : IJob
 {
+	[global::Unity.Collections.ReadOnly]
 	public NativeList<float3> VerticesIn;
 
+	[global::Unity.Collections.ReadOnly]
 	public NativeList<int> IndicesIn;
 
 	public NativeList<NativeMeshSimplifier.Triangle> TrianglesOut;

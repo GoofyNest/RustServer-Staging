@@ -159,4 +159,16 @@ public class ModularCarRadio : BaseCombatEntity
 	{
 		CarRadio.Server_UpdateRadioIP(msg);
 	}
+
+	public override void Save(SaveInfo info)
+	{
+		base.Save(info);
+		CarRadio.Save(info);
+	}
+
+	public override void Load(LoadInfo info)
+	{
+		CarRadio.Load(info);
+		base.Load(info);
+	}
 }

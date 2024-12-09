@@ -78,6 +78,9 @@
     <Reference Include="Unity.Mathematics">
       <HintPath>..\RustDedicated_Data\Managed\Unity.Mathematics.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>..\RustDedicated_Data\Managed\Unity.Collections.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.AudioModule">
       <HintPath>..\RustDedicated_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
@@ -137,9 +140,6 @@
     </Reference>
     <Reference Include="Unity.Burst">
       <HintPath>..\RustDedicated_Data\Managed\Unity.Burst.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Collections">
-      <HintPath>..\RustDedicated_Data\Managed\Unity.Collections.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ClothModule">
       <HintPath>..\RustDedicated_Data\Managed\UnityEngine.ClothModule.dll</HintPath>

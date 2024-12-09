@@ -795,9 +795,21 @@ public class Debugging : ConsoleSystem
 
 	private static void TickInvis()
 	{
+		using PooledList<BasePlayer> pooledList = Facepunch.Pool.Get<PooledList<BasePlayer>>();
 		foreach (BasePlayer invisiblePlayer in invisiblePlayers)
 		{
-			invisiblePlayer.net.UpdateGroups(invisiblePlayer.transform.position);
+			if (!invisiblePlayer.IsValid())
+			{
+				pooledList.Add(invisiblePlayer);
+			}
+			else
+			{
+				invisiblePlayer.net.UpdateGroups(invisiblePlayer.transform.position);
+			}
+		}
+		foreach (BasePlayer item in pooledList)
+		{
+			invisiblePlayers.Remove(item);
 		}
 	}
 }

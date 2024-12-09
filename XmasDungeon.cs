@@ -7,7 +7,7 @@ public class XmasDungeon : HalloweenDungeon
 	public const Flags HasPlayerInside = Flags.Reserved8;
 
 	[ServerVar(Help = "Population active on the server", ShowInAdminUI = true)]
-	public static float xmaspopulation = 0f;
+	public static float xmaspopulation = 1.5f;
 
 	[ServerVar(Help = "How long each active dungeon should last before dying", ShowInAdminUI = true)]
 	public static float xmaslifetime = 1200f;

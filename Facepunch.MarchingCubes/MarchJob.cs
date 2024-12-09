@@ -8,7 +8,7 @@ namespace Facepunch.MarchingCubes;
 [BurstCompile]
 internal struct MarchJob : IJob
 {
-	[ReadOnly]
+	[global::Unity.Collections.ReadOnly]
 	public Point3DGrid sampler;
 
 	public NativeList<float3> vertices;

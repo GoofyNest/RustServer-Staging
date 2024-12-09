@@ -334,7 +334,7 @@ public class Bootstrap : SingletonComponent<Bootstrap>
 		DemoConVars.LevelUrl = World.Url;
 		DemoConVars.Checksum = World.Checksum;
 		DemoConVars.Hostname = ConVar.Server.hostname;
-		DemoConVars.NetworkVersion = 2570;
+		DemoConVars.NetworkVersion = 2571;
 		DemoConVars.Changeset = BuildInfo.Current?.Scm?.ChangeId ?? "0";
 		Rust.Application.isLoading = false;
 	}

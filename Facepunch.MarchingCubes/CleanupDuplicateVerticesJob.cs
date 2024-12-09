@@ -8,10 +8,10 @@ namespace Facepunch.MarchingCubes;
 [BurstCompile]
 internal struct CleanupDuplicateVerticesJob : IJob
 {
-	[ReadOnly]
+	[global::Unity.Collections.ReadOnly]
 	public NativeList<float3> inputVertices;
 
-	[ReadOnly]
+	[global::Unity.Collections.ReadOnly]
 	public NativeList<int> inputIndices;
 
 	[WriteOnly]

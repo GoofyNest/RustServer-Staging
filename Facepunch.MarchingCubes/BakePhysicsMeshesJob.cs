@@ -8,7 +8,7 @@ namespace Facepunch.MarchingCubes;
 [BurstCompile]
 internal struct BakePhysicsMeshesJob : IJobParallelFor
 {
-	[ReadOnly]
+	[global::Unity.Collections.ReadOnly]
 	public NativeArray<int> MeshIds;
 
 	public void Execute(int index)

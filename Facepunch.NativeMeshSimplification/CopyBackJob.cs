@@ -8,37 +8,41 @@ namespace Facepunch.NativeMeshSimplification;
 [BurstCompile]
 internal struct CopyBackJob : IJob
 {
-	public NativeList<float3> VerticesIn;
+	[WriteOnly]
+	public NativeList<float3> DstVertices;
 
-	public NativeList<int> IndicesIn;
+	[WriteOnly]
+	public NativeList<int> DstIndices;
 
-	public NativeList<NativeMeshSimplifier.Triangle> TrianglesOut;
+	[global::Unity.Collections.ReadOnly]
+	public NativeList<NativeMeshSimplifier.Triangle> SrcTriangles;
 
-	public NativeList<NativeMeshSimplifier.Vertex> VerticesOut;
+	[global::Unity.Collections.ReadOnly]
+	public NativeList<NativeMeshSimplifier.Vertex> SrcVertices;
 
 	public void Execute()
 	{
-		VerticesIn.Clear();
-		VerticesIn.SetCapacity(VerticesOut.Length);
-		for (int i = 0; i < VerticesOut.Length; i++)
+		DstVertices.Clear();
+		DstVertices.SetCapacity(SrcVertices.Length);
+		for (int i = 0; i < SrcVertices.Length; i++)
 		{
-			ref NativeList<float3> verticesIn = ref VerticesIn;
-			NativeMeshSimplifier.Vertex vertex = VerticesOut[i];
-			verticesIn.Add(in vertex.p);
+			ref NativeList<float3> dstVertices = ref DstVertices;
+			NativeMeshSimplifier.Vertex vertex = SrcVertices[i];
+			dstVertices.Add(in vertex.p);
 		}
-		IndicesIn.Clear();
-		IndicesIn.SetCapacity(TrianglesOut.Length * 3);
-		for (int j = 0; j < TrianglesOut.Length; j++)
+		DstIndices.Clear();
+		DstIndices.SetCapacity(SrcTriangles.Length * 3);
+		for (int j = 0; j < SrcTriangles.Length; j++)
 		{
-			ref NativeList<int> indicesIn = ref IndicesIn;
-			int value = TrianglesOut[j].vIndex[0];
-			indicesIn.Add(in value);
-			ref NativeList<int> indicesIn2 = ref IndicesIn;
-			value = TrianglesOut[j].vIndex[1];
-			indicesIn2.Add(in value);
-			ref NativeList<int> indicesIn3 = ref IndicesIn;
-			value = TrianglesOut[j].vIndex[2];
-			indicesIn3.Add(in value);
+			ref NativeList<int> dstIndices = ref DstIndices;
+			int value = SrcTriangles[j].vIndex[0];
+			dstIndices.Add(in value);
+			ref NativeList<int> dstIndices2 = ref DstIndices;
+			value = SrcTriangles[j].vIndex[1];
+			dstIndices2.Add(in value);
+			ref NativeList<int> dstIndices3 = ref DstIndices;
+			value = SrcTriangles[j].vIndex[2];
+			dstIndices3.Add(in value);
 		}
 	}
 }

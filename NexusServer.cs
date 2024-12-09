@@ -801,7 +801,7 @@ public static class NexusServer
 		try
 		{
 			int valueOrDefault = (World.Config?.JsonString?.GetHashCode()).GetValueOrDefault();
-			string key = $"{2570}##{262}##{World.Name}##{World.Size}##{World.Seed}##{World.Salt}##{ConVar.Nexus.mapImageScale}##{valueOrDefault}##{5}";
+			string key = $"{2571}##{262}##{World.Name}##{World.Size}##{World.Seed}##{World.Salt}##{ConVar.Nexus.mapImageScale}##{valueOrDefault}##{5}";
 			if (!force && (await ZoneClient.CheckUploadedMap()).Key == key)
 			{
 				Debug.Log("Nexus already has this map's image uploaded, will not render and upload again");

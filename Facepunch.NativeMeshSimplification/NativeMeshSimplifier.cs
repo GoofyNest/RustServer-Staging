@@ -147,10 +147,10 @@ public class NativeMeshSimplifier : IDisposable
 		jobData2.Refs = _refs;
 		inputDeps = jobData2.Schedule(inputDeps);
 		CopyBackJob jobData3 = default(CopyBackJob);
-		jobData3.VerticesIn = verticesOut;
-		jobData3.IndicesIn = indicesOut;
-		jobData3.VerticesOut = _vertices;
-		jobData3.TrianglesOut = _triangles;
+		jobData3.DstVertices = verticesOut;
+		jobData3.DstIndices = indicesOut;
+		jobData3.SrcVertices = _vertices;
+		jobData3.SrcTriangles = _triangles;
 		inputDeps = jobData3.Schedule(inputDeps);
 		return inputDeps;
 	}
