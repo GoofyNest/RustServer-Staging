@@ -154,6 +154,7 @@ public class BasePortal : BaseCombatEntity
 		{
 			player.PauseFlyHackDetection();
 			player.PauseSpeedHackDetection();
+			player.ApplyStallProtection(4f);
 			Vector3 position = player.transform.position;
 			Vector3 vector = targetPortal.GetLocalEntryExitPosition();
 			Vector3 vector2 = base.transform.InverseTransformDirection(player.eyes.BodyForward());

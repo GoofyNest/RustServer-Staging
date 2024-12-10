@@ -28,6 +28,7 @@ public class HexagonTile : BaseCombatEntity, IDetector
 
 	public override void OnKilled(HitInfo info)
 	{
+		base.OnKilled(info);
 		SetFlag(Flags.Busy, b: true);
 	}
 

@@ -941,6 +941,10 @@ public class SleepingBag : DecayEntity
 
 	public override bool CanPickup(BasePlayer player)
 	{
+		if (base.CanPickup(player) && player.IsBuildingAuthed())
+		{
+			return true;
+		}
 		if (base.CanPickup(player))
 		{
 			return (ulong)player.userID == deployerUserID;

@@ -944,6 +944,9 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	private float lastStallTime;
 
 	[NonSerialized]
+	private float stallProtectionTime;
+
+	[NonSerialized]
 	private float lastInputTime;
 
 	[NonSerialized]
@@ -1518,7 +1521,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				lastStallTime = 0f;
 				return false;
 			}
-			if (timeSinceLastTick != 0f && timeSinceLastTick > ConVar.AntiHack.rpcstallthreshold)
+			if (stallProtectionTime <= 0f && timeSinceLastTick != 0f && timeSinceLastTick > ConVar.AntiHack.rpcstallthreshold)
 			{
 				lastStallTime = UnityEngine.Time.time;
 				return true;
@@ -1531,11 +1534,15 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 	{
 		get
 		{
-			if (!isStalled)
+			if (stallProtectionTime <= 0f)
 			{
-				return timeSinceLastStall < ConVar.AntiHack.rpcstallfade;
+				if (!isStalled)
+				{
+					return timeSinceLastStall < ConVar.AntiHack.rpcstallfade;
+				}
+				return true;
 			}
-			return true;
+			return false;
 		}
 	}
 
@@ -7672,6 +7679,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				return;
 			}
 		}
+		if (stallProtectionTime > 0f)
+		{
+			stallProtectionTime -= UnityEngine.Time.deltaTime;
+		}
 		int num2 = (int)net.connection.GetSecondsConnected();
 		int num3 = num2 - secondsConnected;
 		if (num3 > 0)
@@ -10806,6 +10817,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				tutorialKickTime = 0f;
 			}
 		}
+	}
+
+	public void ApplyStallProtection(float time)
+	{
+		stallProtectionTime = Mathf.Max(time, stallProtectionTime);
 	}
 
 	public void UpdateActiveItem(ItemId itemID)
