@@ -191,20 +191,36 @@ public class Debugging : ConsoleSystem
 		string text = arg.GetString(0).ToLower();
 		float @float = arg.GetFloat(1);
 		BasePlayer basePlayer = arg.Player();
-		List<BaseNetworkable> obj = Facepunch.Pool.Get<List<BaseNetworkable>>();
+		using PooledList<BaseNetworkable> pooledList = Facepunch.Pool.Get<PooledList<BaseNetworkable>>();
 		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
 		{
 			if (serverEntity.ShortPrefabName == text && (@float == 0f || (basePlayer != null && basePlayer.Distance(serverEntity as BaseEntity) <= @float)))
 			{
-				obj.Add(serverEntity);
+				pooledList.Add(serverEntity);
 			}
 		}
-		Debug.Log($"Deleting {obj.Count} {text}...");
-		foreach (BaseNetworkable item in obj)
+		Debug.Log($"Deleting {pooledList.Count} {text}...");
+		foreach (BaseNetworkable item in pooledList)
 		{
 			item.Kill();
 		}
-		Facepunch.Pool.FreeUnmanaged(ref obj);
+	}
+
+	[ServerVar]
+	public static void deleteEntityById(Arg arg)
+	{
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < arg.Args.Length; i++)
+		{
+			NetworkableId entityID = arg.GetEntityID(i);
+			BaseNetworkable baseNetworkable = BaseNetworkable.serverEntities.Find(entityID);
+			if (baseNetworkable != null)
+			{
+				stringBuilder.AppendLine($"Deleting {baseNetworkable}");
+				baseNetworkable.Kill();
+			}
+		}
+		arg.ReplyWith(stringBuilder.ToString());
 	}
 
 	[ServerVar]

@@ -933,7 +933,7 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 		int num = sellOrder.itemToSellAmount * numberOfTransactions;
 		if (ItemManager.FindItemDefinition(sellOrder.itemToSellID) == NPCVendingMachine.ScrapItem && sellOrder.receivedQuantityMultiplier != 1f)
 		{
-			num = GetTotalPriceForOrder(num, sellOrder.receivedQuantityMultiplier);
+			num = GetTotalReceivedMerchandiseForOrder(sellOrder.itemToSellAmount, sellOrder.receivedQuantityMultiplier) * numberOfTransactions;
 		}
 		int num2 = obj.Sum((Item x) => x.amount);
 		if (num > num2)
@@ -991,7 +991,7 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			else
 			{
 				num7 += item2.amount;
-				RecordSaleAnalytics(item2, sellOrderId, sellOrder.currencyAmountPerItem * numberOfTransactions);
+				RecordSaleAnalytics(item2, sellOrderId, sellOrder.currencyAmountPerItem);
 				if (targetContainer == null)
 				{
 					GiveSoldItem(item2, buyer);
@@ -999,10 +999,6 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 				else if (!item2.MoveToContainer(targetContainer))
 				{
 					item2.Drop(targetContainer.dropPosition, targetContainer.dropVelocity);
-				}
-				if (ShouldRecordStats)
-				{
-					AddPurchaseHistory(sellOrder.itemToSellID, num7, sellOrder.currencyID, num4, sellOrder.itemToSellIsBP, sellOrder.currencyIsBP);
 				}
 				if (ShouldRecordStats)
 				{
@@ -1014,6 +1010,10 @@ public class VendingMachine : StorageContainer, IUGCBrowserEntity
 			{
 				break;
 			}
+		}
+		if (ShouldRecordStats)
+		{
+			AddPurchaseHistory(sellOrder.itemToSellID, sellOrder.currencyAmountPerItem * numberOfTransactions, sellOrder.currencyID, num4, sellOrder.itemToSellIsBP, sellOrder.currencyIsBP);
 		}
 		Facepunch.Pool.FreeUnmanaged(ref obj);
 		UpdateEmptyFlag();

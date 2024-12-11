@@ -403,6 +403,17 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		}
 	}
 
+	internal struct CachedState
+	{
+		public WaterLevel.WaterInfo WaterInfo;
+
+		public float WaterFactor;
+
+		public bool IsSwimming;
+
+		public bool IsValid;
+	}
+
 	public enum TutorialItemAllowance
 	{
 		AlwaysAllowed = -1,
@@ -7535,6 +7546,10 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			inventory.DoDestroy();
 		}
 		sleepingPlayerList.Remove(this);
+		if (IsBot)
+		{
+			bots.Remove(this);
+		}
 		SavePlayerState();
 		if (cachedPersistantPlayer != null)
 		{
@@ -9296,12 +9311,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			OcclusionPlayerLost(this, player);
 			return false;
 		}
-		ServerOcclusion.GenerateGridArea(SubGrid, player.SubGrid, out var directPath, out var anyPath);
-		if (!directPath && anyPath)
-		{
-			directPath = ServerOcclusion.PathBetweenFloodFill(SubGrid, player.SubGrid);
-		}
-		if (directPath)
+		ServerOcclusion.CalculatePathBetweenGrids(SubGrid, player.SubGrid, out var directPath, out var anyPath);
+		if (directPath || anyPath)
 		{
 			OcclusionPlayerFound(this, player);
 			return true;
@@ -9442,7 +9453,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 					Type = reportType
 				});
 			}
-			if (!string.IsNullOrEmpty(ConVar.Server.reportsServerEndpoint))
+			if (!string.IsNullOrEmpty(ConVar.Server.reportsServerEndpoint) && reportType != ReportType.BreakingServerRules)
 			{
 				string image = msg.read.StringMultiLine(60000);
 				Facepunch.Models.Feedback feedback = default(Facepunch.Models.Feedback);
@@ -10674,11 +10685,11 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		lastInputTime = UnityEngine.Time.time;
 	}
 
-	private void EACStateUpdate()
+	private void EACStateUpdate(in CachedState tickState)
 	{
 		if (!IsReceivingSnapshot)
 		{
-			EACServer.LogPlayerTick(this);
+			EACServer.LogPlayerTick(this, in tickState);
 		}
 	}
 
@@ -10995,6 +11006,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				UpdateModelState();
 			}
 		}
+		CachedState tickState = default(CachedState);
+		using (TimeWarning.New("CachingPlayerState"))
+		{
+			tickState.IsValid = true;
+			tickState.WaterFactor = WaterFactor(out tickState.WaterInfo);
+			tickState.IsSwimming = IsSwimming(tickState.WaterFactor);
+		}
 		using (TimeWarning.New("Transform"))
 		{
 			UpdateEstimatedVelocity(tickInterpolator.StartPoint, tickInterpolator.EndPoint, tickDeltaTime);
@@ -11002,11 +11020,20 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 			bool flag2 = tickViewAngles != viewAngles;
 			if (flag)
 			{
-				if (AntiHack.ValidateMove(this, tickInterpolator, tickDeltaTime))
+				if (AntiHack.ValidateMove(this, tickInterpolator, tickDeltaTime, in tickState))
 				{
-					base.transform.localPosition = tickInterpolator.EndPoint;
-					ticksPerSecond.Increment();
-					tickHistory.AddPoint(tickInterpolator.EndPoint, tickHistoryCapacity);
+					using (TimeWarning.New("SetPosition"))
+					{
+						base.transform.localPosition = tickInterpolator.EndPoint;
+						ticksPerSecond.Increment();
+						tickHistory.AddPoint(tickInterpolator.EndPoint, tickHistoryCapacity);
+					}
+					using (TimeWarning.New("RecachingPlayerState"))
+					{
+						tickState.IsValid = true;
+						tickState.WaterFactor = WaterFactor(out tickState.WaterInfo);
+						tickState.IsSwimming = IsSwimming(tickState.WaterFactor);
+					}
 					AntiHack.FadeViolations(this, tickDeltaTime);
 				}
 				else
@@ -11043,12 +11070,12 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		{
 			if (modelState != null)
 			{
-				modelState.waterLevel = WaterFactor();
+				modelState.waterLevel = tickState.WaterFactor;
 			}
 		}
 		using (TimeWarning.New("EACStateUpdate"))
 		{
-			EACStateUpdate();
+			EACStateUpdate(in tickState);
 		}
 		using (TimeWarning.New("AntiHack.EnforceViolations"))
 		{
@@ -11718,10 +11745,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		}
 		for (int l = 0; l < bots.Count; l++)
 		{
-			if (!(bots[l] == null))
-			{
-				bots[l].ServerUpdateBots(deltaTime);
-			}
+			bots[l].ServerUpdateBots(deltaTime);
 		}
 		if (ConVar.Server.idlekick > 0 && ((SingletonComponent<ServerMgr>.Instance.AvailableSlots <= 0 && ConVar.Server.idlekickmode == 1) || ConVar.Server.idlekickmode == 2))
 		{
@@ -11885,9 +11909,14 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public float GetSpeed(float running, float ducking, float crawling)
 	{
+		return GetSpeed(running, ducking, crawling, IsSwimming());
+	}
+
+	internal float GetSpeed(float running, float ducking, float crawling, bool isSwimming)
+	{
 		float num = 1f;
 		num -= clothingMoveSpeedReduction;
-		if (IsSwimming())
+		if (isSwimming)
 		{
 			num += clothingWaterSpeedBonus;
 		}
@@ -12158,7 +12187,14 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public bool IsSwimming()
 	{
-		return WaterFactor() >= 0.65f;
+		float num = 0f;
+		num = WaterFactor();
+		return IsSwimming(num);
+	}
+
+	private bool IsSwimming(float waterFactor)
+	{
+		return waterFactor >= 0.65f;
 	}
 
 	public bool IsHeadUnderwater()
@@ -12366,6 +12402,13 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 
 	public override float WaterFactor()
 	{
+		WaterLevel.WaterInfo info;
+		return WaterFactor(out info);
+	}
+
+	internal float WaterFactor(out WaterLevel.WaterInfo info)
+	{
+		info = default(WaterLevel.WaterInfo);
 		if (GetMounted().IsValid())
 		{
 			return GetMounted().WaterFactorForPlayer(this);
@@ -12378,7 +12421,8 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		float num = playerCollider.height * 0.5f;
 		Vector3 start = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center - Vector3.up * (num - radius));
 		Vector3 end = playerCollider.transform.position + playerCollider.transform.rotation * (playerCollider.center + Vector3.up * (num - radius));
-		return WaterLevel.Factor(start, end, radius, waves: true, volumes: true, this);
+		info = WaterLevel.GetWaterInfo(start, end, radius, waves: true, volumes: true, this);
+		return WaterLevel.Factor(in info, start, end, radius);
 	}
 
 	public override float AirFactor()

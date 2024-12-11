@@ -235,7 +235,7 @@ public static class AntiHack
 		}
 	}
 
-	public static bool ValidateMove(BasePlayer ply, TickInterpolator ticks, float deltaTime)
+	internal static bool ValidateMove(BasePlayer ply, TickInterpolator ticks, float deltaTime, in BasePlayer.CachedState initialState)
 	{
 		using (TimeWarning.New("AntiHack.ValidateMove"))
 		{
@@ -258,7 +258,7 @@ public static class AntiHack
 					return false;
 				}
 			}
-			if (IsSpeeding(ply, ticks, deltaTime))
+			if (IsSpeeding(ply, ticks, deltaTime, in initialState))
 			{
 				if (flag)
 				{
@@ -271,7 +271,7 @@ public static class AntiHack
 					return false;
 				}
 			}
-			if (IsFlying(ply, ticks, deltaTime))
+			if (IsFlying(ply, ticks, deltaTime, in initialState))
 			{
 				if (flag)
 				{
@@ -500,7 +500,7 @@ public static class AntiHack
 		}
 	}
 
-	public static bool IsSpeeding(BasePlayer ply, TickInterpolator ticks, float deltaTime)
+	internal static bool IsSpeeding(BasePlayer ply, TickInterpolator ticks, float deltaTime, in BasePlayer.CachedState initialState)
 	{
 		using (TimeWarning.New("AntiHack.IsSpeeding"))
 		{
@@ -521,13 +521,13 @@ public static class AntiHack
 			{
 				bool flag2 = ply.IsRunning();
 				bool flag3 = ply.IsDucked();
-				flag = ply.IsSwimming();
+				flag = initialState.IsSwimming;
 				bool num2 = ply.IsCrawling();
 				running = (flag2 ? 1f : 0f);
 				ducking = ((flag3 || flag) ? 1f : 0f);
 				crawling = (num2 ? 1f : 0f);
 			}
-			float speed = ply.GetSpeed(running, ducking, crawling);
+			float speed = ply.GetSpeed(running, ducking, crawling, initialState.IsSwimming);
 			Vector3 v = obj - vector;
 			float num3 = ((flag && ConVar.AntiHack.speedhack_protection >= 3) ? v.magnitude : v.Magnitude2D());
 			float num4 = deltaTime * speed;
@@ -554,7 +554,7 @@ public static class AntiHack
 		}
 	}
 
-	public static bool IsFlying(BasePlayer ply, TickInterpolator ticks, float deltaTime)
+	internal static bool IsFlying(BasePlayer ply, TickInterpolator ticks, float deltaTime, in BasePlayer.CachedState initialState)
 	{
 		using (TimeWarning.New("AntiHack.IsFlying"))
 		{
@@ -572,6 +572,8 @@ public static class AntiHack
 			Matrix4x4 matrix4x = (flag ? Matrix4x4.identity : ply.transform.parent.localToWorldMatrix);
 			Vector3 oldPos = (flag ? ticks.StartPoint : matrix4x.MultiplyPoint3x4(ticks.StartPoint));
 			Vector3 newPos = (flag ? ticks.EndPoint : matrix4x.MultiplyPoint3x4(ticks.EndPoint));
+			BasePlayer.CachedState playerState = initialState;
+			playerState.IsValid &= ConVar.AntiHack.flyhack_usecachedstate;
 			if (ConVar.AntiHack.flyhack_protection >= 3)
 			{
 				float b = Mathf.Max(ConVar.AntiHack.flyhack_stepsize, 0.1f);
@@ -580,21 +582,22 @@ public static class AntiHack
 				while (ticks.MoveNext(b))
 				{
 					newPos = (flag ? ticks.CurrentPoint : matrix4x.MultiplyPoint3x4(ticks.CurrentPoint));
-					if (TestFlying(ply, oldPos, newPos, verifyGrounded: true))
+					if (TestFlying(ply, oldPos, newPos, verifyGrounded: true, in playerState))
 					{
 						return true;
 					}
+					playerState.IsValid = false;
 					oldPos = newPos;
 				}
 			}
 			else if (ConVar.AntiHack.flyhack_protection >= 2)
 			{
-				if (TestFlying(ply, oldPos, newPos, verifyGrounded: true))
+				if (TestFlying(ply, oldPos, newPos, verifyGrounded: true, in playerState))
 				{
 					return true;
 				}
 			}
-			else if (TestFlying(ply, oldPos, newPos, verifyGrounded: false))
+			else if (TestFlying(ply, oldPos, newPos, verifyGrounded: false, in playerState))
 			{
 				return true;
 			}
@@ -602,7 +605,7 @@ public static class AntiHack
 		}
 	}
 
-	public static bool TestFlying(BasePlayer ply, Vector3 oldPos, Vector3 newPos, bool verifyGrounded)
+	internal static bool TestFlying(BasePlayer ply, Vector3 oldPos, Vector3 newPos, bool verifyGrounded, in BasePlayer.CachedState playerState)
 	{
 		bool isInAir = ply.isInAir;
 		if (!ply.isInAir)
@@ -617,7 +620,7 @@ public static class AntiHack
 			Vector3 vector = (oldPos + newPos) * 0.5f;
 			if (!ply.OnLadder())
 			{
-				if (WaterLevel.Test(vector - new Vector3(0f, flyhack_extrusion, 0f), waves: true, volumes: true, ply))
+				if (playerState.IsValid ? IsInWaterCached(in playerState.WaterInfo, oldPos - new Vector3(0f, flyhack_extrusion, 0f), ply) : WaterLevel.Test(vector - new Vector3(0f, flyhack_extrusion, 0f), waves: true, volumes: true, ply))
 				{
 					if (ply.waterDelay <= 0f)
 					{
@@ -700,6 +703,14 @@ public static class AntiHack
 			ply.flyhackDistanceHorizontal = 0f;
 		}
 		return false;
+		static bool IsInWaterCached(in WaterLevel.WaterInfo cachedInfo, Vector3 adjustedPos, BasePlayer player)
+		{
+			if (!cachedInfo.isValid)
+			{
+				return WaterLevel.Test(in cachedInfo, volumes: true, adjustedPos, player);
+			}
+			return true;
+		}
 	}
 
 	public static bool TestServerSideFallDamage(BasePlayer ply, Vector3 oldPos, Vector3 newPos, float deltaTime)

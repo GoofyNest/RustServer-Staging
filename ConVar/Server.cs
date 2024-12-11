@@ -1283,6 +1283,12 @@ public class Server : ConsoleSystem
 		RustEmojiLibrary.ResetServerEmoji();
 	}
 
+	[ServerVar]
+	public static string BotCount()
+	{
+		return BasePlayer.bots.Count.ToString();
+	}
+
 	private static string AutoCorrectTags(string value)
 	{
 		List<string> inputValues = (from s in value.Split(',', StringSplitOptions.RemoveEmptyEntries)

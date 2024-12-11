@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
@@ -194,42 +193,6 @@ public static class ServerOcclusion
 		(0, 0, -1)
 	};
 
-	public static (int, int, int)[] traversalNeighbours = new(int, int, int)[26]
-	{
-		(1, 0, 0),
-		(-1, 0, 0),
-		(0, 1, 0),
-		(0, -1, 0),
-		(0, 0, 1),
-		(0, 0, -1),
-		(1, 1, 0),
-		(1, -1, 0),
-		(-1, 1, 0),
-		(-1, -1, 0),
-		(1, 0, 1),
-		(1, 0, -1),
-		(-1, 0, 1),
-		(-1, 0, -1),
-		(0, 1, 1),
-		(0, -1, 1),
-		(0, 1, -1),
-		(0, -1, -1),
-		(1, 1, 1),
-		(1, 1, -1),
-		(1, -1, 1),
-		(1, -1, -1),
-		(-1, 1, 1),
-		(-1, 1, -1),
-		(-1, -1, 1),
-		(-1, -1, -1)
-	};
-
-	private static Queue<SubGrid> floodFillQueue = new Queue<SubGrid>();
-
-	private static Dictionary<SubGrid, bool> visited = new Dictionary<SubGrid, bool>();
-
-	public static HashSet<SubGrid> gridArea = new HashSet<SubGrid>();
-
 	public static bool OcclusionEnabled { get; set; } = false;
 
 
@@ -331,52 +294,10 @@ public static class ServerOcclusion
 		return true;
 	}
 
-	public static bool PathBetweenFloodFill(SubGrid start, SubGrid end)
-	{
-		floodFillQueue.Clear();
-		visited.Clear();
-		foreach (SubGrid item in gridArea)
-		{
-			visited.TryAdd(item, value: false);
-		}
-		visited.TryAdd(start, value: true);
-		floodFillQueue.Enqueue(start);
-		int num = 0;
-		while (floodFillQueue.Count > 0)
-		{
-			if (num++ > OcclusionMaxBFSIterations)
-			{
-				return true;
-			}
-			SubGrid subGrid = floodFillQueue.Dequeue();
-			if (subGrid.Equals(end))
-			{
-				return true;
-			}
-			for (int i = 0; i < traversalNeighbours.Length; i++)
-			{
-				int x = subGrid.x + traversalNeighbours[i].Item1;
-				int y = subGrid.y + traversalNeighbours[i].Item2;
-				int z = subGrid.z + traversalNeighbours[i].Item3;
-				if (IsValidSubGrid(x, y, z))
-				{
-					SubGrid subGrid2 = new SubGrid(x, y, z);
-					if (!(visited.TryGetValue(subGrid2, out var value) && value) && gridArea.Contains(subGrid2))
-					{
-						visited[subGrid2] = true;
-						floodFillQueue.Enqueue(subGrid2);
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	public static void GenerateGridArea(SubGrid grid1, SubGrid grid2, out bool directPath, out bool anyPath)
+	public static void CalculatePathBetweenGrids(SubGrid grid1, SubGrid grid2, out bool directPath, out bool anyPath)
 	{
 		anyPath = true;
 		directPath = true;
-		gridArea.Clear();
 		int num = grid1.x;
 		int num2 = grid1.y;
 		int num3 = grid1.z;
@@ -511,11 +432,9 @@ public static class ServerOcclusion
 				{
 					break;
 				}
-				SubGrid subGrid = new SubGrid(x2, y2, z2);
-				if (!IsBlocked(subGrid))
+				if (!IsBlocked(new SubGrid(x2, y2, z2)))
 				{
 					blocked = false;
-					gridArea.Add(subGrid);
 				}
 			}
 		}
@@ -524,7 +443,6 @@ public static class ServerOcclusion
 			originBlocked = true;
 			if (!IsBlocked(grid))
 			{
-				gridArea.Add(grid);
 				originBlocked = false;
 				AddNeighbours(grid, out neighboursBlocked);
 			}
@@ -599,7 +517,7 @@ public static class ServerOcclusion
 		{
 			return $"Invalid grid(s), positions provided: {vector} - {vector2}";
 		}
-		GenerateGridArea(subGrid, subGrid2, out var directPath, out var anyPath);
-		return $"Grid 1: {subGrid}, Grid 2: {subGrid2}\nDirect Path: {directPath}, Any Path: {anyPath}, Flood fill: {anyPath && PathBetweenFloodFill(subGrid, subGrid2)}";
+		CalculatePathBetweenGrids(subGrid, subGrid2, out var directPath, out var anyPath);
+		return $"Grid 1: {subGrid}, Grid 2: {subGrid2}\nDirect Path: {directPath}, Any Path: {anyPath}";
 	}
 }

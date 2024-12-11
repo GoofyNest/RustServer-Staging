@@ -61,6 +61,9 @@ public class SteamInventoryItem : ScriptableObject
 	[Tooltip("Does nothing currently")]
 	public bool forceCraftableItemDesc;
 
+	[Tooltip("If enabled the item store will not show this as a 3d model")]
+	public bool forceDisableTurntableInItemStore;
+
 	public ItemDefinition itemDefinition => ItemManager.FindItemDefinition(itemname);
 
 	public virtual bool HasUnlocked(ulong playerId)

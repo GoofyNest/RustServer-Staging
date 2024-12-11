@@ -1348,9 +1348,14 @@ public class Admin : ConsoleSystem
 		global::Vis.Entities(player.transform.position, radius, list);
 		foreach (BaseEntity item in list)
 		{
-			if (item.isServer && !SetUserAuthorized(item, player.userID, auth))
+			if (item.isServer)
 			{
-				SetUserAuthorized(item.GetSlot(BaseEntity.Slot.Lock), player.userID, auth);
+				Debug.Log(item.name);
+				if (!SetUserAuthorized(item, player.userID, auth))
+				{
+					Debug.Log("Couldnt auth on " + item.name);
+					SetUserAuthorized(item.GetSlot(BaseEntity.Slot.Lock), player.userID, auth);
+				}
 			}
 		}
 	}
@@ -1405,6 +1410,10 @@ public class Admin : ConsoleSystem
 			else
 			{
 				buildingPrivlidge.authorizedPlayers.RemoveWhere((PlayerNameID x) => x.userid == userId);
+			}
+			if (entity.GetSlot(BaseEntity.Slot.Lock).IsValid())
+			{
+				SetUserAuthorized(entity.GetSlot(BaseEntity.Slot.Lock), userId, state);
 			}
 			buildingPrivlidge.SendNetworkUpdate();
 		}
@@ -1936,22 +1945,18 @@ public class Admin : ConsoleSystem
 	[ServerVar]
 	public static void clearUGCByPlayer(Arg arg)
 	{
-		BasePlayer player = arg.GetPlayer(0);
-		if (player == null)
-		{
-			arg.ReplyWith("Invalid player provided");
-			return;
-		}
-		int num = 0;
+		BasePlayer playerOrSleeper = arg.GetPlayerOrSleeper(0);
+		ulong num = ((playerOrSleeper == null) ? arg.GetULong(0, 0uL) : playerOrSleeper.userID.Get());
+		int num2 = 0;
 		foreach (BaseNetworkable serverEntity in BaseNetworkable.serverEntities)
 		{
-			if (serverEntity.TryGetComponent<IUGCBrowserEntity>(out var component) && component.EditingHistory.Contains(player.userID))
+			if (serverEntity.TryGetComponent<IUGCBrowserEntity>(out var component) && component.EditingHistory.Contains(num))
 			{
 				component.ClearContent();
-				num++;
+				num2++;
 			}
 		}
-		arg.ReplyWith($"Cleared {num} UGC entities modified by {player.displayName}");
+		arg.ReplyWith($"Cleared {num2} UGC entities modified by {((playerOrSleeper != null) ? playerOrSleeper.displayName : ((object)num))}");
 	}
 
 	[ServerVar]

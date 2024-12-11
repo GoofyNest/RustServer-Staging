@@ -15,7 +15,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1371]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1374]
 	{
 		new ConsoleSystem.Command
 		{
@@ -834,8 +834,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval37 = BradleyAPC.svspawnroadbradley(arg.GetVector3(0, Vector3.zero), arg.GetVector3(1, Vector3.zero));
-				arg.ReplyWithObject(rval37);
+				string rval38 = BradleyAPC.svspawnroadbradley(arg.GetVector3(0, Vector3.zero), arg.GetVector3(1, Vector3.zero));
+				arg.ReplyWithObject(rval38);
 			}
 		},
 		new ConsoleSystem.Command
@@ -1572,8 +1572,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				ServerUsers.User[] rval36 = Admin.Bans();
-				arg.ReplyWithObject(rval36);
+				ServerUsers.User[] rval37 = Admin.Bans();
+				arg.ReplyWithObject(rval37);
 			}
 		},
 		new ConsoleSystem.Command
@@ -1586,8 +1586,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				BuildInfo rval35 = Admin.BuildInfo();
-				arg.ReplyWithObject(rval35);
+				BuildInfo rval36 = Admin.BuildInfo();
+				arg.ReplyWithObject(rval36);
 			}
 		},
 		new ConsoleSystem.Command
@@ -1882,8 +1882,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				Admin.PlayerInfo[] rval34 = Admin.playerlist();
-				arg.ReplyWithObject(rval34);
+				Admin.PlayerInfo[] rval35 = Admin.playerlist();
+				arg.ReplyWithObject(rval35);
 			}
 		},
 		new ConsoleSystem.Command
@@ -2099,8 +2099,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval33 = Admin.teaminfo(arg);
-				arg.ReplyWithObject(rval33);
+				string rval34 = Admin.teaminfo(arg);
+				arg.ReplyWithObject(rval34);
 			}
 		},
 		new ConsoleSystem.Command
@@ -3682,6 +3682,19 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "flyhack_usecachedstate",
+			Parent = "antihack",
+			FullName = "antihack.flyhack_usecachedstate",
+			ServerAdmin = true,
+			Variable = true,
+			GetOveride = () => ConVar.AntiHack.flyhack_usecachedstate.ToString(),
+			SetOveride = delegate(string str)
+			{
+				ConVar.AntiHack.flyhack_usecachedstate = str.ToBool();
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "forceposition",
 			Parent = "antihack",
 			FullName = "antihack.forceposition",
@@ -5136,8 +5149,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Chat.ChatEntry> rval32 = Chat.search(arg);
-				arg.ReplyWithObject(rval32);
+				IEnumerable<Chat.ChatEntry> rval33 = Chat.search(arg);
+				arg.ReplyWithObject(rval33);
 			}
 		},
 		new ConsoleSystem.Command
@@ -5162,8 +5175,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Chat.ChatEntry> rval31 = Chat.tail(arg);
-				arg.ReplyWithObject(rval31);
+				IEnumerable<Chat.ChatEntry> rval32 = Chat.tail(arg);
+				arg.ReplyWithObject(rval32);
 			}
 		},
 		new ConsoleSystem.Command
@@ -5386,8 +5399,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Output.Entry> rval30 = Console.search(arg);
-				arg.ReplyWithObject(rval30);
+				IEnumerable<Output.Entry> rval31 = Console.search(arg);
+				arg.ReplyWithObject(rval31);
 			}
 		},
 		new ConsoleSystem.Command
@@ -5399,8 +5412,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				IEnumerable<Output.Entry> rval29 = Console.tail(arg);
-				arg.ReplyWithObject(rval29);
+				IEnumerable<Output.Entry> rval30 = Console.tail(arg);
+				arg.ReplyWithObject(rval30);
 			}
 		},
 		new ConsoleSystem.Command
@@ -5912,6 +5925,18 @@ public class ConsoleGen
 		},
 		new ConsoleSystem.Command
 		{
+			Name = "deleteentitybyid",
+			Parent = "debug",
+			FullName = "debug.deleteentitybyid",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Debugging.deleteEntityById(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
 			Name = "disablecondition",
 			Parent = "debug",
 			FullName = "debug.disablecondition",
@@ -6243,8 +6268,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval28 = Debugging.testTutorialCinematic(arg);
-				arg.ReplyWithObject(rval28);
+				string rval29 = Debugging.testTutorialCinematic(arg);
+				arg.ReplyWithObject(rval29);
 			}
 		},
 		new ConsoleSystem.Command
@@ -6755,8 +6780,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval27 = Demo.record(arg);
-				arg.ReplyWithObject(rval27);
+				string rval28 = Demo.record(arg);
+				arg.ReplyWithObject(rval28);
 			}
 		},
 		new ConsoleSystem.Command
@@ -6865,8 +6890,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval26 = Demo.stop(arg);
-				arg.ReplyWithObject(rval26);
+				string rval27 = Demo.stop(arg);
+				arg.ReplyWithObject(rval27);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7081,8 +7106,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval25 = Entity.svspawn(arg.GetString(0), arg.GetVector3(1, Vector3.zero), arg.GetVector3(2, Vector3.zero), arg.GetInt(3, 1));
-				arg.ReplyWithObject(rval25);
+				string rval26 = Entity.svspawn(arg.GetString(0), arg.GetVector3(1, Vector3.zero), arg.GetVector3(2, Vector3.zero), arg.GetInt(3, 1));
+				arg.ReplyWithObject(rval26);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7094,8 +7119,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval24 = Entity.svspawngrid(arg.GetString(0), arg.GetInt(1, 5), arg.GetInt(2, 5), arg.GetInt(3, 5));
-				arg.ReplyWithObject(rval24);
+				string rval25 = Entity.svspawngrid(arg.GetString(0), arg.GetInt(1, 5), arg.GetInt(2, 5), arg.GetInt(3, 5));
+				arg.ReplyWithObject(rval25);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7107,8 +7132,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval23 = Entity.svspawnitem(arg.GetString(0), arg.GetVector3(1, Vector3.zero));
-				arg.ReplyWithObject(rval23);
+				string rval24 = Entity.svspawnitem(arg.GetString(0), arg.GetVector3(1, Vector3.zero));
+				arg.ReplyWithObject(rval24);
 			}
 		},
 		new ConsoleSystem.Command
@@ -7690,8 +7715,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval22 = Global.printAllScenesInBuild(arg);
-				arg.ReplyWithObject(rval22);
+				string rval23 = Global.printAllScenesInBuild(arg);
+				arg.ReplyWithObject(rval23);
 			}
 		},
 		new ConsoleSystem.Command
@@ -8636,8 +8661,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				object rval21 = ConVar.Manifest.PrintManifest();
-				arg.ReplyWithObject(rval21);
+				object rval22 = ConVar.Manifest.PrintManifest();
+				arg.ReplyWithObject(rval22);
 			}
 		},
 		new ConsoleSystem.Command
@@ -8649,8 +8674,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				object rval20 = ConVar.Manifest.PrintManifestRaw();
-				arg.ReplyWithObject(rval20);
+				object rval21 = ConVar.Manifest.PrintManifestRaw();
+				arg.ReplyWithObject(rval21);
 			}
 		},
 		new ConsoleSystem.Command
@@ -9630,8 +9655,8 @@ public class ConsoleGen
 			Variable = false,
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
-				string rval19 = Player.createTrophy(arg);
-				arg.ReplyWithObject(rval19);
+				string rval20 = Player.createTrophy(arg);
+				arg.ReplyWithObject(rval20);
 			}
 		},
 		new ConsoleSystem.Command
@@ -10453,6 +10478,19 @@ public class ConsoleGen
 			SetOveride = delegate(string str)
 			{
 				ConVar.Server.bleedingdamage = str.ToFloat();
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "botcount",
+			Parent = "server",
+			FullName = "server.botcount",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				string rval19 = ConVar.Server.BotCount();
+				arg.ReplyWithObject(rval19);
 			}
 		},
 		new ConsoleSystem.Command

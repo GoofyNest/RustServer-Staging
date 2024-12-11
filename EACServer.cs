@@ -608,7 +608,7 @@ public static class EACServer
 		}
 	}
 
-	public static void LogPlayerTick(BasePlayer player)
+	internal static void LogPlayerTick(BasePlayer player, in BasePlayer.CachedState tickState)
 	{
 		if (!CanSendAnalytics || player.net == null || player.net.connection == null)
 		{
@@ -653,7 +653,7 @@ public static class EACServer
 			{
 				options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Prone;
 			}
-			if (player.IsSwimming())
+			if (tickState.IsSwimming)
 			{
 				options.PlayerMovementState |= AntiCheatCommonPlayerMovementState.Swimming;
 			}

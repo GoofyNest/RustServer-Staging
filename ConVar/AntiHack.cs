@@ -196,6 +196,10 @@ public class AntiHack : ConsoleSystem
 	public static int flyhack_maxsteps = 15;
 
 	[ServerVar]
+	[Help("Optimizes checks by using cached water info. Originally off")]
+	public static bool flyhack_usecachedstate = true;
+
+	[ServerVar]
 	[Help("serverside fall damage, requires flyhack_protection >= 2 for proper functionality")]
 	public static bool serverside_fall_damage = false;
 
