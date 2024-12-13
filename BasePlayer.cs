@@ -8738,6 +8738,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 		{
 			return;
 		}
+		bool wasWounded = IsWounded();
 		if (ConVar.Server.pve && !IsNpc && (bool)info.Initiator && info.Initiator is BasePlayer && info.Initiator != this)
 		{
 			(info.Initiator as BasePlayer).Hurt(info.damageTypes.Total(), DamageType.Generic);
@@ -8817,7 +8818,7 @@ public class BasePlayer : BaseCombatEntity, LootPanel.IHasLootPanel, IIdealSlotE
 				handcuffs.InterruptUnlockMiniGame(wasPushedOrDamaged: true);
 			}
 		}
-		EACServer.LogPlayerTakeDamage(this, info);
+		EACServer.LogPlayerTakeDamage(this, info, wasWounded);
 		metabolism.SendChangesToClient();
 		if (info.PointStart != Vector3.zero && (info.damageTypes.Total() >= 0f || IsGod()))
 		{

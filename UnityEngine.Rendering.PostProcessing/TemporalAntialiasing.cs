@@ -83,7 +83,6 @@ public sealed class TemporalAntialiasing
 	public Matrix4x4 GetJitteredProjectionMatrix(Camera camera)
 	{
 		jitter = GenerateRandomOffset();
-		jitter *= jitterSpread;
 		Matrix4x4 result = ((jitteredMatrixFunc == null) ? (camera.orthographic ? RuntimeUtilities.GetJitteredOrthographicProjectionMatrix(camera, jitter) : RuntimeUtilities.GetJitteredPerspectiveProjectionMatrix(camera, jitter)) : jitteredMatrixFunc(camera, jitter));
 		jitterRaw = jitter;
 		jitter = new Vector2(jitter.x / (float)camera.pixelWidth, jitter.y / (float)camera.pixelHeight);
@@ -102,7 +101,6 @@ public sealed class TemporalAntialiasing
 	{
 		Camera camera = context.camera;
 		jitter = GenerateRandomOffset();
-		jitter *= jitterSpread;
 		for (Camera.StereoscopicEye stereoscopicEye = Camera.StereoscopicEye.Left; stereoscopicEye <= Camera.StereoscopicEye.Right; stereoscopicEye++)
 		{
 			context.camera.CopyStereoDeviceProjectionMatrixToNonJittered(stereoscopicEye);

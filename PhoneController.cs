@@ -180,7 +180,7 @@ public class PhoneController : EntityComponent<BaseEntity>
 			PhoneNumber = TelephoneManager.GetUnusedTelephoneNumber();
 			if (AppendGridToName & !string.IsNullOrEmpty(PhoneName))
 			{
-				PhoneName = $"{PhoneName} {MapHelper.PositionToGrid(base.transform.position)}";
+				PhoneName = PhoneName + " [" + MapHelper.PositionToString(base.transform.position) + "]";
 			}
 			TelephoneManager.RegisterTelephone(this);
 		}

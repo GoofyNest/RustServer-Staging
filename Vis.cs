@@ -5,7 +5,7 @@ public static class Vis
 {
 	private static int colCount = 0;
 
-	private static Collider[] colBuffer = new Collider[8192];
+	private static Collider[] colBuffer = new Collider[32768];
 
 	private static HashSet<object> hashSet = new HashSet<object>();
 

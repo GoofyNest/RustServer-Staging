@@ -524,7 +524,7 @@ public static class EACServer
 		}
 	}
 
-	public static void LogPlayerTakeDamage(BasePlayer player, HitInfo info)
+	public static void LogPlayerTakeDamage(BasePlayer player, HitInfo info, bool wasWounded)
 	{
 		if (!CanSendAnalytics || !(info.Initiator != null) || !(info.Initiator is BasePlayer))
 		{
@@ -551,7 +551,7 @@ public static class EACServer
 			options.IsCriticalHit = info.isHeadshot;
 			if (player.IsDead())
 			{
-				options.DamageResult = AntiCheatCommonPlayerTakeDamageResult.NormalToEliminated;
+				options.DamageResult = (wasWounded ? AntiCheatCommonPlayerTakeDamageResult.DownedToEliminated : AntiCheatCommonPlayerTakeDamageResult.NormalToEliminated);
 			}
 			else if (player.IsWounded())
 			{

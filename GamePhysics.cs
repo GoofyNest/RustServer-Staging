@@ -12,13 +12,13 @@ public static class GamePhysics
 		Server
 	}
 
-	public const int BufferLength = 8192;
+	public const int BufferLength = 32768;
 
-	private static RaycastHit[] hitBuffer = new RaycastHit[8192];
+	private static RaycastHit[] hitBuffer = new RaycastHit[32768];
 
-	private static RaycastHit[] hitBufferB = new RaycastHit[8192];
+	private static RaycastHit[] hitBufferB = new RaycastHit[32768];
 
-	private static Collider[] colBuffer = new Collider[8192];
+	private static Collider[] colBuffer = new Collider[32768];
 
 	public static bool CheckSphere(Vector3 position, float radius, int layerMask = -5, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.UseGlobal)
 	{
