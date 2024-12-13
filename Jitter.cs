@@ -34,9 +34,6 @@ public class Jitter
 	public Vector2 TexelOffset { get; private set; } = Vector2.zero;
 
 
-	public Vector2 PreviousTexelOffset { get; private set; } = Vector2.zero;
-
-
 	public Jitter()
 	{
 		SampleCount = haltonSequence.Length;
@@ -44,7 +41,6 @@ public class Jitter
 
 	private Matrix4x4 GetJitteredProjectionMatrix(Camera camera)
 	{
-		PreviousTexelOffset = TexelOffset;
 		Offset = haltonSequence[++SampleIndex % 8] - new Vector2(0.5f, 0.5f);
 		TexelOffset = new Vector2(Offset.x / (float)camera.pixelWidth, Offset.y / (float)camera.pixelHeight);
 		return RuntimeUtilities.GetJitteredPerspectiveProjectionMatrix(camera, Offset);

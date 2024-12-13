@@ -76,7 +76,7 @@ public sealed class RustTemporalAntialiasingRenderer : PostProcessEffectRenderer
 		multipleRenderTargets[0] = context.destination;
 		multipleRenderTargets[1] = renderTexture;
 		command.BeginSample("RustTemporalAntiAliasing");
-		command.SetGlobalVector(jitterTexelOffsetId, JitterSettings.PreviousTexelOffset);
+		command.SetGlobalVector(jitterTexelOffsetId, JitterSettings.TexelOffset);
 		command.SetGlobalTexture(historyTextureId, renderTexture2);
 		command.BlitFullscreenTriangle(context.source, multipleRenderTargets, BuiltinRenderTextureType.None, propertySheet, 0);
 		command.EndSample("RustTemporalAntiAliasing");
