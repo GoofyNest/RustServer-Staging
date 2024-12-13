@@ -438,4 +438,28 @@ public class Entity : ConsoleSystem
 		Facepunch.Pool.FreeUnmanaged(ref obj);
 		arg.ReplyWith($"Destroyed {num} entities");
 	}
+
+	[ServerVar]
+	public static void set_battery_charge(Arg arg)
+	{
+		BasePlayer basePlayer = arg.Player();
+		if (basePlayer == null)
+		{
+			return;
+		}
+		if (!arg.HasArgs())
+		{
+			arg.ReplyWith("Usage: set_battery_charge <charge>");
+			return;
+		}
+		float @float = arg.GetFloat(0);
+		ElectricBattery electricBattery = GamePhysics.RaycastEntity(GamePhysics.Realm.Server, basePlayer.eyes.HeadRay(), 5f) as ElectricBattery;
+		if (electricBattery == null)
+		{
+			arg.ReplyWith("Not looking at battery");
+			return;
+		}
+		electricBattery.SetCharge(@float);
+		arg.ReplyWith($"Set battery charge to {@float}");
+	}
 }

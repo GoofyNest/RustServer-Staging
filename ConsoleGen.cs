@@ -15,7 +15,7 @@ using UnityEngine;
 
 public class ConsoleGen
 {
-	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1374]
+	public static ConsoleSystem.Command[] All = new ConsoleSystem.Command[1375]
 	{
 		new ConsoleSystem.Command
 		{
@@ -7083,6 +7083,18 @@ public class ConsoleGen
 			Call = delegate(ConsoleSystem.Arg arg)
 			{
 				Entity.nudge(arg);
+			}
+		},
+		new ConsoleSystem.Command
+		{
+			Name = "set_battery_charge",
+			Parent = "entity",
+			FullName = "entity.set_battery_charge",
+			ServerAdmin = true,
+			Variable = false,
+			Call = delegate(ConsoleSystem.Arg arg)
+			{
+				Entity.set_battery_charge(arg);
 			}
 		},
 		new ConsoleSystem.Command

@@ -31,6 +31,12 @@ public class ProjectileWeaponMod : BaseEntity
 
 	public bool isSilencer;
 
+	private static TimeSince lastADSTime;
+
+	private static TimeSince lastToastTime;
+
+	public static Translate.Phrase ToggleZoomToastPhrase = new Translate.Phrase("toast.toggle_zoom", "Press [PageUp] and [PageDown] to toggle scope zoom level");
+
 	[Header("Weapon Basics")]
 	public Modifier repeatDelay;
 
